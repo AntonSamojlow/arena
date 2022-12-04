@@ -1,0 +1,14 @@
+# Build directories
+build/
+out/
+
+# User spesific settings
+CMakeUserPresets.json
+
+# IDE files
+.vs/
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
