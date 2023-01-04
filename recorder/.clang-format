@@ -1,0 +1,7 @@
+---
+BasedOnStyle: Google
+
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Inline
+ColumnLimit: 120
+...
