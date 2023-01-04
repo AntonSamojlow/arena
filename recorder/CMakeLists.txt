@@ -1,7 +1,6 @@
 ﻿cmake_minimum_required (VERSION 3.24)
 
 project ("recorder"
-  "recorder"
   VERSION 0.0.1
   DESCRIPTION ""
   HOMEPAGE_URL "https://github.com/AntonSamojlow/arena"
@@ -32,11 +31,11 @@ if(ENABLE_CLANG_TIDY)
 endif()
 
 # include sub-projects
-add_subdirectory (src/main)
-add_subdirectory (src/graph)
+add_subdirectory (src/recorder)
+#add_subdirectory (src/graph)
 
 # set up testing
-enable_testing()
+#enable_testing()
 # include test projects
-add_subdirectory (test)
+#add_subdirectory (test)
 
