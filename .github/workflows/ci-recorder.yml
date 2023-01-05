@@ -18,7 +18,6 @@ on:
 defaults:
   run:
     shell: pwsh
-    working-directory: recorder # note: this applies only to `run`, not to `with` steps
 
 jobs:
   job:
@@ -89,27 +88,30 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
 
       - name: Cmake Configure ${{ matrix.configure-preset }}
+        working-directory: recorder
         run: |
           cmake --preset ${{ matrix.configure-preset }}
 
       - name: Cmake Build
         if: ${{ matrix.build-preset == '' }}
+        working-directory: recorder/out/build/${{ matrix.configure-preset }}
         run: |
-          cd ${{ env.PROJECT_ROOT }}/out/build/${{ matrix.configure-preset }}
           cmake --build .
 
       - name: Cmake Build (preset ${{ matrix.build-preset }})
         if: ${{ matrix.build-preset != '' }}
+        working-directory: recorder
         run: |
           cmake --build --preset ${{ matrix.build-preset }}
 
       - name: Run CTest ${{ matrix.configure-preset }}
         if: ${{ matrix.test-preset == '' }}
+        working-directory: recorder/out/build/${{ matrix.configure-preset }}
         run: |
-          cd ${{ env.PROJECT_ROOT }}/out/build/${{ matrix.configure-preset }}
           ctest
 
       - name: Run CTest (preset ${{ matrix.test-preset }})
         if: ${{ matrix.test-preset != '' }}
+        working-directory: recorder
         run: |
           ctest --preset ${{ matrix.test-preset }}
