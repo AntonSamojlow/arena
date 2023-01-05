@@ -46,7 +46,7 @@ jobs:
     env:
       PROJECT_ROOT: ${{ github.workspace }}/recorder/
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
-      VCPKG_ROOT: ${{ env.PROJECT_ROOT }}/vcpkg
+      VCPKG_ROOT: ${{ github.workspace }}/recorder/vcpkg
       # Tells vcpkg where binary packages are stored.
       VCPKG_DEFAULT_BINARY_CACHE: ${{ env.PROJECT_ROOT }}/vcpkg/bincache
 
