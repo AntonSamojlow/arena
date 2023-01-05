@@ -30,6 +30,9 @@
 				"type": "equals",
 				"lhs": "${hostSystemName}",
 				"rhs": "Windows"
+			},
+			"cacheVariables": {
+				"CMAKE_EXPORT_COMPILE_COMMANDS": true 
 			}
 		},
 
@@ -51,7 +54,7 @@
 				}
 			}
 		},
-
+		
 		{
 			"name": "debug",
 			"hidden": true,
