@@ -1,4 +1,5 @@
 {
     "cmake.sourceDirectory": "${workspaceFolder}/recorder",
-    "cmake.copyCompileCommands": "${workspaceFolder}/recorder/compile_commands.json"
+    "cmake.copyCompileCommands": "${workspaceFolder}/recorder/compile_commands.json",
+    "sonarlint.pathToCompileCommands": "${workspaceFolder}/recorder/compile_commands.json"
 } 
