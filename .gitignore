@@ -1,9 +1,6 @@
 # Build directories
 recorder/out/
 
-# User spesific settings
-CMakeUserPresets.json
-
 # IDE files
 .vs/
 .vscode/
@@ -11,3 +8,19 @@ CMakeUserPresets.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# User spesific files
+CMakeUserPresets.json
