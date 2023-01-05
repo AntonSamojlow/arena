@@ -1,5 +1,6 @@
 # Build directories
-recorder/out/
+recorder/build
+recorder/out
 
 # IDE files
 .vs/

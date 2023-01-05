@@ -94,7 +94,7 @@ jobs:
 
       - name: Cmake Build
         if: ${{ matrix.build-preset == '' }}
-        working-directory: recorder/out/build/${{ matrix.configure-preset }}
+        working-directory: recorder/build/${{ matrix.configure-preset }}
         run: |
           cmake --build .
 
@@ -106,7 +106,7 @@ jobs:
 
       - name: Run CTest ${{ matrix.configure-preset }}
         if: ${{ matrix.test-preset == '' }}
-        working-directory: recorder/out/build/${{ matrix.configure-preset }}
+        working-directory: recorder/build/${{ matrix.configure-preset }}
         run: |
           ctest
 
