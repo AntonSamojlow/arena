@@ -4,11 +4,12 @@ recorder/out
 
 # IDE files
 .vs/
-.vscode/
+.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.cache/
 
 # CMake
 CMakeLists.txt.user
