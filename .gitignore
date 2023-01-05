@@ -1,6 +1,5 @@
 # Build directories
-build/
-out/
+recorder/out/
 
 # User spesific settings
 CMakeUserPresets.json

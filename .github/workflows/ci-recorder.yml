@@ -44,10 +44,11 @@ jobs:
             configure-preset: clang-cl-release-tidy
 
     env:
+      PROJECT_ROOT: ${{ github.workspace }}/recorder/
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_ROOT: ${{ env.PROJECT_ROOT }}/vcpkg
       # Tells vcpkg where binary packages are stored.
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ env.PROJECT_ROOT }}/vcpkg/bincache
 
     steps:
       - uses: actions/checkout@v3
@@ -90,7 +91,7 @@ jobs:
       - name: Cmake Build
         if: ${{ matrix.build-preset == '' }}
         run: |
-          cd ${{ github.workspace }}/out/build/${{ matrix.configure-preset }}
+          cd ${{ env.PROJECT_ROOT }}/out/build/${{ matrix.configure-preset }}
           cmake --build .
 
       - name: Cmake Build (preset ${{ matrix.build-preset }})
@@ -101,7 +102,7 @@ jobs:
       - name: Run CTest ${{ matrix.configure-preset }}
         if: ${{ matrix.test-preset == '' }}
         run: |
-          cd ${{ github.workspace }}/out/build/${{ matrix.configure-preset }}
+          cd ${{ env.PROJECT_ROOT }}/out/build/${{ matrix.configure-preset }}
           ctest
 
       - name: Run CTest (preset ${{ matrix.test-preset }})
