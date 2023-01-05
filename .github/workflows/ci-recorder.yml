@@ -15,6 +15,11 @@ on:
     branches:
       - main
 
+defaults:
+  run:
+    shell: pwsh
+    working-directory: recorder # note: this applies only to `run`, not to `with` steps
+
 jobs:
   job:
     name: CI (${{ matrix.os }}-${{ matrix.configure-preset }})
@@ -44,7 +49,6 @@ jobs:
             configure-preset: clang-cl-release-tidy
 
     env:
-      PROJECT_ROOT: ${{ github.workspace }}/recorder/
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
       VCPKG_ROOT: ${{ github.workspace }}/recorder/vcpkg
       # Tells vcpkg where binary packages are stored.
