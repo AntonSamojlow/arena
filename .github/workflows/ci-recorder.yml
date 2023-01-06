@@ -10,10 +10,10 @@ on:
     - cron: '25 18 * * SUN'
       branches:
       - main
-  # pull_request:
-  # push:
-  #   branches:
-  #     - main
+  pull_request:
+  push:
+    branches:
+      - main
 
 defaults:
   run:
