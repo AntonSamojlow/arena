@@ -24,9 +24,9 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - mwindows-latest
+          - windows-latest
         configure-preset: 
-          - cmsvc-release
+          - msvc-release
         architecture:
           - x64  # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
         
