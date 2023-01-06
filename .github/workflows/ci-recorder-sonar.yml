@@ -35,7 +35,7 @@ jobs:
       VCPKG_ROOT: ${{ github.workspace }}/recorder/vcpkg
       # Tells vcpkg where binary packages are stored.
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/recorder/vcpkg/bincache
-      BUILD_WRAPPER_OUT_DIR: build_wrapper_output
+      BUILD_WRAPPER_OUT_DIR: ${{ github.workspace }}/recorder/build-wrapper-output
 
     steps:
       - uses: actions/checkout@v3
