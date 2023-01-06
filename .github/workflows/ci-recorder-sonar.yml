@@ -4,7 +4,7 @@
 # inspired by / adapted from:
 # https://github.com/lukka/CppCMakeVcpkgTemplate/blob/main/.github/workflows/hosted-pure-workflow.yml
 
-name: ci (recorder)
+name: ci (recorder-sonar)
 on:
   schedule:
     - cron: '25 18 * * SUN'
