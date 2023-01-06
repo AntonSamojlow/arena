@@ -29,15 +29,14 @@ jobs:
           - msvc-release
         architecture:
           - x64  # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
-        
+ 
     env:
-      PROJECT_ROOT: ${{ github.workspace }}/recorder/
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
       VCPKG_ROOT: ${{ github.workspace }}/recorder/vcpkg
       # Tells vcpkg where binary packages are stored.
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/recorder/vcpkg/bincache
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output
-    
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -77,34 +76,36 @@ jobs:
         uses: SonarSource/sonarcloud-github-c-cpp@v1
 
       - name: Cmake Configure ${{ matrix.configure-preset }}
+        working-directory: recorder
         run: |
           cmake --preset ${{ matrix.configure-preset }}
 
       - name: Cmake Build
         if: ${{ matrix.build-preset == '' }}
+        working-directory: recorder/build/${{ matrix.configure-preset }}
         run: |
-          cd ${{ env.PROJECT_ROOT }}/out/build/${{ matrix.configure-preset }}
           build-wrapper-win-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build .
 
       - name: Cmake Build (preset ${{ matrix.build-preset }})
         if: ${{ matrix.build-preset != '' }}
+        working-directory: recorder
         run: |
           build-wrapper-win-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build --preset ${{ matrix.build-preset }}
-      
+
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
-
       - name: Run CTest ${{ matrix.configure-preset }}
         if: ${{ matrix.test-preset == '' }}
+        working-directory: recorder/build/${{ matrix.configure-preset }}
         run: |
-          cd ${{ env.PROJECT_ROOT }}/out/build/${{ matrix.configure-preset }}
           ctest
 
       - name: Run CTest (preset ${{ matrix.test-preset }})
         if: ${{ matrix.test-preset != '' }}
+        working-directory: recorder
         run: |
           ctest --preset ${{ matrix.test-preset }}
