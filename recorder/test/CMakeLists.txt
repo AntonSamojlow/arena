@@ -28,3 +28,8 @@ enable_sanitizers(tests
 include(CTest)
 include(Catch)
 catch_discover_tests(tests)
+
+
+if(ENABLE_COVERAGE)
+  enable_coverage(tests)
+endif()
