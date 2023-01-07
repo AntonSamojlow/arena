@@ -24,9 +24,9 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - windows-latest
+          - ubuntu-latest
         configure-preset: 
-          - msvc-release
+          - clang-release-coverage
         architecture:
           - x64  # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
  
@@ -72,6 +72,15 @@ jobs:
       # As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
       - uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Set up Python 3.8 for gcovr
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - name: install gcovr 5.0
+        run: |
+          pip install gcovr==5.0 # 5.1 is not supported
+
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v1
 
@@ -84,21 +93,14 @@ jobs:
         if: ${{ matrix.build-preset == '' }}
         working-directory: recorder/build/${{ matrix.configure-preset }}
         run: |
-          build-wrapper-win-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build .
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build .
 
       - name: Cmake Build (preset ${{ matrix.build-preset }})
         if: ${{ matrix.build-preset != '' }}
         working-directory: recorder
         run: |
-          build-wrapper-win-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build --preset ${{ matrix.build-preset }}
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build --preset ${{ matrix.build-preset }}
 
-      - name: Run sonar-scanner
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
-          
       - name: Run CTest ${{ matrix.configure-preset }}
         if: ${{ matrix.test-preset == '' }}
         working-directory: recorder/build/${{ matrix.configure-preset }}
@@ -110,3 +112,15 @@ jobs:
         working-directory: recorder
         run: |
           ctest --preset ${{ matrix.test-preset }}
+
+      - name: Collect coverage into one XML report
+        run: |
+          gcovr --sonarqube > coverage.xml
+
+      - name: Run sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
+    
