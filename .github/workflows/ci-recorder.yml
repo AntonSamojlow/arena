@@ -10,7 +10,7 @@ on:
     - cron: '25 18 * * SUN'
       branches:
       - main
-  pull_request:
+  pull_request: [opened, synchronize, reopened]
   push:
     branches:
       - main
