@@ -7,7 +7,7 @@
 name: ci (recorder)
 on:
   schedule:
-    - cron: '25 18 * * SUN'
+    - cron: '25 16 * * SUN'
       branches:
       - main
   pull_request:
@@ -21,8 +21,8 @@ defaults:
     shell: pwsh
 
 jobs:
-  job:
-    name: CI (${{ matrix.os }}-${{ matrix.configure-preset }})
+  build-test:
+    name: Build, Test and Analyze (${{ matrix.os }}-${{ matrix.configure-preset }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -30,21 +30,27 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
+
         configure-preset: 
           - clang-release
           - gcc-release
+
+        # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
         architecture:
-          - x64  # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
-        
+          - x64
+
         # run clang-tidy only on linux and msvc (seems to be missing on githubs macos images) 
         exclude:
           - os: ubuntu-latest
             configure-preset: clang-release
         include:
           - os: ubuntu-latest
-            configure-preset: clang-release-tidy
+            configure-preset: clang-release-tidy-coverage
+            sonar-analysis: true
+            coverage: true
           - os: windows-latest
             configure-preset: msvc-release
+            sonar-analysis: true
           - os: windows-latest
             configure-preset: clang-cl-release-tidy
 
@@ -88,6 +94,21 @@ jobs:
       # As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
       - uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Set up Python 3.8 for gcovr
+        uses: actions/setup-python@v4
+        if: ${{ matrix.coverage == true }}
+        with:
+          python-version: 3.8
+
+      - name: install gcovr 5.0
+        if: ${{ matrix.coverage == true }}
+        run: |
+          pip install gcovr==5.0 # 5.1 is not supported
+
+      - name: Install sonar-scanner and build-wrapper
+        if: ${{ matrix.sonar-anlysis == true }}
+        uses: SonarSource/sonarcloud-github-c-cpp@v1
+
       - name: Cmake Configure ${{ matrix.configure-preset }}
         working-directory: recorder
         run: |
@@ -116,3 +137,38 @@ jobs:
         working-directory: recorder
         run: |
           ctest --preset ${{ matrix.test-preset }}
+
+      - name: Collect coverage into one XML report
+        if: ${{ matrix.coverage == true }}
+        working-directory: recorder
+        run: |
+          gcovr --sonarqube -r ./build/${{ matrix.configure-preset }} > coverage.xml
+          get-content coverage.xml
+
+      - name: Run sonar-scanner
+        if: ${{ matrix.sonar-anlysis == true }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
+  formatting-check:
+    name: Formatting Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: clang-format src
+      if: ${{ always() }}
+      uses: jidicula/clang-format-action@v4.9.0
+      with:
+        clang-format-version: '15'
+        check-path: 'recorder/src'
+        # exclude: '(hello|world)' # Exclude file paths containing "hello" or "world"
+        exclude-regex: ''        
+    - name: clang-format test
+      if: ${{ always() }}
+      uses: jidicula/clang-format-action@v4.9.0
+      with:
+        clang-format-version: '15'
+        check-path: 'recorder/test'
+        exclude-regex: ''

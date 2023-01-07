@@ -179,9 +179,9 @@
 			"inherits": [ "unix-like", "clang", "release", "coverage" ]
 		},
 		{
-			"name": "clang-release-tidy",
+			"name": "clang-release-tidy-coverage",
 			"displayName": "Clang Release (with clang-tidy)",
-			"inherits": [ "unix-like", "clang", "release", "clangtidy" ]
+			"inherits": [ "unix-like", "clang", "release", "clangtidy", "coverage" ]
 		},
 		{
 			"name": "gcc-release",
