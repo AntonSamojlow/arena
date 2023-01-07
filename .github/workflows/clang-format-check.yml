@@ -1,6 +1,7 @@
 name: clang-format check
 on: 
-  pull_request: [opened, synchronize, reopened]
+  pull_request:
+    types: [opened, synchronize, reopened]
   push:
     branches:
       - main
