@@ -85,6 +85,13 @@
 				"ENABLE_CLANG_TIDY": true
 			}
 		},
+		{
+			"name": "coverage",
+			"hidden": true,
+			"cacheVariables": {
+				"ENABLE_COVERAGE": true
+			}
+		},
 
 		{
 			"name": "clang-cl",
@@ -149,22 +156,27 @@
 		{
 			"name": "msvc-release",
 			"displayName": "MSVC Release",
-			"inherits": [ "windows", "msvc", "release"]
+			"inherits": [ "windows", "msvc", "release" ]
 		},
 		{
 			"name": "clang-cl-release",
 			"displayName": "ClangCl Release",
-			"inherits": [ "windows", "clang-cl", "release"]
+			"inherits": [ "windows", "clang-cl", "release" ]
 		},
 		{
 			"name": "clang-cl-release-tidy",
 			"displayName": "ClangCl Release (with clang-tidy)",
-			"inherits": [ "windows", "clang-cl", "release", "clangtidy"]
+			"inherits": [ "windows", "clang-cl", "release", "clangtidy" ]
 		},
 		{
 			"name": "clang-release",
 			"displayName": "Clang Release",
 			"inherits": [ "unix-like", "clang", "release" ]
+		},
+		{
+			"name": "clang-debug-coverage",
+			"displayName": "Clang Debug (with coverage)",
+			"inherits": [ "unix-like", "clang", "debug", "coverage" ]
 		},
 		{
 			"name": "clang-release-tidy",
@@ -175,6 +187,11 @@
 			"name": "gcc-release",
 			"displayName": "Gcc Release",
 			"inherits": [ "unix-like", "gcc", "release" ]
+		},
+		{
+			"name": "gcc-debug-coverage",
+			"displayName": "Gcc Debug Coverage (with coverage)",
+			"inherits": [ "unix-like", "gcc", "debug", "coverage" ]
 		}
 	],
 

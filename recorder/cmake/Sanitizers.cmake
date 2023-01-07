@@ -20,7 +20,7 @@ function(enable_sanitizers
     if(ENABLE_SANITIZER_ADDRESS)
        list(APPEND SANITIZERS "address")
     endif()
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
     if(ENABLE_SANITIZER_ADDRESS)
       list(APPEND SANITIZERS "address")
     endif()
@@ -40,7 +40,7 @@ function(enable_sanitizers
         list(APPEND SANITIZERS "thread")
       endif()
     endif()
-    if(ENABLE_SANITIZER_MEMORY AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if(ENABLE_SANITIZER_MEMORY AND CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
       message(
         WARNING
           "Memory sanitizer requires all the code (including libc++) to be MSan-instrumented otherwise it reports false positives"
@@ -87,7 +87,7 @@ function(enable_sanitizers
       target_compile_options(${target_name} PUBLIC /fsanitize=${LIST_OF_SANITIZERS} /Zi /INCREMENTAL:NO)
       target_link_options(${target_name} INTERFACE /fsanitize=${LIST_OF_SANITIZERS} /INCREMENTAL:NO)
       
-      if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+      if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
         # detected MSVC+Clang => compiler is (clang-cl) => need to link the clang_rt.asan* libs
         # NOTE: we asuume a 64bit OS and that PATH is set up for these libs:
         message(STATUS "Clang-Cl detected - linking clang_rt.asan* libraries, assuming x64 => ensure they exist in PATH")

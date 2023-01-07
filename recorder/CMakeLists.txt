@@ -18,6 +18,7 @@ if(CMAKE_CXX_COMPILER_LOADED)
   message(STATUS "CMAKE_COMPILER_IS_GNUCXX='${CMAKE_COMPILER_IS_GNUCXX}'")
 endif()
 
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/Coverage.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/Sanitizers.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/StaticAnalysis.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/Warnings.cmake")
@@ -35,7 +36,7 @@ add_subdirectory (src/recorder)
 #add_subdirectory (src/graph)
 
 # set up testing
-#enable_testing()
+enable_testing()
 # include test projects
-#add_subdirectory (test)
+add_subdirectory (test)
 

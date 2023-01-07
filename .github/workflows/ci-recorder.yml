@@ -7,10 +7,11 @@
 name: ci (recorder)
 on:
   schedule:
-    - cron: '25 18 * * SUN'
+    - cron: '25 16 * * SUN'
       branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened]
   push:
     branches:
       - main
@@ -20,8 +21,8 @@ defaults:
     shell: pwsh
 
 jobs:
-  job:
-    name: CI (${{ matrix.os }}-${{ matrix.configure-preset }})
+  build-test-analyze:
+    name: ${{ matrix.os }} (${{ matrix.configure-preset }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -29,12 +30,15 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
+
         configure-preset: 
           - clang-release
           - gcc-release
+
+        # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
         architecture:
-          - x64  # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
-        
+          - x64
+
         # run clang-tidy only on linux and msvc (seems to be missing on githubs macos images) 
         exclude:
           - os: ubuntu-latest
@@ -42,8 +46,18 @@ jobs:
         include:
           - os: ubuntu-latest
             configure-preset: clang-release-tidy
+          - os: ubuntu-latest
+            configure-preset: clang-debug-coverage
+            coverage: true
+            sonar-wrapper: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
+            sonar-args: >
+              --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
+              --define sonar.coverageReportPaths=recorder/coverage.xml
           - os: windows-latest
             configure-preset: msvc-release
+            sonar-wrapper: build-wrapper-win-x86-64 --out-dir ./build-wrapper-output
+            sonar-args: >
+              --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
           - os: windows-latest
             configure-preset: clang-cl-release-tidy
 
@@ -87,6 +101,21 @@ jobs:
       # As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
       - uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Set up Python 3.8 for gcovr
+        uses: actions/setup-python@v4
+        if: ${{ matrix.coverage == true }}
+        with:
+          python-version: 3.8
+
+      - name: install gcovr 5.0
+        if: ${{ matrix.coverage == true }}
+        run: |
+          pip install gcovr==5.0 # 5.1 is not supported
+
+      - name: Install sonar-scanner and build-wrapper
+        if: ${{ matrix.sonar-wrapper != '' }}
+        uses: SonarSource/sonarcloud-github-c-cpp@v1
+
       - name: Cmake Configure ${{ matrix.configure-preset }}
         working-directory: recorder
         run: |
@@ -94,15 +123,15 @@ jobs:
 
       - name: Cmake Build
         if: ${{ matrix.build-preset == '' }}
-        working-directory: recorder/build/${{ matrix.configure-preset }}
+        working-directory: recorder #required for matrix.sonar-wrapper values to work
         run: |
-          cmake --build .
+          ${{ matrix.sonar-wrapper }} cmake --build ./build/${{ matrix.configure-preset }}
 
       - name: Cmake Build (preset ${{ matrix.build-preset }})
         if: ${{ matrix.build-preset != '' }}
-        working-directory: recorder
+        working-directory: recorder #required for matrix.sonar-wrapper values to work
         run: |
-          cmake --build --preset ${{ matrix.build-preset }}
+          ${{ matrix.sonar-wrapper }} cmake --build --preset ${{ matrix.build-preset }}
 
       - name: Run CTest ${{ matrix.configure-preset }}
         if: ${{ matrix.test-preset == '' }}
@@ -115,3 +144,40 @@ jobs:
         working-directory: recorder
         run: |
           ctest --preset ${{ matrix.test-preset }}
+
+      - name: Collect coverage into one XML report
+        if: ${{ matrix.coverage == true }}
+        working-directory: recorder
+        run: |
+          gcovr --sonarqube -r ./build/${{ matrix.configure-preset }} > coverage.xml
+          get-content coverage.xml
+
+      - name: Run sonar-scanner
+        if: ${{ matrix.sonar-wrapper != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner ${{ matrix.sonar-args }}
+
+
+  formatting-check:
+    name: Formatting Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: clang-format src
+      if: ${{ always() }}
+      uses: jidicula/clang-format-action@v4.9.0
+      with:
+        clang-format-version: '15'
+        check-path: 'recorder/src'
+        # exclude: '(hello|world)' # Exclude file paths containing "hello" or "world"
+        exclude-regex: ''        
+    - name: clang-format test
+      if: ${{ always() }}
+      uses: jidicula/clang-format-action@v4.9.0
+      with:
+        clang-format-version: '15'
+        check-path: 'recorder/test'
+        exclude-regex: ''

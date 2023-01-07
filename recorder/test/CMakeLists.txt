@@ -6,7 +6,7 @@ find_package(Catch2 REQUIRED)
 # source files
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
 set(SOURCES ${SOURCES})
-set(LIBRARIESUNDERTEST main_lib mylibrary)
+# set(LIBRARIESUNDERTEST graph)
 
 # build target test (executable)
 add_executable(tests ${SOURCES})
@@ -28,3 +28,8 @@ enable_sanitizers(tests
 include(CTest)
 include(Catch)
 catch_discover_tests(tests)
+
+
+if(ENABLE_COVERAGE)
+  enable_coverage(tests)
+endif()
