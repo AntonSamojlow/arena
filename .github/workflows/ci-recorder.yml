@@ -22,7 +22,7 @@ defaults:
 
 jobs:
   build-test-analyze:
-    name: build (${{ matrix.os }}-${{ matrix.configure-preset }})
+    name: ${{ matrix.os }} (${{ matrix.configure-preset }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -46,11 +46,11 @@ jobs:
         include:
           - os: ubuntu-latest
             configure-preset: clang-release-tidy-coverage
-            sonar-wrapper: build-wrapper-linux-x86-64 --out-dir ${{ github.workspace }}/recorder/build-wrapper-output
+            sonar-wrapper: build-wrapper-linux-x86-64 -out-dir ./build-wrapper-output
             coverage: true
           - os: windows-latest
             configure-preset: msvc-release
-            sonar-wrapper: build-wrapper-windows-x86-64 --out-dir ${{ github.workspace }}/recorder/build-wrapper-output
+            sonar-wrapper: build-wrapper-win-x86-64 -out-dir ./build-wrapper-output
           - os: windows-latest
             configure-preset: clang-cl-release-tidy
 
@@ -116,13 +116,13 @@ jobs:
 
       - name: Cmake Build
         if: ${{ matrix.build-preset == '' }}
-        working-directory: recorder/build/${{ matrix.configure-preset }}
+        working-directory: recorder #required for matrix.sonar-wrapper values to work
         run: |
-          ${{ matrix.sonar-wrapper }} cmake --build .
+          ${{ matrix.sonar-wrapper }} cmake --build ./build/${{ matrix.configure-preset }}
 
       - name: Cmake Build (preset ${{ matrix.build-preset }})
         if: ${{ matrix.build-preset != '' }}
-        working-directory: recorder
+        working-directory: recorder #required for matrix.sonar-wrapper values to work
         run: |
           ${{ matrix.sonar-wrapper }} cmake --build --preset ${{ matrix.build-preset }}
 
