@@ -156,17 +156,17 @@
 		{
 			"name": "msvc-release",
 			"displayName": "MSVC Release",
-			"inherits": [ "windows", "msvc", "release"]
+			"inherits": [ "windows", "msvc", "release" ]
 		},
 		{
 			"name": "clang-cl-release",
 			"displayName": "ClangCl Release",
-			"inherits": [ "windows", "clang-cl", "release"]
+			"inherits": [ "windows", "clang-cl", "release" ]
 		},
 		{
 			"name": "clang-cl-release-tidy",
 			"displayName": "ClangCl Release (with clang-tidy)",
-			"inherits": [ "windows", "clang-cl", "release", "clangtidy"]
+			"inherits": [ "windows", "clang-cl", "release", "clangtidy" ]
 		},
 		{
 			"name": "clang-release",
@@ -174,14 +174,14 @@
 			"inherits": [ "unix-like", "clang", "release" ]
 		},
 		{
-			"name": "clang-release-coverage",
-			"displayName": "Clang Release",
-			"inherits": [ "unix-like", "clang", "release", "coverage" ]
+			"name": "clang-debug-coverage",
+			"displayName": "Clang Debug (with coverage)",
+			"inherits": [ "unix-like", "clang", "debug", "coverage" ]
 		},
 		{
-			"name": "clang-release-tidy-coverage",
+			"name": "clang-release-tidy",
 			"displayName": "Clang Release (with clang-tidy)",
-			"inherits": [ "unix-like", "clang", "release", "clangtidy", "coverage" ]
+			"inherits": [ "unix-like", "clang", "release", "clangtidy" ]
 		},
 		{
 			"name": "gcc-release",
@@ -189,9 +189,9 @@
 			"inherits": [ "unix-like", "gcc", "release" ]
 		},
 		{
-			"name": "gcc-release-coverage",
-			"displayName": "Gcc Release",
-			"inherits": [ "unix-like", "gcc", "release", "coverage" ]
+			"name": "gcc-debug-coverage",
+			"displayName": "Gcc Debug Coverage (with coverage)",
+			"inherits": [ "unix-like", "gcc", "debug", "coverage" ]
 		}
 	],
 
