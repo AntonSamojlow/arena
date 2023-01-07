@@ -21,8 +21,8 @@ defaults:
     shell: pwsh
 
 jobs:
-  build-test:
-    name: Build, Test and Analyze (${{ matrix.os }}-${{ matrix.configure-preset }})
+  build-test-analyze:
+    name: build (${{ matrix.os }}-${{ matrix.configure-preset }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -46,11 +46,11 @@ jobs:
         include:
           - os: ubuntu-latest
             configure-preset: clang-release-tidy-coverage
-            sonar-analysis: true
+            sonar-wrapper: build-wrapper-linux-x86-64 --out-dir ${{ github.workspace }}/recorder/build-wrapper-output
             coverage: true
           - os: windows-latest
             configure-preset: msvc-release
-            sonar-analysis: true
+            sonar-wrapper: build-wrapper-windows-x86-64 --out-dir ${{ github.workspace }}/recorder/build-wrapper-output
           - os: windows-latest
             configure-preset: clang-cl-release-tidy
 
@@ -106,7 +106,7 @@ jobs:
           pip install gcovr==5.0 # 5.1 is not supported
 
       - name: Install sonar-scanner and build-wrapper
-        if: ${{ matrix.sonar-anlysis == true }}
+        if: ${{ matrix.sonar-wrapper != '' }}
         uses: SonarSource/sonarcloud-github-c-cpp@v1
 
       - name: Cmake Configure ${{ matrix.configure-preset }}
@@ -118,13 +118,13 @@ jobs:
         if: ${{ matrix.build-preset == '' }}
         working-directory: recorder/build/${{ matrix.configure-preset }}
         run: |
-          cmake --build .
+          ${{ matrix.sonar-wrapper }} cmake --build .
 
       - name: Cmake Build (preset ${{ matrix.build-preset }})
         if: ${{ matrix.build-preset != '' }}
         working-directory: recorder
         run: |
-          cmake --build --preset ${{ matrix.build-preset }}
+          ${{ matrix.sonar-wrapper }} cmake --build --preset ${{ matrix.build-preset }}
 
       - name: Run CTest ${{ matrix.configure-preset }}
         if: ${{ matrix.test-preset == '' }}
@@ -146,12 +146,14 @@ jobs:
           get-content coverage.xml
 
       - name: Run sonar-scanner
-        if: ${{ matrix.sonar-anlysis == true }}
+        if: ${{ matrix.sonar-wrapper != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
+          sonar-scanner
+
+
   formatting-check:
     name: Formatting Check
     runs-on: ubuntu-latest
