@@ -117,6 +117,7 @@ jobs:
         working-directory: recorder
         run: |
           gcovr --sonarqube > coverage.xml
+          get-content coverage.xml
 
       - name: Run sonar-scanner
         env:
