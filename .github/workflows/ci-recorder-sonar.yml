@@ -16,6 +16,10 @@ on:
     branches:
       - main
 
+defaults:
+  run:
+    shell: pwsh
+    
 jobs:
   job:
     name: CI (${{ matrix.os }}-${{ matrix.configure-preset }})
