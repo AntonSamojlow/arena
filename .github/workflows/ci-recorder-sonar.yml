@@ -120,7 +120,7 @@ jobs:
       - name: Collect coverage into one XML report
         working-directory: recorder
         run: |
-          gcovr --sonarqube > coverage.xml
+          gcovr --sonarqube > coverage.xml -r ./build/${{ matrix.configure-preset }}
           get-content coverage.xml
 
       - name: Run sonar-scanner
