@@ -35,7 +35,7 @@ add_subdirectory (src/recorder)
 #add_subdirectory (src/graph)
 
 # set up testing
-#enable_testing()
+enable_testing()
 # include test projects
-#add_subdirectory (test)
+add_subdirectory (test)
 
