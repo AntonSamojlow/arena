@@ -31,6 +31,10 @@ if(ENABLE_CLANG_TIDY)
   enable_clang_tidy()
 endif()
 
+if(ENABLE_COVERAGE)
+  enable_coverage()
+endif()
+
 # include sub-projects
 add_subdirectory (src/recorder)
 #add_subdirectory (src/graph)

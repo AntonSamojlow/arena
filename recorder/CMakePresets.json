@@ -85,6 +85,13 @@
 				"ENABLE_CLANG_TIDY": true
 			}
 		},
+		{
+			"name": "coverage",
+			"hidden": true,
+			"cacheVariables": {
+				"ENABLE_COVERAGE": true
+			}
+		},
 
 		{
 			"name": "clang-cl",
@@ -167,6 +174,11 @@
 			"inherits": [ "unix-like", "clang", "release" ]
 		},
 		{
+			"name": "clang-release-coverage",
+			"displayName": "Clang Release",
+			"inherits": [ "unix-like", "clang", "release", "coverage" ]
+		},
+		{
 			"name": "clang-release-tidy",
 			"displayName": "Clang Release (with clang-tidy)",
 			"inherits": [ "unix-like", "clang", "release", "clangtidy" ]
@@ -175,6 +187,11 @@
 			"name": "gcc-release",
 			"displayName": "Gcc Release",
 			"inherits": [ "unix-like", "gcc", "release" ]
+		},
+		{
+			"name": "gcc-release-coverage",
+			"displayName": "Gcc Release",
+			"inherits": [ "unix-like", "gcc", "release", "coverage" ]
 		}
 	],
 
