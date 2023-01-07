@@ -114,6 +114,7 @@ jobs:
           ctest --preset ${{ matrix.test-preset }}
 
       - name: Collect coverage into one XML report
+        working-directory: recorder
         run: |
           gcovr --sonarqube > coverage.xml
 
