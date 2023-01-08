@@ -2,7 +2,6 @@
 
 #include <vcruntime.h>
 
-#include <format>
 #include <ranges>
 #include <vector>
 
@@ -114,7 +113,7 @@ auto TicTacToeGraph::stringify(StateId state) const -> std::string {
 }
 
 auto TicTacToeGraph::stringify(StateId state, ActionId action) const -> std::string {
-	return std::format("action-{0} at {1}", std::to_string(action), stringify(state));
+	return "action-" + std::to_string(action) + "{0} at: " + stringify(state);
 }
 
 auto TicTacToeGraph::stringify_formatted(StateId state) const -> std::string {
@@ -123,7 +122,7 @@ auto TicTacToeGraph::stringify_formatted(StateId state) const -> std::string {
 }
 
 auto TicTacToeGraph::stringify_formatted(StateId state, ActionId action) const -> std::string {
-	return std::format("action-{0} at:\n{1}", std::to_string(action), stringify_formatted(state));
+	return "action-" + std::to_string(action) + "{0} at:\n" + stringify_formatted(state);
 }
 
 }  // namespace graph::tic_tac_toe

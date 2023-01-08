@@ -1,5 +1,4 @@
 #pragma once
-#include <format>
 #include <map>
 #include <string>
 #include <utility>
@@ -37,7 +36,7 @@ class ExampleGraph : public graph::SAGraphDefaultImplementation<State, Action, E
 
 	static auto stringify(State state) -> std::string { return std::to_string(state); }
 	static auto stringify(State state, Action action) -> std::string {
-		return std::format("action-{} at state '{}'", action, state);
+		return "action-" + std::to_string(action) + "at state '" + std::to_string(state) + "'";
 	}
 };
 

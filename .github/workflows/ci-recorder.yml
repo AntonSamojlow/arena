@@ -8,8 +8,6 @@ name: ci (recorder)
 on:
   schedule:
     - cron: '25 16 * * SUN'
-      branches:
-      - main
   pull_request:
     types: [opened, synchronize, reopened]
   push:

@@ -9,7 +9,7 @@
 template <typename S, typename A>
 void test_roots_nonterminal(graph::StateActionGraph<S, A> auto& graph) {
 	for (S root : graph.list_roots()) {
-		REQUIRE(graph.is_terminal_at(root));
+		REQUIRE(false == graph.is_terminal_at(root));
 	}
 }
 

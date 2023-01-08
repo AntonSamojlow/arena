@@ -1,5 +1,4 @@
 #pragma once
-#include <format>
 #include <memory>
 #include <mutex>
 #include <random>
@@ -88,9 +87,10 @@ auto SAGraphDefaultImplementation<S, A, R>::follow(S state, A action, double uni
 	});
 
 #ifdef _DEBUG
-	if (match == edges.end())
-		throw std::logic_error(std::format(
-			"unexpected case during method 'follow': sum ({}) does not exceed value ({})", sum, unit_range_value));
+	if (match == edges.end()) {
+		throw std::logic_error("unexpected case during method 'follow': sum (" + std::to_string(sum) +
+													 ") does not exceed value (" + std::to_string(unit_range_value) + ")");
+	}
 #endif  // _DEBUG
 
 	return match->state();
