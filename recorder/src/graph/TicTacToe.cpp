@@ -1,7 +1,5 @@
 #include "TicTacToe.h"
 
-#include <vcruntime.h>
-
 #include <ranges>
 #include <vector>
 
