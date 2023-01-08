@@ -1,7 +1,5 @@
 #include "ExampleGraph.h"
 
-#include <vcruntime.h>
-
 #include <ranges>
 #include <set>
 
