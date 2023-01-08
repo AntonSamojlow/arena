@@ -21,6 +21,7 @@ auto TicTacToeRules::list_actions(StateId state) -> std::vector<ActionId> {
 	return actions;
 }
 
+// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 auto TicTacToeRules::list_edges(StateId state, ActionId action) -> std::vector<ActionEdge<StateId>> {
 	Board board = decode(state);
 	++board[static_cast<size_t>(action)];
@@ -41,7 +42,7 @@ auto TicTacToeRules::encode(const Board& board) -> StateId {
 }
 
 auto TicTacToeRules::decode(StateId state_id) -> Board {
-	Board board;
+	Board board{};
 	for (size_t i = BoardSize; i > 0; i--) {
 		board[i - 1] = static_cast<unsigned char>(state_id / std::pow(3, i - 1));
 		state_id -= static_cast<StateId>(board[i - 1] * std::pow(3, i - 1));
