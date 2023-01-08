@@ -10,7 +10,6 @@
 
 #include "GraphConcepts.h"
 
-
 namespace graph {
 
 /// <summary>
