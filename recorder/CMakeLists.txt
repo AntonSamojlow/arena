@@ -3,7 +3,7 @@
 project ("recorder"
   VERSION 0.0.1
   DESCRIPTION ""
-  HOMEPAGE_URL "https://github.com/AntonSamojlow/arena"
+  HOMEPAGE_URL "https://github.com/AntonSamojlow/arena/recorder"
   LANGUAGES CXX C
 )
 
@@ -33,7 +33,7 @@ endif()
 
 # include sub-projects
 add_subdirectory (src/recorder)
-#add_subdirectory (src/graph)
+add_subdirectory (src/graph)
 
 # set up testing
 enable_testing()

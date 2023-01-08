@@ -6,7 +6,7 @@ find_package(Catch2 REQUIRED)
 # source files
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
 set(SOURCES ${SOURCES})
-# set(LIBRARIESUNDERTEST graph)
+set(LIBRARIESUNDERTEST graph)
 
 # build target test (executable)
 add_executable(tests ${SOURCES})
