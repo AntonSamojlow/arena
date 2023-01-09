@@ -27,9 +27,13 @@ class SAGraphDefaultImplementation {
 	auto list_roots() const -> std::vector<S> { return roots_; }
 	auto list_actions(S state) const -> std::vector<A> {
 		std::shared_lock<std::shared_mutex> lock(action_data_mutex_);
+
 		std::vector<A> result;
-		std::ranges::transform(
-			action_data_.at(state), std::back_inserter(result), [](const auto& entry) { return entry.first; });
+		ActionDetails const& action_details = action_data_.at(state);
+		result.reserve(action_details.size());
+		for (auto const& entry : action_details) {
+			result.push_back(entry.first);
+		}
 		return result;
 	}
 
@@ -81,11 +85,10 @@ auto SAGraphDefaultImplementation<S, A, R>::follow(S state, A action, double uni
 
 	double sum = 0.0;
 	std::vector<ActionEdge<S>> edges = list_edges(state, action);
-	auto match = std::ranges::find_if(edges, [&](ActionEdge<S> edge) {
+	auto match = std::find_if(edges.begin(), edges.end(), [&](ActionEdge<S> edge) {
 		sum += edge.weight();
 		return sum >= unit_range_value;
 	});
-
 #ifdef _DEBUG
 	if (match == edges.end()) {
 		throw std::logic_error("unexpected case during method 'follow': sum (" + std::to_string(sum) +

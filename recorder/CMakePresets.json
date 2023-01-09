@@ -197,11 +197,6 @@
 
 	"buildPresets": [
 		{
-			"name": "msvc-release",
-			"displayName": "default",
-			"configurePreset": "msvc-release"
-		},
-		{
 			"name": "msvc-debug-verbose",
 			"displayName": "verbose",
 			"configurePreset": "msvc-debug",
@@ -211,6 +206,12 @@
 			"name": "clang-cl-debug-verbose",
 			"displayName": "verbose",
 			"configurePreset": "clang-cl-debug",
+			"verbose": true
+		},
+		{
+			"name": "clang-cl-release-tidy-verbose",
+			"displayName": "verbose",
+			"configurePreset": "clang-cl-release-tidy",
 			"verbose": true
 		}
 	],

@@ -85,8 +85,11 @@ auto TicTacToeRules::opponent_has_won(const Board& board) -> bool {
 // NOLINTEND(*-magic-numbers)
 
 auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::string {
-	int const empty_spaces =
-		static_cast<int>(std::ranges::count_if(board, [&](unsigned char value) { return value == 0; }));
+	int empty_spaces = 0;
+	for (auto const& entry : board) {
+		if (entry == 0)
+			++empty_spaces;
+	}
 	bool const starting_player_turn = empty_spaces % 2 == 0;
 
 	std::string const player_symbol = starting_player_turn ? "o" : "x";
