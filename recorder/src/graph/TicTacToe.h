@@ -6,7 +6,7 @@
 
 namespace graph::tic_tac_toe {
 
-const int BoardSize = 9;
+const size_t BoardSize = 9;
 
 using Board = std::array<unsigned char, BoardSize>;  // each state is a 3x3 integer board with entries {empty, X, O}
 using StateId = unsigned short;                      // interpret(encode) the board as an integer in base-3

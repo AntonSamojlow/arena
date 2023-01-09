@@ -1,6 +1,5 @@
 #include "TicTacToe.h"
 
-#include <ranges>
 #include <vector>
 
 #include "graph/TicTacToe.h"
@@ -8,16 +7,17 @@
 namespace graph::tic_tac_toe {
 auto TicTacToeRules::list_actions(StateId state) -> std::vector<ActionId> {
 	Board const board = decode(state);
-	std::vector<ActionId> actions;
 
 	// skip if opponent has won
-	if (!opponent_has_won(board)) {
-		for (int const index :
-			std::views::iota(0, BoardSize) | std::views::filter([&](size_t index) { return board[index] == 0; })) {
-			actions.emplace_back(static_cast<ActionId>(index));
-		}
-	}
+	if (opponent_has_won(board))
+		return {};
 
+	std::vector<ActionId> actions;
+
+	for (size_t i = 0; i < BoardSize; i++) {
+		if (board[i] == 0)
+			actions.emplace_back(static_cast<ActionId>(i));
+	}
 	return actions;
 }
 

@@ -17,7 +17,7 @@ using GraphStructure = std::map<State, std::vector<ActionEdges>>;
 
 class ExampleRulesEngine {
  public:
-	explicit ExampleRulesEngine(GraphStructure graph_structure);
+	explicit ExampleRulesEngine(const GraphStructure& graph_structure);
 
 	[[nodiscard]] auto list_roots() const -> std::vector<State> { return roots_; }
 	[[nodiscard]] auto list_actions(State state) const -> std::vector<Action>;
