@@ -66,19 +66,30 @@ jobs:
         run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
         shell: bash
 
-      - name: install GCC
-        if: ${{ contains( matrix.configure-preset, 'gcc' ) }}
+      - name: install gcc
+        if: ${{ contains(matrix.configure-preset, 'gcc') }}
         uses: egor-tensin/setup-gcc@v1
         with:
           version: 12
           platform: x64
 
-      - name: install Clang
-        if: ${{ contains( matrix.configure-preset, 'clang' ) }}
+      - name: install clang
+        if: ${{ contains(matrix.configure-preset, 'clang') }}
         uses: egor-tensin/setup-clang@v1
         with:
           version: 15 # ignored on windows
           platform: x64
+
+      - name: install clang-tidy
+        if: ${{ contains(matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
+        run: sudo apt-get install -y clang-tidy-13
+      - name: setup clang-tidy path
+        if: ${{ contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
+        run: |
+          for f in clang++ clang-tidy; do
+            if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
+            sudo ln -s /usr/bin/${f}-13 /usr/bin/${f}
+          done
 
       # Setup the build machine with the most recent versions of CMake and Ninja. Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
       - uses: lukka/get-cmake@latest
