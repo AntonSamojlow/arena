@@ -36,7 +36,7 @@ auto TicTacToeRules::encode(const Board& board) -> StateId {
 	StateId value = 0;
 
 	for (size_t i = 0; i < BoardSize; i++) {
-		value += board[i] * static_cast<StateId>(std::pow(3, i));
+		value += static_cast<StateId>(board[i] * static_cast<StateId>(std::pow(3, i)));
 	}
 	return value;
 }
