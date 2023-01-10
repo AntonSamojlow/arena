@@ -37,18 +37,18 @@ jobs:
         architecture:
           - x64
 
-        llvm-version: 
-          - "15.0.6"
-
         # run clang-tidy only on linux and msvc (seems to be missing on githubs macos images) 
         exclude:
           - os: ubuntu-latest
             configure-preset: clang-release
+
         include:
           - os: ubuntu-latest
             configure-preset: clang-release-tidy
+            llvm-version: 15.0.6
           - os: ubuntu-latest
             configure-preset: clang-debug-coverage
+            llvm-version: 15.0.6
             coverage: true
             sonar-wrapper: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
             sonar-args: >
@@ -56,11 +56,13 @@ jobs:
               --define sonar.coverageReportPaths=recorder/coverage.xml
           - os: windows-latest
             configure-preset: msvc-release
+            llvm-version: 15.0.6
             sonar-wrapper: build-wrapper-win-x86-64 --out-dir ./build-wrapper-output
             sonar-args: >
               --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
           - os: windows-latest
             configure-preset: clang-cl-release-tidy
+            llvm-version: 15.0.6
 
     env:
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
@@ -77,6 +79,7 @@ jobs:
         shell: bash
 
       - name: Install LLVM and Clang
+        if: ${{ matrix.llvm-version != '' }}
         uses: KyleMayes/install-llvm-action@v1
         with:
           version: ${{ matrix.llvm-version }}
