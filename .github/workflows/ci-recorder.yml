@@ -8,8 +8,6 @@ name: ci (recorder)
 on:
   schedule:
     - cron: '25 16 * * SUN'
-      branches:
-      - main
   pull_request:
     types: [opened, synchronize, reopened]
   push:
@@ -28,24 +26,17 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
 
         configure-preset: 
-          - clang-release
           - gcc-release
+          - clang-release-tidy
 
         # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
-        architecture:
+        platform:
           - x64
 
-        # run clang-tidy only on linux and msvc (seems to be missing on githubs macos images) 
-        exclude:
-          - os: ubuntu-latest
-            configure-preset: clang-release
         include:
-          - os: ubuntu-latest
-            configure-preset: clang-release-tidy
           - os: ubuntu-latest
             configure-preset: clang-debug-coverage
             coverage: true
@@ -75,6 +66,20 @@ jobs:
         run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
         shell: bash
 
+      - name: install GCC
+        if: ${{ contains( matrix.configure-preset, gcc ) }}
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 12
+          platform: x64
+
+      - name: install Clang
+        if: ${{ contains( matrix.configure-preset, clang ) }}
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: 15 # ignored on windows
+          platform: x64
+
       # Setup the build machine with the most recent versions of CMake and Ninja. Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
       - uses: lukka/get-cmake@latest
 
@@ -95,7 +100,7 @@ jobs:
           # The key includes: hash of the vcpkg.json file, the hash of the vcpkg Git commit id, and the used vcpkg's triplet. The vcpkg's commit id would suffice, but computing an hash out it does not harm.
           # Note: given a key, the cache content is immutable. If a cache entry has been created improperly, in order the recreate the right content the key must be changed as well, and it must be brand new (i.e. not existing already).
           key: |
-            ${{ hashFiles( 'vcpkg.json' ) }}-${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}-${{ matrix.os }}-${{ matrix.architecture }}
+            ${{ hashFiles( 'vcpkg.json' ) }}-${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}-${{ matrix.os }}-${{ matrix.platform }}
 
       # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly. 
       # As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
