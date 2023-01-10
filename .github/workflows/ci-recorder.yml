@@ -67,14 +67,14 @@ jobs:
         shell: bash
 
       - name: install GCC
-        if: ${{ contains( matrix.configure-preset, gcc ) }}
+        if: ${{ contains( matrix.configure-preset, 'gcc' ) }}
         uses: egor-tensin/setup-gcc@v1
         with:
           version: 12
           platform: x64
 
       - name: install Clang
-        if: ${{ contains( matrix.configure-preset, clang ) }}
+        if: ${{ contains( matrix.configure-preset, 'clang' ) }}
         uses: egor-tensin/setup-clang@v1
         with:
           version: 15 # ignored on windows
