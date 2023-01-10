@@ -81,9 +81,11 @@ jobs:
           platform: x64
 
       - name: install clang-tidy
+        shell: bash
         if: ${{ contains(matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
         run: sudo apt-get install -y clang-tidy-13
       - name: setup clang-tidy path
+        shell: bash
         if: ${{ contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
         run: |
           for f in clang++ clang-tidy; do
