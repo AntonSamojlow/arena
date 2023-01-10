@@ -8,8 +8,6 @@ name: ci (recorder)
 on:
   schedule:
     - cron: '25 16 * * SUN'
-      branches:
-      - main
   pull_request:
     types: [opened, synchronize, reopened]
   push:
@@ -38,6 +36,9 @@ jobs:
         # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
         architecture:
           - x64
+
+        llvm-version: 
+          - "15.0.6"
 
         # run clang-tidy only on linux and msvc (seems to be missing on githubs macos images) 
         exclude:
@@ -74,6 +75,11 @@ jobs:
       - name: "Create directory '${{ env.VCPKG_DEFAULT_BINARY_CACHE }}'"
         run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
         shell: bash
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: ${{ matrix.llvm-version }}
 
       # Setup the build machine with the most recent versions of CMake and Ninja. Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
       - uses: lukka/get-cmake@latest
