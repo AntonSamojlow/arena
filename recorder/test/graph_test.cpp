@@ -26,7 +26,9 @@ void descend_once_(graph::StateActionGraph<S, A> auto& graph, S& state_in_out, b
 		graph.expand(state_in_out, action);
 	REQUIRE(graph.is_expanded_at(state_in_out, action));
 	double weight_sum = 0.0;
-	for (graph::ActionEdge<S> const edge : graph.list_edges(state_in_out, action)) weight_sum += edge.weight();
+	for (graph::ActionEdge<S> const& edge : graph.list_edges(state_in_out, action)) {
+		weight_sum += edge.weight();
+	}
 	REQUIRE(weight_sum == 1.0);
 	state_in_out = graph.follow(state_in_out, action, unit_distribution(rng));
 }
