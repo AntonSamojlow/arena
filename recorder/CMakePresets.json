@@ -32,7 +32,7 @@
 				"rhs": "Windows"
 			},
 			"cacheVariables": {
-				"CMAKE_EXPORT_COMPILE_COMMANDS": true 
+				"CMAKE_EXPORT_COMPILE_COMMANDS": true
 			}
 		},
 
@@ -54,7 +54,7 @@
 				}
 			}
 		},
-		
+
 		{
 			"name": "debug",
 			"hidden": true,
@@ -172,11 +172,6 @@
 			"name": "clang-release",
 			"displayName": "Clang Release",
 			"inherits": [ "unix-like", "clang", "release" ]
-		},
-		{
-			"name": "clang-debug-coverage",
-			"displayName": "Clang Debug (with coverage)",
-			"inherits": [ "unix-like", "clang", "debug", "coverage" ]
 		},
 		{
 			"name": "clang-release-tidy",
