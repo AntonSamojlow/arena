@@ -171,7 +171,7 @@ jobs:
         if: ${{ matrix.coverage == true }}
         working-directory: recorder
         run: |
-          gcovr --sonarqube -v -r ./build/${{ matrix.configure-preset }}/test coverage.xml
+          gcovr --sonarqube --verbose > coverage.xml
 
       - name: Debug coverage report
         if: ${{ matrix.coverage == true }}
