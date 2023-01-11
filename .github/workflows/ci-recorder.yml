@@ -84,18 +84,18 @@ jobs:
       #     version: ${{ env.DESIRED_CLANG_VERSION }} # ignored on windows
       #     platform: x64
 
-      - name: install clang-tidy
-        shell: bash
-        if: ${{ contains(matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-        run: sudo apt-get install -y clang-tidy-${{ env.DESIRED_CLANG_VERSION }}
-      - name: setup clang-tidy path
-        shell: bash
-        if: ${{ contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-        run: |
-          for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
-            if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
-            sudo ln -s /usr/bin/${f}-${{ env.DESIRED_CLANG_VERSION }} /usr/bin/${f}
-          done
+      # - name: install clang-tidy
+      #   shell: bash
+      #   if: ${{ contains(matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
+      #   run: sudo apt-get install -y clang-tidy-${{ env.DESIRED_CLANG_VERSION }}
+      # - name: setup clang-tidy path
+      #   shell: bash
+      #   if: ${{ contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
+      #   run: |
+      #     for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
+      #       if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
+      #       sudo ln -s /usr/bin/${f}-${{ env.DESIRED_CLANG_VERSION }} /usr/bin/${f}
+      #     done
 
       # Setup the build machine with the most recent versions of CMake and Ninja. Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
       - uses: lukka/get-cmake@latest
