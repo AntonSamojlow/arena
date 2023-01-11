@@ -159,7 +159,7 @@ jobs:
         if: ${{ matrix.test-preset == '' }}
         working-directory: recorder/build/${{ matrix.configure-preset }}
         run: |
-          ctest
+          ctest --verbose
 
       - name: Run CTest (preset ${{ matrix.test-preset }})
         if: ${{ matrix.test-preset != '' }}
@@ -171,8 +171,10 @@ jobs:
         if: ${{ matrix.coverage == true }}
         working-directory: recorder
         run: |
-          gcovr --sonarqube -r ./build/${{ matrix.configure-preset }} > coverage.xml
+          gcovr --sonarqube -v -r ./build/${{ matrix.configure-preset }} > coverage.xml
           get-content coverage.xml
+          Get-ChildItem -Path .\ -Filter *.gcno -Recurse -File -Name
+          Get-ChildItem -Path .\ -Filter *.gcda -Recurse -File -Name
 
       - name: Run sonar-scanner
         if: ${{ matrix.sonar-wrapper != '' }}
