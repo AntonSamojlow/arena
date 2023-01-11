@@ -38,7 +38,7 @@ jobs:
 
         include:
           - os: ubuntu-latest
-            configure-preset: clang-debug-coverage
+            configure-preset: gcc-debug-coverage
             coverage: true
             sonar-wrapper: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
             sonar-args: >
