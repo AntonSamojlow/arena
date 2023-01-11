@@ -28,11 +28,11 @@ jobs:
         os:
           - ubuntu-latest
 
-        configure-preset: 
+        configure-preset:
           - gcc-release
           - clang-release-tidy
 
-        # used to compose a 'vcpkg-triplet-like' label for the cache key (see below) 
+        # used to compose a 'vcpkg-triplet-like' label for the cache key (see below)
         platform:
           - x64
 
@@ -50,7 +50,7 @@ jobs:
             sonar-args: >
               --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
           - os: windows-latest
-            configure-preset: clang-cl-release-tidy
+            configure-preset: clang-cl-release
 
     env:
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
@@ -119,7 +119,7 @@ jobs:
           key: |
             ${{ hashFiles( 'vcpkg.json' ) }}-${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}-${{ matrix.os }}-${{ matrix.platform }}
 
-      # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly. 
+      # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly.
       # As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
       - uses: ilammy/msvc-dev-cmd@v1
 
@@ -195,7 +195,7 @@ jobs:
         clang-format-version: '15'
         check-path: 'recorder/src'
         # exclude: '(hello|world)' # Exclude file paths containing "hello" or "world"
-        exclude-regex: ''        
+        exclude-regex: ''
     - name: clang-format test
       if: ${{ always() }}
       uses: jidicula/clang-format-action@v4.9.0
