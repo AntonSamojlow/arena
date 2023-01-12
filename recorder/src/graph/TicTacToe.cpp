@@ -95,11 +95,19 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 	std::string const player_symbol = starting_player_turn ? "o" : "x";
 	std::string const opponent_symbol = starting_player_turn ? "x" : "o";
 
+	auto get_symbol = [&player_symbol, &opponent_symbol](int value) -> std::string {
+		if (value == 1)
+			return player_symbol;
+		if (value == 2)
+			return opponent_symbol;
+		return {" "};
+	};
+
 	std::string result;
 	for (size_t i = 0; i < 3; i++) {
 		for (size_t j = 0; j < 3; j++) {
 			unsigned char const value = board[i * 3 + j];
-			result += "|" + (value == 1 ? player_symbol : (value == 2 ? opponent_symbol : " "));
+			result += "|" + get_symbol(value);
 		}
 		if (line_break && i < 2) {
 			result += "|\n";

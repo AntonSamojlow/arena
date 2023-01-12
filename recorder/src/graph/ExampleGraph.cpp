@@ -8,12 +8,12 @@ ExampleRulesEngine::ExampleRulesEngine(const GraphStructure& graph_structure) : 
 	// if we had ranges, then we could have used `auto keys = graph_structure | std::views::keys;` instead:
 	std::vector<State> keys;
 	keys.reserve(graph_structure.size());
-	for (auto const& entry : graph_structure) keys.push_back(entry.first);
+	for (auto const& [state, actions] : graph_structure) keys.push_back(state);
 
 	std::set<State> children;
 	// find all children and validate they are defined as key
-	for (auto const& entry : graph_structure) {
-		for (const ActionEdges& action_edges : entry.second) {
+	for (auto const& [state, actions] : graph_structure) {
+		for (const ActionEdges& action_edges : actions) {
 			for (const ActionEdge<State>& edge : action_edges) {
 				children.insert(edge.state());
 				if (std::find(keys.begin(), keys.end(), edge.state()) == keys.end())

@@ -118,7 +118,7 @@ void SAGraphDefaultImplementation<S, A, R>::expand(S state, A action) {
 // initializes a state by adding all its actions - the caller is responsible of ensuring action_data_ is locked!
 template <typename S, typename A, StateActionRulesEngine<S, A> R>
 void SAGraphDefaultImplementation<S, A, R>::initialize_state_nolock(S state) {
-	if (action_data_.try_emplace(state, ActionDetails()).second) {
+	if (action_data_.try_emplace(state, ActionDetails{}).second) {
 		for (A action : rules_engine_.list_actions(state))
 			action_data_.at(state).emplace(action, std::vector<ActionEdge<S>>());
 	}
