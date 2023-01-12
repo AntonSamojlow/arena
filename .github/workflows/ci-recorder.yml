@@ -170,7 +170,7 @@ jobs:
       - name: Collect coverage into one XML report
         if: ${{ matrix.coverage == true }}
         run: |
-          gcovr --root recorder/src --sonarqube recorder/build > coverage.xml
+          gcovr --root ./recorder/src/ --sonarqube ./recorder/build/ > coverage.xml
 
       - name: Coverage report debug info
         if: ${{ matrix.coverage == true }}
@@ -179,7 +179,7 @@ jobs:
           Get-ChildItem -Path .\ -Filter *.gcno -Recurse -File -Name
           Get-ChildItem -Path .\ -Filter *.gcda -Recurse -File -Name
           Write-Host "Content of 'coverage.xml':"
-          get-content coverage.xml
+          Get-Content coverage.xml
 
 
       - name: Run sonar-scanner
