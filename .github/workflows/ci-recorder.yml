@@ -93,7 +93,7 @@ jobs:
 
       - name: setup clang-tidy path
         shell: bash
-        if: ${{ env.INSTALL_CLANG_VERSION > 0 contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
+        if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
         run: |
           for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
             if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
