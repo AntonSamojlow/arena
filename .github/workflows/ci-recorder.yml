@@ -57,8 +57,10 @@ jobs:
       VCPKG_ROOT: ${{ github.workspace }}/recorder/vcpkg
       # Tells vcpkg where binary packages are stored.
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/recorder/vcpkg/bincache
-      # DESIRED_GCC_VERSION: 12
-      # DESIRED_CLANG_VERSION: 15
+      # optional:
+      DEBUG: false
+      INSTALL_GCC_VERSION: -1
+      INSTALL_CLANG_VERSION: -1
 
     steps:
       - uses: actions/checkout@v3
@@ -70,32 +72,32 @@ jobs:
         run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
         shell: bash
 
-      # - name: install gcc
-      #   if: ${{ contains(matrix.configure-preset, 'gcc') }}
-      #   uses: egor-tensin/setup-gcc@v1
-      #   with:
-      #     version: ${{ env.DESIRED_GCC_VERSION }}
-      #     platform: x64
+      - name: install gcc
+        if: ${{ env.INSTALL_GCC_VERSION > 0 && contains(matrix.configure-preset, 'gcc') }}
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: ${{ env.DESIRED_GCC_VERSION }}
+          platform: x64
 
-      # - name: install clang
-      #   if: ${{ contains(matrix.configure-preset, 'clang') }}
-      #   uses: egor-tensin/setup-clang@v1
-      #   with:
-      #     version: ${{ env.DESIRED_CLANG_VERSION }} # ignored on windows
-      #     platform: x64
+      - name: install clang
+        if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains(matrix.configure-preset, 'clang') }}
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: ${{ env.DESIRED_CLANG_VERSION }} # ignored on windows
+          platform: x64
 
-      # - name: install clang-tidy
-      #   shell: bash
-      #   if: ${{ contains(matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-      #   run: sudo apt-get install -y clang-tidy-${{ env.DESIRED_CLANG_VERSION }}
-      # - name: setup clang-tidy path
-      #   shell: bash
-      #   if: ${{ contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-      #   run: |
-      #     for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
-      #       if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
-      #       sudo ln -s /usr/bin/${f}-${{ env.DESIRED_CLANG_VERSION }} /usr/bin/${f}
-      #     done
+      - name: install clang-tidy
+        shell: bash
+        if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains(matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
+        run: sudo apt-get install -y clang-tidy-${{ env.DESIRED_CLANG_VERSION }}
+      - name: setup clang-tidy path
+        shell: bash
+        if: ${{ contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
+        run: |
+          for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
+            if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
+            sudo ln -s /usr/bin/${f}-${{ env.DESIRED_CLANG_VERSION }} /usr/bin/${f}
+          done
 
       # Setup the build machine with the most recent versions of CMake and Ninja. Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
       - uses: lukka/get-cmake@latest
@@ -125,14 +127,14 @@ jobs:
 
       - name: Set up Python 3.8 for gcovr
         uses: actions/setup-python@v4
-        if: ${{ matrix.coverage == true }}
+        if: ${{ matrix.coverage }}
         with:
           python-version: 3.8
 
       - name: install gcovr 5.0
-        if: ${{ matrix.coverage == true }}
+        if: ${{ matrix.coverage }}
         run: |
-          pip install gcovr==5.0 # 5.1 is not supported
+          pip install gcovr==5.0
 
       - name: Install sonar-scanner and build-wrapper
         if: ${{ matrix.sonar-wrapper != '' }}
@@ -168,12 +170,12 @@ jobs:
           ctest --preset ${{ matrix.test-preset }}
 
       - name: Collect coverage into one XML report
-        if: ${{ matrix.coverage == true }}
+        if: ${{ matrix.coverage }}
         run: |
           gcovr --sonarqube > coverage.xml
 
       - name: Coverage report debug info
-        if: ${{ matrix.coverage == true }}
+        if: ${{ matrix.coverage && env.DEBUG }}
         run: |
           Write-Host "listing .gcno and .gcda files:"
           Get-ChildItem -Path .\ -Filter *.gcno -Recurse -File -Name
