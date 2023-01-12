@@ -170,7 +170,7 @@ jobs:
       - name: Collect coverage into one XML report
         if: ${{ matrix.coverage == true }}
         run: |
-          gcovr --sonarqube recorder/build/ > coverage.xml
+          gcovr --sonarqube > coverage.xml
 
       - name: Coverage report debug info
         if: ${{ matrix.coverage == true }}
