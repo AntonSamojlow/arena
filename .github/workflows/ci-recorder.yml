@@ -169,13 +169,11 @@ jobs:
 
       - name: Collect coverage into one XML report
         if: ${{ matrix.coverage == true }}
-        working-directory:
         run: |
           gcovr --sonarqube > coverage.xml
 
       - name: Coverage report debug info
         if: ${{ matrix.coverage == true }}
-        working-directory:
         run: |
           Write-Host "listing .gcno and .gcda files:"
           Get-ChildItem -Path .\ -Filter *.gcno -Recurse -File -Name
