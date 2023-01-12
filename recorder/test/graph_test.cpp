@@ -1,3 +1,4 @@
+#include <graph/ExampleGraph.h>
 #include <graph/GraphConcepts.h>
 #include <graph/TicTacToe.h>
 
@@ -57,7 +58,32 @@ void test_base_operations(graph::StateActionGraph<S, A> auto& graph) {
 	test_full_descend<S, A>(graph, true, visited_states);
 }
 
-TEST_CASE("TicTacToe graph tests", "[grap, tictactoe]") {
+// Test various graphs
+
+TEST_CASE("TicTacToe graph tests", "[graph, tictactoe]") {
 	graph::tic_tac_toe::TicTacToeGraph graph;
 	test_base_operations<graph::tic_tac_toe::StateId, graph::tic_tac_toe::ActionId>(graph);
+}
+
+TEST_CASE("ExampleGraph tests", "[graph]") {
+	std::vector<graph::example::ActionEdges> const TERMINAL = {};
+	graph::example::GraphStructure const graph_structure = {
+		{1,
+			{
+				{{1.0 / 3, 2}, {2.0 / 3, 3}},
+				{{0.25, 5}, {0.75, 6}},
+			}},
+		{2, TERMINAL},
+		{3, {{{1.0, 4}}}},
+		{4, TERMINAL},
+		{5, TERMINAL},
+		{6, {{{0.5, 7}, {0.5, 8}}}},
+		{7, TERMINAL},
+		{8, {{{1.0, 9}}}},
+		{9, TERMINAL},
+	};
+
+	graph::example::ExampleRulesEngine const rules(graph_structure);
+	graph::example::ExampleGraph graph(rules);
+	test_base_operations<graph::example::State, graph::example::Action>(graph);
 }
