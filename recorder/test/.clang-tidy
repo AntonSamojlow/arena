@@ -1,0 +1,4 @@
+---
+Checks: "-*magic-numbers"
+InheritParentConfig: true
+---
