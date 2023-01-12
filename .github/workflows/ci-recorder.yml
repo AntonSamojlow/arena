@@ -46,9 +46,9 @@ jobs:
               --define sonar.coverageReportPaths=coverage.xml
           - os: windows-latest
             configure-preset: msvc-release
-            sonar-wrapper: build-wrapper-win-x86-64 --out-dir ./build-wrapper-output
-            sonar-args: >
-              --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
+            #sonar-wrapper: build-wrapper-win-x86-64 --out-dir ./build-wrapper-output
+            #sonar-args: >
+            #  --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
           - os: windows-latest
             configure-preset: clang-cl-release
 
