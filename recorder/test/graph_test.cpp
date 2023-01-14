@@ -1,7 +1,6 @@
 #include <graph/ExampleGraph.h>
 #include <graph/GraphConcepts.h>
 #include <graph/TicTacToe.h>
-
 #include <spdlog/spdlog.h>
 
 #include <catch2/catch_test_macros.hpp>
@@ -69,10 +68,10 @@ TEST_CASE("TicTacToe graph tests", "[graph, tictactoe]") {
 	// test output
 	auto logger = spdlog::default_logger();
 	logger->info("root: {}", graph.stringify(graph.list_roots().front()));
-	std::vector<graph::tic_tac_toe::StateId> visited_states {};
+	std::vector<graph::tic_tac_toe::StateId> visited_states{};
 	test_full_descend<graph::tic_tac_toe::StateId, graph::tic_tac_toe::ActionId>(graph, false, visited_states);
 	logger->info("logging all states of a full descend");
-	for (auto state : visited_states) 
+	for (auto state : visited_states)
 		logger->info("\n{}", graph.stringify_formatted(state));
 }
 

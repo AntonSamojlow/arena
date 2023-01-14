@@ -8,8 +8,12 @@ UseTab: ForContinuationAndIndentation
 Language: Cpp
 AlignAfterOpenBracket: DontAlign
 AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: false
+AllowShortLambdasOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
 BinPackParameters: false
 BinPackArguments: false
 ColumnLimit: 120

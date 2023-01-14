@@ -22,7 +22,8 @@ class SAGraphDefaultImplementation {
 			: rules_engine_(rules_engine), roots_(rules_engine.list_roots()) {
 		// initialize roots
 		std::unique_lock lock{action_data_mutex_};
-		for (S root : roots_) initialize_state_nolock(root);
+		for (S root : roots_)
+			initialize_state_nolock(root);
 	}
 
 	auto list_roots() const -> std::vector<S> { return roots_; }
@@ -112,7 +113,8 @@ void SAGraphDefaultImplementation<S, A, R>::expand(S state, A action) {
 
 	std::vector<ActionEdge<S>> edges = rules_engine_.list_edges(state, action);
 	action_data_.at(state).at(action) = edges;
-	for (const ActionEdge<S>& edge : edges) initialize_state_nolock(edge.state());
+	for (const ActionEdge<S>& edge : edges)
+		initialize_state_nolock(edge.state());
 }
 
 // initializes a state by adding all its actions - the caller is responsible of ensuring action_data_ is locked!
