@@ -21,13 +21,13 @@ class SAGraphDefaultImplementation {
 	explicit SAGraphDefaultImplementation(R rules_engine)
 			: rules_engine_(rules_engine), roots_(rules_engine.list_roots()) {
 		// initialize roots
-		std::unique_lock<std::shared_mutex> lock(action_data_mutex_);
+		std::unique_lock lock{action_data_mutex_};
 		for (S root : roots_) initialize_state_nolock(root);
 	}
 
 	auto list_roots() const -> std::vector<S> { return roots_; }
 	auto list_actions(S state) const -> std::vector<A> {
-		std::shared_lock lock(action_data_mutex_);
+		std::shared_lock lock{action_data_mutex_};
 
 		std::vector<A> result;
 		ActionDetails const& action_details = action_data_.at(state);
@@ -39,13 +39,13 @@ class SAGraphDefaultImplementation {
 	}
 
 	auto list_edges(S state, A action) const -> std::vector<ActionEdge<S>> {
-		std::shared_lock lock(action_data_mutex_);
+		std::shared_lock lock{action_data_mutex_};
 		return action_data_.at(state).at(action);
 	}
 	auto score(S state) const -> double { return rules_engine_.score(state); }
 
 	auto is_terminal_at(S state) const -> bool {
-		std::shared_lock lock(action_data_mutex_);
+		std::shared_lock lock{action_data_mutex_};
 		return action_data_.at(state).empty();
 	}
 
@@ -53,12 +53,12 @@ class SAGraphDefaultImplementation {
 	auto follow(S state, A action, double unit_range_value) const -> S;
 
 	auto count_actions(S state) const -> size_t {
-		std::shared_lock lock(action_data_mutex_);
+		std::shared_lock lock{action_data_mutex_};
 		return action_data_.at(state).size();
 	}
 
 	auto count_edges(S state, A action) const -> size_t {
-		std::shared_lock lock(action_data_mutex_);
+		std::shared_lock lock{action_data_mutex_};
 		return action_data_.at(state).at(action).size();
 	}
 	void expand(S state, A action);
@@ -102,7 +102,7 @@ auto SAGraphDefaultImplementation<S, A, R>::follow(S state, A action, double uni
 
 template <typename S, typename A, StateActionRulesEngine<S, A> R>
 void SAGraphDefaultImplementation<S, A, R>::expand(S state, A action) {
-	std::unique_lock<std::shared_mutex> lock(action_data_mutex_);
+	std::unique_lock<std::shared_mutex> lock{action_data_mutex_};
 
 	// skip if already expanded
 	// note: we could promote this to an exception, forcing the calling algorithm to check beforehand (they typically do
