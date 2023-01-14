@@ -92,7 +92,7 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 	}
 	bool const starting_player_turn = empty_spaces % 2 == 0;
 
-	// the display symbol is fixed 
+	// the display symbol is fixed
 	auto display_symbol = [&starting_player_turn](unsigned char board_value) -> char {
 		if (board_value == 1)
 			return starting_player_turn ? 'o' : 'x';
