@@ -12,6 +12,9 @@ template <typename S, typename A>
 void test_roots_nonterminal(graph::StateActionGraph<S, A> auto& graph) {
 	for (S root : graph.list_roots()) {
 		REQUIRE(false == graph.is_terminal_at(root));
+		double score = graph.score(root);
+		REQUIRE(score != 1.0);
+		REQUIRE(score != -1.0);
 	}
 }
 
