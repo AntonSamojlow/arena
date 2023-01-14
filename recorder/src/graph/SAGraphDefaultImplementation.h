@@ -27,7 +27,7 @@ class SAGraphDefaultImplementation {
 
 	auto list_roots() const -> std::vector<S> { return roots_; }
 	auto list_actions(S state) const -> std::vector<A> {
-		std::shared_lock<std::shared_mutex> lock(action_data_mutex_);
+		std::shared_lock lock(action_data_mutex_);
 
 		std::vector<A> result;
 		ActionDetails const& action_details = action_data_.at(state);
@@ -39,13 +39,13 @@ class SAGraphDefaultImplementation {
 	}
 
 	auto list_edges(S state, A action) const -> std::vector<ActionEdge<S>> {
-		std::shared_lock<std::shared_mutex> lock(action_data_mutex_);
+		std::shared_lock lock(action_data_mutex_);
 		return action_data_.at(state).at(action);
 	}
 	auto score(S state) const -> double { return rules_engine_.score(state); }
 
 	auto is_terminal_at(S state) const -> bool {
-		std::shared_lock<std::shared_mutex> lock(action_data_mutex_);
+		std::shared_lock lock(action_data_mutex_);
 		return action_data_.at(state).empty();
 	}
 
@@ -53,12 +53,12 @@ class SAGraphDefaultImplementation {
 	auto follow(S state, A action, double unit_range_value) const -> S;
 
 	auto count_actions(S state) const -> size_t {
-		std::shared_lock<std::shared_mutex> lock(action_data_mutex_);
+		std::shared_lock lock(action_data_mutex_);
 		return action_data_.at(state).size();
 	}
 
 	auto count_edges(S state, A action) const -> size_t {
-		std::shared_lock<std::shared_mutex> lock(action_data_mutex_);
+		std::shared_lock lock(action_data_mutex_);
 		return action_data_.at(state).at(action).size();
 	}
 	void expand(S state, A action);
