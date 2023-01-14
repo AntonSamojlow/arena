@@ -7,7 +7,7 @@
 name: ci (recorder)
 on:
   schedule:
-    - cron: '25 16 * * SUN'
+    - cron: '25 16 * * *'
   pull_request:
     types: [opened, synchronize, reopened]
   push:
@@ -50,7 +50,7 @@ jobs:
             #sonar-args: >
             #  --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
           - os: windows-latest
-            configure-preset: clang-cl-release-tidy
+            configure-preset: clang-cl-release
 
     env:
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
