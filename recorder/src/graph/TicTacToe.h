@@ -8,7 +8,7 @@ namespace graph::tic_tac_toe {
 
 const size_t BoardSize = 9;
 
-using Board = std::array<unsigned char, BoardSize>;  // each state is a 3x3 integer board with entries {empty, X, O}
+using Board = std::array<unsigned char, BoardSize>;  // board is of size 3x3 with entries 0=empty, 1=player, 2=opponent
 using StateId = unsigned short;                      // interpret(encode) the board as an integer in base-3
 using ActionId = char;                               // an action is a number between 1 and 9 (3x3 board)
 
