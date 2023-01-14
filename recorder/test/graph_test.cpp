@@ -4,7 +4,6 @@
 #include <spdlog/spdlog.h>
 
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <random>
 
@@ -12,9 +11,9 @@ template <typename S, typename A>
 void test_roots_nonterminal(graph::StateActionGraph<S, A> auto& graph) {
 	for (S root : graph.list_roots()) {
 		REQUIRE(false == graph.is_terminal_at(root));
-		double score = graph.score(root);
-		REQUIRE(score != 1.0);
-		REQUIRE(score != -1.0);
+		double const score = graph.score(root);
+		REQUIRE_THAT(score, !Catch::Matchers::WithinAbs(1.0, 0.0001));
+		REQUIRE_THAT(score, !Catch::Matchers::WithinAbs(-1.0, 0.0001));
 	}
 }
 
