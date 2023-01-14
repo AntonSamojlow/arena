@@ -54,11 +54,27 @@ void test_full_descend(graph::StateActionGraph<S, A> auto& graph, bool randomize
 }
 
 template <typename S, typename A>
+void check_terminal_state(graph::StateActionGraph<S, A> auto& graph, S const& state) {
+	double const score = graph.score(state);
+	REQUIRE_THAT(score, Catch::Matchers::WithinAbs(1.0, 0.0001) || Catch::Matchers::WithinAbs(-1.0, 0.0001));
+	REQUIRE(graph.list_actions(state).empty());
+}
+
+template <typename S, typename A>
 void test_base_operations(graph::StateActionGraph<S, A> auto& graph) {
 	std::vector<S> visited_states = {};
 	test_roots_nonterminal<S, A>(graph);
 	test_full_descend<S, A>(graph, false, visited_states);
 	test_full_descend<S, A>(graph, true, visited_states);
+
+	std::vector<S> terminal_states = {};
+	for (S state : visited_states) {
+		if (graph.is_terminal_at(state)) {
+			terminal_states.push_back(state);
+			check_terminal_state<S, A>(graph, state);
+		}
+	}
+	REQUIRE(terminal_states.size() == 2);
 }
 
 // Test various graphs

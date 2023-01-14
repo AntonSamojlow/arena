@@ -11,29 +11,31 @@
 namespace graph {
 
 /// <summary>
-/// Wrapper around std::pair<double, S>, representing an edge weight with the successor state
+/// Wrapper around std::pair, representing an edge weight with the successor state
 /// </summary>
 template <typename S>
 struct ActionEdge : private std::pair<double, S> {
-	ActionEdge(double weight, S state) : std::pair<double, S>(weight, state){}
+	ActionEdge(double&& weight, S&& state) : std::pair<double, S>(weight, state){}
 
 	[[nodiscard]]
 	auto weight() const -> double { return this->first; }
 	[[nodiscard]]
 	auto state() const -> S { return this->second; }
+
+private:
+	using std::pair<double, S>::first;
+	using std::pair<double, S>::second;
 };
 
 /// <summary>
 /// Rules of a state action graph. Note that `list_actions` for a terminal state should return empty.
 /// </summary>
-template <typename R, typename S, typename A>
-concept StateActionRulesEngine = requires(R const_rules_engine, S state, A action) {
-	{ const_rules_engine.list_roots() } -> std::convertible_to<std::vector<S>>;
-	{ const_rules_engine.list_actions(state) } -> std::convertible_to<std::vector<A>>;
-	{
-		const_rules_engine.list_edges(state, action)
-		} -> std::convertible_to<std::vector<ActionEdge<S>>>;
-	{ const_rules_engine.score(state) } -> std::convertible_to<double>;
+template <typename R, typename S, typename A> concept StateActionRulesEngine = 
+requires(R const_rules_engine, S state, A action) {
+	{ const_rules_engine.list_roots() } -> std::same_as<std::vector<S>>;
+	{ const_rules_engine.list_actions(state) } -> std::same_as<std::vector<A>>;
+	{ const_rules_engine.list_edges(state, action) } -> std::same_as<std::vector<ActionEdge<S>>>;
+	{ const_rules_engine.score(state) } -> std::same_as<double>;
 };
 
 /// <summary>
@@ -51,24 +53,23 @@ concept StateActionRulesEngine = requires(R const_rules_engine, S state, A actio
 /// 6. expanding an action determines all leaving weighted edges with their destination states (including the leaving
 /// edge count of each destination state)
 /// </summary>
-template <typename G, typename S, typename A>
-concept StateActionGraph =
+template <typename G, typename S, typename A> concept StateActionGraph =
 	StateActionRulesEngine<G, S, A> &&
 	requires(G graph, G const const_graph, S state, A action, double unit_range_value) {
-		{ const_graph.is_terminal_at(state) } -> std::convertible_to<bool>;
-		{ const_graph.is_expanded_at(state, action) } -> std::convertible_to<bool>;
-		{ const_graph.follow(state, action, unit_range_value) } -> std::convertible_to<S>;
+		{ const_graph.is_terminal_at(state) } -> std::same_as<bool>;
+		{ const_graph.is_expanded_at(state, action) } -> std::same_as<bool>;
+		{ const_graph.follow(state, action, unit_range_value) } -> std::same_as<S>;
 
-		{ const_graph.count_actions(state) } -> std::convertible_to<size_t>;
-		{ const_graph.count_edges(state, action) } -> std::convertible_to<size_t>;
+		{ const_graph.count_actions(state) } -> std::same_as<size_t>;
+		{ const_graph.count_edges(state, action) } -> std::same_as<size_t>;
 
 		{ graph.expand(state, action) } -> std::same_as<void>;
 	};
 
 template <typename N, typename S, typename A>
 concept NodeSerializer = requires(N const const_serializer, S state, A action) {
-	{ const_serializer.stringify(state) } -> std::convertible_to<std::string>;
-	{ const_serializer.stringify(state, action) } -> std::convertible_to<std::string>;
+	{ const_serializer.stringify(state) } -> std::same_as<std::string>;
+	{ const_serializer.stringify(state, action) } -> std::same_as<std::string>;
 };
 
 }  // namespace graph
