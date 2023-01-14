@@ -3,6 +3,16 @@
 #include <set>
 
 namespace graph::example {
+
+namespace {
+void validate_child(State child, std::vector<State> const& valid_states) {
+	{
+		if (std::find(valid_states.begin(), valid_states.end(), child) == valid_states.end())
+			throw std::invalid_argument("inconsistent initial structure (child node missing in keys)");
+	}
+}
+}  // namespace
+
 ExampleRulesEngine::ExampleRulesEngine(const GraphStructure& graph_structure) : graph_structure_(graph_structure) {
 	// collect all keys
 	// if we had ranges, then we could have used `auto keys = graph_structure | std::views::keys;` instead:
@@ -15,9 +25,9 @@ ExampleRulesEngine::ExampleRulesEngine(const GraphStructure& graph_structure) : 
 	for (auto const& [state, actions] : graph_structure) {
 		for (const ActionEdges& action_edges : actions) {
 			for (const ActionEdge<State>& edge : action_edges) {
-				children.insert(edge.state());
-				if (std::find(keys.begin(), keys.end(), edge.state()) == keys.end())
-					throw std::invalid_argument("inconsistent initial structure (child node missing in keys)");
+				State const child = edge.state();
+				validate_child(child, keys);
+				children.insert(child);
 			}
 		}
 	}

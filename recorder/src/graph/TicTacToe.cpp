@@ -98,20 +98,21 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 			return starting_player_turn ? 'o' : 'x';
 		if (board_value == 2)
 			return starting_player_turn ? 'x' : 'o';
-		return {' '};
+		return ' ';
 	};
 
 	std::string result;
 	for (size_t i = 0; i < 3; i++) {
 		for (size_t j = 0; j < 3; j++) {
 			unsigned char const value = board[i * 3 + j];
-			result += "|" + display_symbol(value);
+			result.push_back('|');
+			result.push_back(display_symbol(value));
 		}
 		if (line_break && i < 2) {
 			result += "|\n";
 		}
 	}
-	result += "|";
+	result.push_back('|');
 	return result;
 }
 
