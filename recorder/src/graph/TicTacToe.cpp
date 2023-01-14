@@ -124,7 +124,7 @@ auto TicTacToeGraph::stringify(StateId state) const -> std::string {
 }
 
 auto TicTacToeGraph::stringify(StateId state, ActionId action) const -> std::string {
-	return fmt::format("action-{} at: {})", action, state);
+	return fmt::format("action-{} at: {})", action, stringify(state));
 }
 
 auto TicTacToeGraph::stringify_formatted(StateId state) const -> std::string {
@@ -133,7 +133,7 @@ auto TicTacToeGraph::stringify_formatted(StateId state) const -> std::string {
 }
 
 auto TicTacToeGraph::stringify_formatted(StateId state, ActionId action) const -> std::string {
-	return fmt::format("action-{} at::\n{})", action, state);
+	return fmt::format("action-{} at::\n{})", action, stringify(state));
 }
 
 }  // namespace graph::tic_tac_toe
