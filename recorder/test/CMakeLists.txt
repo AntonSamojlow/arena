@@ -2,6 +2,7 @@
 
 # external dependencies
 find_package(Catch2 REQUIRED)
+find_package(spdlog REQUIRED)
 
 # source files
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
@@ -11,7 +12,7 @@ set(LIBRARIESUNDERTEST graph)
 # build target test (executable)
 add_executable(tests ${SOURCES})
 # main is provided by catch:
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain spdlog::spdlog)
 # link the code to be tested:
 target_link_libraries(tests PRIVATE ${LIBRARIESUNDERTEST})
 

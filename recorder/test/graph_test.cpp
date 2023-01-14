@@ -2,6 +2,8 @@
 #include <graph/GraphConcepts.h>
 #include <graph/TicTacToe.h>
 
+#include <spdlog/spdlog.h>
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -63,6 +65,15 @@ void test_base_operations(graph::StateActionGraph<S, A> auto& graph) {
 TEST_CASE("TicTacToe graph tests", "[graph, tictactoe]") {
 	graph::tic_tac_toe::TicTacToeGraph graph;
 	test_base_operations<graph::tic_tac_toe::StateId, graph::tic_tac_toe::ActionId>(graph);
+
+	// test output
+	auto logger = spdlog::default_logger();
+	logger->info("root: {}", graph.stringify(graph.list_roots().front()));
+	std::vector<graph::tic_tac_toe::StateId> visited_states {};
+	test_full_descend<graph::tic_tac_toe::StateId, graph::tic_tac_toe::ActionId>(graph, false, visited_states);
+	logger->info("logging all states of a full descend");
+	for (auto state : visited_states) 
+		logger->info("\n{}", graph.stringify_formatted(state));
 }
 
 TEST_CASE("ExampleGraph tests", "[graph]") {
