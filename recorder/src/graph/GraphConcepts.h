@@ -28,7 +28,8 @@ private:
 };
 
 /// <summary>
-/// Rules of a state action graph. Note that `list_actions` for a terminal state should return empty.
+/// Rules of a state action graph. 
+/// CONDITION: the method `list_actions` returns empty when called on a terminal state.
 /// </summary>
 template <typename R, typename S, typename A> concept StateActionRulesEngine = 
 requires(R const_rules_engine, S state, A action) {
@@ -38,23 +39,37 @@ requires(R const_rules_engine, S state, A action) {
 	{ const_rules_engine.score(state) } -> std::same_as<double>;
 };
 
+template<typename T>
+concept Hashable = requires(T a) {
+    { std::hash<T>{}(a) } -> std::convertible_to<std::size_t>;
+};
+
+template<typename T>
+concept Equatable = requires(T a) {
+    { std::equal_to<T>{}(a, a) } -> std::convertible_to<bool>;
+};
+
+template<typename T>
+concept UnorderedMappable = Equatable<T> && Hashable<T>;
+
 /// <summary>
 /// A rooted directed graph with two types of vertices, 'states' and 'actions'.
-///
-/// The state must allow storage in an UnorderedAssociativeContainer (STL).
+/// CONDITIONS:
+/// Both state and actions must allow to be used as key in std::unordered_map (see concept UnorderedMappable).
 /// Leaving edges of states end at actions. Leaving edges of actions are weighted, sum to 1 and end at states.
-///
-/// The following **guarantees are expected** from each implementation :
-/// 1. each state has 0+ leaving edges and this count may not change (for known / initialized states)
-///	2. each states leaving edges are ordered and indexed, starting from 0
-/// 3. states are terminal iff they have 0 leaving edges
-/// 4. the count of leaving edges of an action may be 1+ or unknown
-/// 5. an action is *expanded* iff the number of leaving edges is known and this count does never change, once known
-/// 6. expanding an action determines all leaving weighted edges with their destination states (including the leaving
-/// edge count of each destination state)
+/// The following **guarantees are expected** from each implementation:
+/// 1. Each state has 0+ leaving edges and this count may not change (for known / initialized states).
+///	2. Each states leaving edges are ordered and indexed, starting from 0.
+/// 3. States are terminal iff they have 0 leaving edges.
+/// 4. The count of leaving edges of an action may be 1+ or unknown (not 0).
+/// 5. An action is *expanded* iff the number of leaving edges is known. This count never changes, once known.
+/// 6. Expanding an action determines all leaving (weighted) edges with their destination states (including the leaving
+/// edge count of each destination state).
 /// </summary>
 template <typename G, typename S, typename A> concept StateActionGraph =
-	StateActionRulesEngine<G, S, A> &&
+	StateActionRulesEngine<G, S, A> && 
+	UnorderedMappable<S> && 
+	UnorderedMappable<A> &&
 	requires(G graph, G const const_graph, S state, A action, double unit_range_value) {
 		{ const_graph.is_terminal_at(state) } -> std::same_as<bool>;
 		{ const_graph.is_expanded_at(state, action) } -> std::same_as<bool>;
