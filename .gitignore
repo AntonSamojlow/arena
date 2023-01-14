@@ -11,6 +11,9 @@ recorder/out
 !.vscode/extensions.json
 .cache/
 
+# Python
+.venv
+
 # CMake
 CMakeLists.txt.user
 CMakeCache.txt
@@ -25,4 +28,4 @@ CTestTestfile.cmake
 _deps
 
 # User spesific files
-CMakeUserPresets.json
+CMakeUserPresets.jsoncd..

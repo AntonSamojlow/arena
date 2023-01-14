@@ -32,7 +32,7 @@
 				"rhs": "Windows"
 			},
 			"cacheVariables": {
-				"CMAKE_EXPORT_COMPILE_COMMANDS": true 
+				"CMAKE_EXPORT_COMPILE_COMMANDS": true
 			}
 		},
 
@@ -54,7 +54,7 @@
 				}
 			}
 		},
-		
+
 		{
 			"name": "debug",
 			"hidden": true,
@@ -174,11 +174,6 @@
 			"inherits": [ "unix-like", "clang", "release" ]
 		},
 		{
-			"name": "clang-debug-coverage",
-			"displayName": "Clang Debug (with coverage)",
-			"inherits": [ "unix-like", "clang", "debug", "coverage" ]
-		},
-		{
 			"name": "clang-release-tidy",
 			"displayName": "Clang Release (with clang-tidy)",
 			"inherits": [ "unix-like", "clang", "release", "clangtidy" ]
@@ -197,11 +192,6 @@
 
 	"buildPresets": [
 		{
-			"name": "msvc-release",
-			"displayName": "default",
-			"configurePreset": "msvc-release"
-		},
-		{
 			"name": "msvc-debug-verbose",
 			"displayName": "verbose",
 			"configurePreset": "msvc-debug",
@@ -211,6 +201,12 @@
 			"name": "clang-cl-debug-verbose",
 			"displayName": "verbose",
 			"configurePreset": "clang-cl-debug",
+			"verbose": true
+		},
+		{
+			"name": "clang-cl-release-tidy-verbose",
+			"displayName": "verbose",
+			"configurePreset": "clang-cl-release-tidy",
 			"verbose": true
 		}
 	],

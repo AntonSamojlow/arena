@@ -1,3 +1,4 @@
+---
 Checks: "*,
         -abseil-*,
         -altera-*,
@@ -6,12 +7,15 @@ Checks: "*,
         -google-*,
         -llvm*,
         -zircon-*,
-        -readability-else-after-return,
         -readability-static-accessed-through-instance,
-        -readability-avoid-const-params-in-decls,
         -cppcoreguidelines-non-private-member-variables-in-classes,
         -misc-non-private-member-variables-in-classes,
+        -hicpp-braces-around-statements
 "
+CheckOptions:
+  - key:    readability-braces-around-statements.ShortStatementLines
+    value:  '2'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 FormatStyle:     none
+---

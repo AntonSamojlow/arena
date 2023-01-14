@@ -1,7 +1,24 @@
 ---
 BasedOnStyle: Google
+IndentWidth: 2
+TabWidth: 2
+UseTab: ForContinuationAndIndentation
 
+---
+Language: Cpp
+AlignAfterOpenBracket: DontAlign
 AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BinPackParameters: false
+BinPackArguments: false
 ColumnLimit: 120
-...
+ContinuationIndentWidth: 2
+
+# enable once clang.format 16 is available (locally and in github action)
+# RequiresExpressionIndentation: OuterScope
+---

@@ -64,6 +64,12 @@ set(CLANG_DEFAULT_WARNINGS
   -Wextra-semi-stmt # warn about extra semicolon making empty statement
 )
 
+if(MSVC)
+  # disable ctad warning for clang with MSVC - seems to create false positives?
+  list(APPEND CLANG_DEFAULT_WARNINGS -Wno-ctad-maybe-unsupported )
+  message(STATUS "MSVC deteced: disabling clang warning 'ctad-maybe-unsupported'")
+endif()
+
 set(GCC_DEFAULT_WARNINGS
   ${GCC_AND_CLANG_DEFAULT_WARNINGS}
   -Wmisleading-indentation # warn if indentation implies blocks where blocks do not exist
@@ -81,15 +87,15 @@ function(set_specific_warnings
   GCC_WARNINGS)
 
   if("${MSVC_WARNINGS}" STREQUAL "")
-    message(SEND_ERROR "No warnings specified for MSVC")    
+    message(SEND_ERROR "No warnings specified for MSVC") 
   endif()
 
   if("${CLANG_WARNINGS}" STREQUAL "")
-    message(SEND_ERROR "No warnings specified for CLANG")    
+    message(SEND_ERROR "No warnings specified for CLANG")
   endif()
 
   if("${GCC_WARNINGS}" STREQUAL "")
-    message(SEND_ERROR "No warnings specified for GCC")    
+    message(SEND_ERROR "No warnings specified for GCC")
   endif()
 
   if(WARNINGS_AS_ERRORS)
@@ -109,8 +115,6 @@ function(set_specific_warnings
   else()
     message(SEND_ERROR "No compiler warnings set for CXX compiler: '${CMAKE_CXX_COMPILER_ID}'")
   endif()
-
-
 
   message(STATUS "enabled warnings for '${target_name}': ${ENABLED_WARNINGS}")
   target_compile_options(${target_name} PRIVATE ${ENABLED_WARNINGS})

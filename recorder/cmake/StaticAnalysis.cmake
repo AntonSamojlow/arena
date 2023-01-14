@@ -30,9 +30,13 @@ macro(enable_clang_tidy)
 
   message(STATUS "enable_clang_tidy_globally: CMAKE_CXX_CLANG_TIDY=${CMAKE_CXX_CLANG_TIDY}")
 
-
   # C clang-tidy
   set(CMAKE_C_CLANG_TIDY ${CMAKE_CXX_CLANG_TIDY})
+
+  # adding /EHsc option - reason: https://github.com/llvm/llvm-project/issues/44701
+  if("${CMAKE_CXX_CLANG_TIDY_DRIVER_MODE}" STREQUAL "cl")
+    list(APPEND CMAKE_CXX_CLANG_TIDY -extra-arg=/EHsc)
+  endif()
 
   # set C++ standard
   if(NOT
