@@ -102,7 +102,7 @@ auto SAGraphDefaultImplementation<S, A, R>::follow(S state, A action, double uni
 
 template <typename S, typename A, StateActionRulesEngine<S, A> R>
 void SAGraphDefaultImplementation<S, A, R>::expand(S state, A action) {
-	std::unique_lock<std::shared_mutex> lock{action_data_mutex_};
+	std::unique_lock lock{action_data_mutex_};
 
 	// skip if already expanded
 	// note: we could promote this to an exception, forcing the calling algorithm to check beforehand (they typically do

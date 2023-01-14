@@ -1,5 +1,7 @@
 #include "TicTacToe.h"
 
+#include <fmt/format.h>
+
 #include <vector>
 
 #include "graph/TicTacToe.h"
@@ -122,7 +124,7 @@ auto TicTacToeGraph::stringify(StateId state) const -> std::string {
 }
 
 auto TicTacToeGraph::stringify(StateId state, ActionId action) const -> std::string {
-	return "action-" + std::to_string(action) + "{0} at: " + stringify(state);
+	return fmt::format("action-{} at: {})", action, state);
 }
 
 auto TicTacToeGraph::stringify_formatted(StateId state) const -> std::string {
@@ -131,7 +133,7 @@ auto TicTacToeGraph::stringify_formatted(StateId state) const -> std::string {
 }
 
 auto TicTacToeGraph::stringify_formatted(StateId state, ActionId action) const -> std::string {
-	return "action-" + std::to_string(action) + "{0} at:\n" + stringify_formatted(state);
+	return fmt::format("action-{} at::\n{})", action, state);
 }
 
 }  // namespace graph::tic_tac_toe

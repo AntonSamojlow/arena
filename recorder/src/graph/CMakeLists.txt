@@ -2,7 +2,8 @@
 
 # external dependencies
 find_package(spdlog REQUIRED)
-set(DEPENDENCIES spdlog::spdlog)
+find_package(fmt REQUIRED)
+set(DEPENDENCIES spdlog::spdlog fmt::fmt)
 
 # source files
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
