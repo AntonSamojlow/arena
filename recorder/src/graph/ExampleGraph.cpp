@@ -33,7 +33,7 @@ ExampleRulesEngine::ExampleRulesEngine(const GraphStructure& graph_structure) : 
 	}
 
 	// detemine roots: filter out all children
-	for (auto& state : keys) {
+	for (auto state : keys) {
 		if (!children.contains(state))
 			roots_.push_back(state);
 	}
