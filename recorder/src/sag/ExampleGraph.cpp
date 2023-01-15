@@ -2,7 +2,7 @@
 
 #include <set>
 
-namespace graph::example {
+namespace sag::example {
 
 namespace {
 void validate_child(State child, std::vector<State> const& valid_states) {

@@ -8,7 +8,7 @@
 #include "GraphConcepts.h"
 #include "SAGraphDefaultImplementation.h"
 
-namespace graph::example {
+namespace sag::example {
 
 using State = int;
 using Action = int;
@@ -31,10 +31,10 @@ class ExampleRulesEngine {
 	GraphStructure graph_structure_;
 };
 
-class ExampleGraph : public graph::SAGraphDefaultImplementation<State, Action, ExampleRulesEngine> {
+class ExampleGraph : public sag::sagDefaultImplementation<State, Action, ExampleRulesEngine> {
  public:
 	explicit ExampleGraph(ExampleRulesEngine rules_engine)
-			: graph::SAGraphDefaultImplementation<State, Action, ExampleRulesEngine>(std::move(rules_engine)) {}
+			: sag::sagDefaultImplementation<State, Action, ExampleRulesEngine>(std::move(rules_engine)) {}
 
 	static auto stringify(State state) -> std::string { return std::to_string(state); }
 	static auto stringify(State state, Action action) -> std::string {

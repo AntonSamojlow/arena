@@ -1,4 +1,4 @@
-# cmake file for src/graph
+# cmake file for src/sag
 
 # external dependencies
 find_package(spdlog REQUIRED)
@@ -9,14 +9,14 @@ set(DEPENDENCIES spdlog::spdlog fmt::fmt)
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
 set(SOURCES ${SOURCES})
 
-# build target graph (library)
-add_library(graph ${SOURCES})
-target_link_libraries(graph PRIVATE spdlog::spdlog)
-set_target_properties(graph PROPERTIES LINKER_LANGUAGE CXX)
+# build target sag (library)
+add_library(sag ${SOURCES})
+target_link_libraries(sag PRIVATE spdlog::spdlog)
+set_target_properties(sag PROPERTIES LINKER_LANGUAGE CXX)
 
-set_default_warnings(graph)
+set_default_warnings(sag)
 
-enable_sanitizers(graph
+enable_sanitizers(sag
   "${ENABLE_SANITIZER_ADDRESS}"
   "${ENABLE_SANITIZER_LEAK}"
   "${ENABLE_SANITIZER_UNDEFINED_BEHAVIOR}"
@@ -24,5 +24,5 @@ enable_sanitizers(graph
   "${ENABLE_SANITIZER_MEMORY}")
 
 if(ENABLE_COVERAGE)
-  enable_coverage(graph)
+  enable_coverage(sag)
 endif()

@@ -4,7 +4,7 @@
 #include "GraphConcepts.h"
 #include "SAGraphDefaultImplementation.h"
 
-namespace graph::tic_tac_toe {
+namespace sag::tic_tac_toe {
 
 const size_t BoardSize = 9;
 
@@ -29,9 +29,9 @@ class TicTacToeRules {
 	static auto opponent_has_won(const Board& board) -> bool;
 };
 
-class TicTacToeGraph : public SAGraphDefaultImplementation<StateId, ActionId, TicTacToeRules> {
+class TicTacToeGraph : public sagDefaultImplementation<StateId, ActionId, TicTacToeRules> {
  public:
-	TicTacToeGraph() : SAGraphDefaultImplementation<StateId, ActionId, TicTacToeRules>(TicTacToeRules()) {}
+	TicTacToeGraph() : sagDefaultImplementation<StateId, ActionId, TicTacToeRules>(TicTacToeRules()) {}
 
 	auto stringify(StateId state) const -> std::string;
 	auto stringify_formatted(StateId state) const -> std::string;

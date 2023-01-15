@@ -4,9 +4,9 @@
 
 #include <vector>
 
-#include "graph/TicTacToe.h"
+#include "TicTacToe.h"
 
-namespace graph::tic_tac_toe {
+namespace sag::tic_tac_toe {
 auto TicTacToeRules::list_actions(StateId state) -> std::vector<ActionId> {
 	Board const board = decode(state);
 

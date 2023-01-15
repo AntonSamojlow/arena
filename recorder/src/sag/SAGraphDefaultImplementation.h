@@ -10,15 +10,15 @@
 
 #include "GraphConcepts.h"
 
-namespace graph {
+namespace sag {
 
 /// <summary>
 /// Threadsafe default implementation, relying on a `StateActionRulesEngine`.
 /// </summary>
-template <typename S, typename A, StateActionRulesEngine<S, A> R>
-class SAGraphDefaultImplementation {
+template <typename S, typename A, RulesEngine<S, A> R>
+class sagDefaultImplementation {
  public:
-	explicit SAGraphDefaultImplementation(R rules_engine)
+	explicit sagDefaultImplementation(R rules_engine)
 			: rules_engine_(rules_engine), roots_(rules_engine.list_roots()) {
 		// initialize roots
 		std::unique_lock lock{action_data_mutex_};
@@ -75,8 +75,8 @@ class SAGraphDefaultImplementation {
 	void initialize_state_nolock(S state);
 };
 
-template <typename S, typename A, StateActionRulesEngine<S, A> R>
-auto SAGraphDefaultImplementation<S, A, R>::follow(S state, A action, double unit_range_value) const -> S {
+template <typename S, typename A, RulesEngine<S, A> R>
+auto sagDefaultImplementation<S, A, R>::follow(S state, A action, double unit_range_value) const -> S {
 	if (!is_expanded_at(state, action))
 		throw std::logic_error("can not follow an unexpanded action");
 
@@ -101,8 +101,8 @@ auto SAGraphDefaultImplementation<S, A, R>::follow(S state, A action, double uni
 	return match->state();
 }
 
-template <typename S, typename A, StateActionRulesEngine<S, A> R>
-void SAGraphDefaultImplementation<S, A, R>::expand(S state, A action) {
+template <typename S, typename A, RulesEngine<S, A> R>
+void sagDefaultImplementation<S, A, R>::expand(S state, A action) {
 	std::unique_lock lock{action_data_mutex_};
 
 	// skip if already expanded
@@ -118,8 +118,8 @@ void SAGraphDefaultImplementation<S, A, R>::expand(S state, A action) {
 }
 
 // initializes a state by adding all its actions - the caller is responsible of ensuring action_data_ is locked!
-template <typename S, typename A, StateActionRulesEngine<S, A> R>
-void SAGraphDefaultImplementation<S, A, R>::initialize_state_nolock(S state) {
+template <typename S, typename A, RulesEngine<S, A> R>
+void sagDefaultImplementation<S, A, R>::initialize_state_nolock(S state) {
 	if (action_data_.try_emplace(state).second) {
 		for (A action : rules_engine_.list_actions(state))
 			action_data_.at(state).emplace(action, std::vector<ActionEdge<S>>());

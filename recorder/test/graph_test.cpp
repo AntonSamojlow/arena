@@ -1,6 +1,6 @@
-#include <graph/ExampleGraph.h>
-#include <graph/GraphConcepts.h>
-#include <graph/TicTacToe.h>
+#include <sag/ExampleGraph.h>
+#include <sag/GraphConcepts.h>
+#include <sag/TicTacToe.h>
 #include <spdlog/spdlog.h>
 
 #include <catch2/catch_test_macros.hpp>
@@ -8,7 +8,7 @@
 #include <random>
 
 template <typename S, typename A>
-void test_roots_nonterminal(graph::StateActionGraph<S, A> auto& graph) {
+void test_roots_nonterminal(sag::Graph<S, A> auto& graph) {
 	for (S root : graph.list_roots()) {
 		REQUIRE(false == graph.is_terminal_at(root));
 		double const score = graph.score(root);
@@ -18,7 +18,7 @@ void test_roots_nonterminal(graph::StateActionGraph<S, A> auto& graph) {
 }
 
 template <typename S, typename A>
-void descend_once_(graph::StateActionGraph<S, A> auto& graph, S& state_in_out, bool randomized) {
+void descend_once_(sag::Graph<S, A> auto& graph, S& state_in_out, bool randomized) {
 	std::mt19937 rng({});  // NOLINT (cert-*)
 	std::uniform_real_distribution<double> unit_distribution(0.0, 1.0);
 	double const random_value = randomized ? unit_distribution(rng) : 1.0;
@@ -30,7 +30,7 @@ void descend_once_(graph::StateActionGraph<S, A> auto& graph, S& state_in_out, b
 		graph.expand(state_in_out, action);
 	REQUIRE(graph.is_expanded_at(state_in_out, action));
 	double weight_sum = 0.0;
-	for (graph::ActionEdge<S> const& edge : graph.list_edges(state_in_out, action)) {
+	for (sag::ActionEdge<S> const& edge : graph.list_edges(state_in_out, action)) {
 		weight_sum += edge.weight();
 	}
 	REQUIRE(weight_sum == 1.0);
@@ -38,7 +38,7 @@ void descend_once_(graph::StateActionGraph<S, A> auto& graph, S& state_in_out, b
 }
 
 template <typename S, typename A>
-void test_full_descend(graph::StateActionGraph<S, A> auto& graph, bool randomized, std::vector<S>& visited_states) {
+void test_full_descend(sag::Graph<S, A> auto& graph, bool randomized, std::vector<S>& visited_states) {
 	std::mt19937 rng({});  // NOLINT (cert-*)
 	std::uniform_real_distribution<double> unit_distribution(0.0, 1.0);
 	double const random_value = randomized ? unit_distribution(rng) : 1.0;
@@ -54,14 +54,14 @@ void test_full_descend(graph::StateActionGraph<S, A> auto& graph, bool randomize
 }
 
 template <typename S, typename A>
-void check_terminal_state(graph::StateActionGraph<S, A> auto& graph, S const& state) {
+void check_terminal_state(sag::Graph<S, A> auto& graph, S const& state) {
 	double const score = graph.score(state);
 	REQUIRE_THAT(score, Catch::Matchers::WithinAbs(1.0, 0.0001) || Catch::Matchers::WithinAbs(-1.0, 0.0001));
 	REQUIRE(graph.list_actions(state).empty());
 }
 
 template <typename S, typename A>
-void test_base_operations(graph::StateActionGraph<S, A> auto& graph) {
+void test_base_operations(sag::Graph<S, A> auto& graph) {
 	std::vector<S> visited_states = {};
 	test_roots_nonterminal<S, A>(graph);
 	test_full_descend<S, A>(graph, false, visited_states);
@@ -80,22 +80,22 @@ void test_base_operations(graph::StateActionGraph<S, A> auto& graph) {
 // Test various graphs
 
 TEST_CASE("TicTacToe graph tests", "[graph, tictactoe]") {
-	graph::tic_tac_toe::TicTacToeGraph graph;
-	test_base_operations<graph::tic_tac_toe::StateId, graph::tic_tac_toe::ActionId>(graph);
+	sag::tic_tac_toe::TicTacToeGraph graph;
+	test_base_operations<sag::tic_tac_toe::StateId, sag::tic_tac_toe::ActionId>(graph);
 
 	// test output
 	auto logger = spdlog::default_logger();
 	logger->info("root: {}", graph.stringify(graph.list_roots().front()));
-	std::vector<graph::tic_tac_toe::StateId> visited_states{};
-	test_full_descend<graph::tic_tac_toe::StateId, graph::tic_tac_toe::ActionId>(graph, false, visited_states);
+	std::vector<sag::tic_tac_toe::StateId> visited_states{};
+	test_full_descend<sag::tic_tac_toe::StateId, sag::tic_tac_toe::ActionId>(graph, false, visited_states);
 	logger->info("logging all states of a full descend");
 	for (auto state : visited_states)
 		logger->info("\n{}", graph.stringify_formatted(state));
 }
 
 TEST_CASE("ExampleGraph tests", "[graph]") {
-	std::vector<graph::example::ActionEdges> const TERMINAL = {};
-	graph::example::GraphStructure const graph_structure = {
+	std::vector<sag::example::ActionEdges> const TERMINAL = {};
+	sag::example::GraphStructure const graph_structure = {
 		{1,
 			{
 				{{1.0 / 3, 2}, {2.0 / 3, 3}},
@@ -111,7 +111,7 @@ TEST_CASE("ExampleGraph tests", "[graph]") {
 		{9, TERMINAL},
 	};
 
-	graph::example::ExampleRulesEngine const rules(graph_structure);
-	graph::example::ExampleGraph graph(rules);
-	test_base_operations<graph::example::State, graph::example::Action>(graph);
+	sag::example::ExampleRulesEngine const rules(graph_structure);
+	sag::example::ExampleGraph graph(rules);
+	test_base_operations<sag::example::State, sag::example::Action>(graph);
 }
