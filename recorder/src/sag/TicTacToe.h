@@ -39,4 +39,4 @@ class TicTacToeGraph : public sagDefaultImplementation<StateId, ActionId, TicTac
 	auto stringify_formatted(StateId state, ActionId action) const -> std::string;
 };
 
-}  // namespace graph::tic_tac_toe
+}  // namespace sag::tic_tac_toe

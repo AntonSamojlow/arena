@@ -42,4 +42,4 @@ class ExampleGraph : public sag::sagDefaultImplementation<State, Action, Example
 	}
 };
 
-}  // namespace graph::example
+}  // namespace sag::example

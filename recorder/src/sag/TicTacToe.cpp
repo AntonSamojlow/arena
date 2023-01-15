@@ -136,4 +136,4 @@ auto TicTacToeGraph::stringify_formatted(StateId state, ActionId action) const -
 	return fmt::format("action-{} at::\n{})", action, stringify(state));
 }
 
-}  // namespace graph::tic_tac_toe
+}  // namespace sag::tic_tac_toe

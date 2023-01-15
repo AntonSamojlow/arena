@@ -57,4 +57,4 @@ auto ExampleRulesEngine::list_edges(State state, Action action) const -> ActionE
 auto ExampleRulesEngine::score(State state) const -> double {
 	return graph_structure_.at(state).empty() ? -1.0 : 0.0;
 }
-}  // namespace graph::example
+}  // namespace sag::example

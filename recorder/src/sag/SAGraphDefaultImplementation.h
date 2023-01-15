@@ -18,8 +18,7 @@ namespace sag {
 template <typename S, typename A, RulesEngine<S, A> R>
 class sagDefaultImplementation {
  public:
-	explicit sagDefaultImplementation(R rules_engine)
-			: rules_engine_(rules_engine), roots_(rules_engine.list_roots()) {
+	explicit sagDefaultImplementation(R rules_engine) : rules_engine_(rules_engine), roots_(rules_engine.list_roots()) {
 		// initialize roots
 		std::unique_lock lock{action_data_mutex_};
 		for (S root : roots_)
@@ -128,4 +127,4 @@ void sagDefaultImplementation<S, A, R>::initialize_state_nolock(S state) {
 	// else do nothing: already initialied (might have been visited via a different parent, repeated init calles, etc.)
 }
 
-}  // namespace graph
+}  // namespace sag
