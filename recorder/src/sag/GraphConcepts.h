@@ -2,103 +2,139 @@
 
 #include <concepts>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
+
+#include "BoundedValue.h"
 
 // disable until clang-format 16 with 'RequiresExpressionIndentation : OuterScope' is available
 // clang-format off
 
+/// sag: A state-action graph is a rooted directed graph with two types of vertices, 'states' and 'actions'.
+/// It satisfies:
+/// 1. Each state has 0+ leaving edges whcih end at actions.
+/// 2. A state is called 'terminal' iff it has 0 leaving edges.
+/// 3. Each edge has 1+ leaving weighted edges that sum to 1 and end at states.
 namespace sag {
 
-template<typename T>
+// --------------------------------------------------------------------------------------------------------------------
+// Helper concepts and types
+// --------------------------------------------------------------------------------------------------------------------
+
+template <typename T>
 concept Hashable = requires(T a) {
-    { std::hash<T>{}(a) } -> std::convertible_to<std::size_t>;
+	{ std::hash<T>{}(a) } -> std::convertible_to<std::size_t>;
 };
 
-template<typename T>
+template <typename T>
 concept Equatable = requires(T a) {
-    { std::equal_to<T>{}(a, a) } -> std::convertible_to<bool>;
+	{ std::equal_to<T>{}(a, a) } -> std::convertible_to<bool>;
 };
 
-/// <summary>
 /// Types satisfying this concept may be used as keys in std::unordered_map.
-/// </summary>
-template<typename T>
-concept Identifier = std::regular<T> && Hashable<T> && Equatable<T>;
+template <typename T> concept Identifier = std::regular<T> && Hashable<T> && Equatable<T>;
 
 // assert that basic types satisfy Identifier
 static_assert(Identifier<char>);
 static_assert(Identifier<int>);
 static_assert(Identifier<std::string>);
-static_assert(false == Identifier<std::vector<int>>);
+// sanity check that STL containers do not satisfy Identifier
+static_assert(!Identifier<std::vector<int>>);
+static_assert(!Identifier<std::pair<int, int>>);
 
-/// <summary>
+template <typename StateId, typename ActionId>
+/// The types used to identify states and actions of a state-action graph.
+/// REQUIREMENT:
+/// - a state id is globally unique for each state
+/// - an action id may not be unique for each action, 
+/// it is only required to be unique among the actions of each individual state
+concept Vertices = Identifier<StateId> && Identifier<ActionId>;
+
 /// Wrapper around std::pair, representing an edge weight with the successor state
-/// </summary>
 template <Identifier State>
-struct ActionEdge : public std::pair<double, State> {
+struct ActionEdge : public std::pair<UnitValue, State> {
 	ActionEdge() = default;
-	ActionEdge(double&& weight, State&& state) : std::pair<double, State>(weight, state){}
+	ActionEdge(float&& weight, State&& state) : std::pair<UnitValue, State>(std::move(weight), std::move(state)) {}
 
-	[[nodiscard]]
-	auto weight() const -> double { return this->first; }
-	[[nodiscard]]
-	auto state() const -> State { return this->second; }
+	[[nodiscard]] auto weight() const -> UnitValue { return this->first; }
+	[[nodiscard]] auto state() const -> State { return this->second; }
 
-private:
-	using std::pair<double, State>::first;
-	using std::pair<double, State>::second;
+ private:
+	using std::pair<UnitValue, State>::first;
+	using std::pair<UnitValue, State>::second;
 };
 
 static_assert(std::regular<ActionEdge<int>>);
 static_assert(std::regular<ActionEdge<std::string>>);
 
-/// <summary>
-/// Rules of a state action graph. 
-/// CONDITION: the method `list_actions` returns empty when called on a terminal state.
-/// </summary>
-template <typename R, typename S, typename A> 
-concept RulesEngine = requires(R const_rules_engine, S state, A action) {
+// --------------------------------------------------------------------------------------------------------------------
+// Main graph concepts
+// --------------------------------------------------------------------------------------------------------------------
+
+template <typename G, typename S, typename A>
+/// Container for a state-action graph.
+/// The base modifiying operation an *expansion* of a state-action which adds
+/// all leaving (weighted) edges with their destination states, including their non-expanded actions.
+/// REQUIREMENTS:
+/// - 'is_expanded_at' is true iff the container knows the leaving edges of the state-action (this pair 'is expanded').
+/// - 'edges_at' for a non-expanded state-action returns emtpy.
+/// - 'expand_at' for an expanded state-action a no-op which returns false.
+/// - 'expand_at' returns false iff the graph failed to add the new edges and next states to itself.
+concept GraphContainer = Vertices<S, A> && requires(G graph,
+	G const const_graph,
+	S state,
+	A action,
+	std::vector<ActionEdge<S>> new_edges,
+	std::unordered_map<S, std::vector<A>> next_states) {
+	// const operations
+	{ const_graph.is_terminal_at(state) } -> std::same_as<bool>;
+	{ const_graph.is_expanded_at(state, action) } -> std::same_as<bool>;
+	{ const_graph.roots() } -> std::same_as<std::vector<S>>;
+	{ const_graph.actions_at(state) } -> std::same_as<std::vector<A>>;
+	{
+		const_graph.edges_at(state, action)
+		} -> std::same_as<std::vector<ActionEdge<S>>>;
+	{ const_graph.action_count_at(state) } -> std::same_as<size_t>;
+	{ const_graph.edge_count_at(state, action) } -> std::same_as<size_t>;
+	// non-const operations
+	{
+		graph.expand_at(state, action, new_edges, next_states)
+		} -> std::same_as<bool>;
+};
+
+template <typename R, typename S, typename A>
+/// Generates roots, actions and edges for a state-action graph.
+/// REQUIREMENTS:
+/// - 'list_roots' returns always the same 1+ states in the same order.
+/// - For each state, 'list_actions' returns always the same 0+ actions in the same order.
+/// - 'list_actions' may return empty for a state, but then 'score' must return either +1 or -1 for this state (it is
+/// terminal).
+/// - For each state-action pair, 'list_edges' returns always the same 1+ action edges in the same order.
+concept RulesEngine = Vertices<S, A> && requires(R const const_rules_engine, S state, A action) {
 	{ const_rules_engine.list_roots() } -> std::same_as<std::vector<S>>;
 	{ const_rules_engine.list_actions(state) } -> std::same_as<std::vector<A>>;
-	{ const_rules_engine.list_edges(state, action) } -> std::same_as<std::vector<ActionEdge<S>>>;
-	{ const_rules_engine.score(state) } -> std::same_as<double>;
+	{
+		const_rules_engine.list_edges(state, action)
+		} -> std::same_as<std::vector<ActionEdge<S>>>;
+	{ const_rules_engine.score(state) } -> std::same_as<Score>;
 };
 
-/// <summary>
-/// A rooted directed graph with two types of vertices, 'states' and 'actions'.
-/// CONDITIONS:
-/// Both state and actions must allow to be used as key in std::unordered_map (see concept UnorderedMappable).
-/// Leaving edges of states end at actions. Leaving edges of actions are weighted, sum to 1 and end at states.
-/// The following **guarantees are expected** from each implementation:
-/// 1. Each state has 0+ leaving edges and this count may not change (for known / initialized states).
-///	2. Each states leaving edges are ordered and indexed, starting from 0.
-/// 3. States are terminal iff they have 0 leaving edges.
-/// 4. The count of leaving edges of an action may be 1+ or unknown (not 0).
-/// 5. An action is *expanded* iff the number of leaving edges is known. This count never changes, once known.
-/// 6. Expanding an action determines all leaving (weighted) edges with their destination states (including the leaving
-/// edge count of each destination state).
-/// </summary>
-template <typename G, typename S, typename A> 
-concept Graph =
-	RulesEngine<G, S, A> && 
-	Identifier<S> && 
-	Identifier<A> &&
-	requires(G graph, G const const_graph, S state, A action, double unit_range_value) {
-		{ const_graph.is_terminal_at(state) } -> std::same_as<bool>;
-		{ const_graph.is_expanded_at(state, action) } -> std::same_as<bool>;
-		{ const_graph.follow(state, action, unit_range_value) } -> std::same_as<S>;
-
-		{ const_graph.count_actions(state) } -> std::same_as<size_t>;
-		{ const_graph.count_edges(state, action) } -> std::same_as<size_t>;
-
-		{ graph.expand(state, action) } -> std::same_as<void>;
-	};
+template <typename G, typename S, typename A>
+/// A graph countainer that has a count of the states, actions and (action) edges
+/// it *currently* holds (not the total count of all possible entities).
+concept CountingGraphContainer = GraphContainer<G, S, A> && requires(G const const_graph, S state, A action) {
+	{ const_graph.action_count() } -> std::same_as<size_t>;
+	{ const_graph.state_count() } -> std::same_as<size_t>;
+	{ const_graph.edge_count() } -> std::same_as<size_t>;
+};
 
 template <typename N, typename S, typename A>
-concept NodeSerializer = requires(N const const_serializer, S state, A action) {
-	{ const_serializer.stringify(state) } -> std::same_as<std::string>;
-	{ const_serializer.stringify(state, action) } -> std::same_as<std::string>;
+concept VertexStringifier = Vertices<S, A> && requires(N const const_stringifier, S state, A action) {
+	{ const_stringifier.stringify(state) } -> std::same_as<std::string>;
+	{
+		const_stringifier.stringify(state, action)
+		} -> std::same_as<std::string>;
 };
 
-}  // namespace graph
+}  // namespace sag
