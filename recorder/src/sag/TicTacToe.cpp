@@ -28,8 +28,8 @@ auto TicTacToeRules::list_edges(StateId state, ActionId action) -> std::vector<A
 	return {ActionEdge<StateId>(1.0, encode(invert(board)))};
 }
 
-auto TicTacToeRules::score(StateId state) -> double {
-	return opponent_has_won(decode(state)) ? -1.0 : 0.0;
+auto TicTacToeRules::score(StateId state) -> Score {
+	return opponent_has_won(decode(state)) ? Score(-1.0F) : Score(0.0F);
 }
 
 auto TicTacToeRules::encode(const Board& board) -> StateId {
@@ -117,7 +117,7 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 }
 
 auto TicTacToeGraph::stringify(StateId state) const -> std::string {
-	const auto& rules_engine = get_rules_engine();
+	auto const& rules_engine = this->rules_engine();
 	return rules_engine.to_string(rules_engine.decode(state), false);
 }
 
@@ -126,7 +126,7 @@ auto TicTacToeGraph::stringify(StateId state, ActionId action) const -> std::str
 }
 
 auto TicTacToeGraph::stringify_formatted(StateId state) const -> std::string {
-	const auto& rules_engine = get_rules_engine();
+	auto const& rules_engine = this->rules_engine();
 	return rules_engine.to_string(rules_engine.decode(state), true);
 }
 

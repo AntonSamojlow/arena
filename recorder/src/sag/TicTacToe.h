@@ -1,8 +1,8 @@
 #pragma once
 #include <array>
 
-#include "GraphConcepts.h"
 #include "DefaultGraphContainer_v1.h"
+#include "GraphConcepts.h"
 
 namespace sag::tic_tac_toe {
 
@@ -17,7 +17,7 @@ class TicTacToeRules {
 	static auto list_roots() -> std::vector<StateId> { return {0}; }
 	static auto list_actions(StateId state) -> std::vector<ActionId>;
 	static auto list_edges(StateId state, ActionId action) -> std::vector<ActionEdge<StateId>>;
-	static auto score(StateId state) -> double;
+	static auto score(StateId state) -> Score;
 
 	static auto decode(StateId state_id) -> Board;
 	static auto encode(const Board& board) -> StateId;
@@ -29,17 +29,19 @@ class TicTacToeRules {
 	static auto opponent_has_won(const Board& board) -> bool;
 };
 
+static_assert(RulesEngine<TicTacToeRules, StateId, ActionId>);
+
 class TicTacToeGraph : public DefaultGraphContainer_v1<StateId, ActionId, TicTacToeRules> {
  public:
 	TicTacToeGraph() : DefaultGraphContainer_v1<StateId, ActionId, TicTacToeRules>(TicTacToeRules()) {}
 
-	auto stringify(StateId state) const -> std::string;
-	auto stringify_formatted(StateId state) const -> std::string;
-	auto stringify(StateId state, ActionId action) const -> std::string;
-	auto stringify_formatted(StateId state, ActionId action) const -> std::string;
+	[[nodicard]] auto stringify(StateId state) const -> std::string;
+	[[nodicard]] auto stringify_formatted(StateId state) const -> std::string;
+	[[nodicard]] auto stringify(StateId state, ActionId action) const -> std::string;
+	[[nodicard]] auto stringify_formatted(StateId state, ActionId action) const -> std::string;
 };
 
-static_assert(Graph<TicTacToeGraph, StateId, ActionId>);
-
+static_assert(GraphContainer<TicTacToeGraph, StateId, ActionId>);
+static_assert(VertexStringifier<TicTacToeGraph, StateId, ActionId>);
 
 }  // namespace sag::tic_tac_toe

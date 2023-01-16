@@ -60,6 +60,9 @@ class DefaultGraphContainer_v1 {
 		S state, A action, std::vector<ActionEdge<S>> new_edges, std::unordered_map<S, std::vector<A>> next_states)
 		-> bool;
 
+protected:
+  auto rules_engine() const -> R const& {return rules_engine_;}
+
  private:
 	R rules_engine_;
 	std::vector<S> roots_;
