@@ -2,7 +2,7 @@
 #include <array>
 
 #include "GraphConcepts.h"
-#include "SAGraphDefaultImplementation.h"
+#include "DefaultGraphContainer_v1.h"
 
 namespace sag::tic_tac_toe {
 
@@ -29,14 +29,17 @@ class TicTacToeRules {
 	static auto opponent_has_won(const Board& board) -> bool;
 };
 
-class TicTacToeGraph : public sagDefaultImplementation<StateId, ActionId, TicTacToeRules> {
+class TicTacToeGraph : public DefaultGraphContainer_v1<StateId, ActionId, TicTacToeRules> {
  public:
-	TicTacToeGraph() : sagDefaultImplementation<StateId, ActionId, TicTacToeRules>(TicTacToeRules()) {}
+	TicTacToeGraph() : DefaultGraphContainer_v1<StateId, ActionId, TicTacToeRules>(TicTacToeRules()) {}
 
 	auto stringify(StateId state) const -> std::string;
 	auto stringify_formatted(StateId state) const -> std::string;
 	auto stringify(StateId state, ActionId action) const -> std::string;
 	auto stringify_formatted(StateId state, ActionId action) const -> std::string;
 };
+
+static_assert(Graph<TicTacToeGraph, StateId, ActionId>);
+
 
 }  // namespace sag::tic_tac_toe

@@ -6,7 +6,7 @@
 #include <utility>
 
 #include "GraphConcepts.h"
-#include "SAGraphDefaultImplementation.h"
+#include "DefaultGraphContainer_v1.h"
 
 namespace sag::example {
 
@@ -31,10 +31,10 @@ class ExampleRulesEngine {
 	GraphStructure graph_structure_;
 };
 
-class ExampleGraph : public sag::sagDefaultImplementation<State, Action, ExampleRulesEngine> {
+class ExampleGraph : public sag::DefaultGraphContainer_v1<State, Action, ExampleRulesEngine> {
  public:
 	explicit ExampleGraph(ExampleRulesEngine rules_engine)
-			: sag::sagDefaultImplementation<State, Action, ExampleRulesEngine>(std::move(rules_engine)) {}
+			: sag::DefaultGraphContainer_v1<State, Action, ExampleRulesEngine>(std::move(rules_engine)) {}
 
 	static auto stringify(State state) -> std::string { return std::to_string(state); }
 	static auto stringify(State state, Action action) -> std::string {

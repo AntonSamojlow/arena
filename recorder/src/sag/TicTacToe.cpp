@@ -4,8 +4,6 @@
 
 #include <vector>
 
-#include "TicTacToe.h"
-
 namespace sag::tic_tac_toe {
 auto TicTacToeRules::list_actions(StateId state) -> std::vector<ActionId> {
 	Board const board = decode(state);

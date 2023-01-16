@@ -29,9 +29,9 @@ void descend_once_(sag::Graph<S, A> auto& graph, S& state_in_out, bool randomize
 	if (!graph.is_expanded_at(state_in_out, action))
 		graph.expand(state_in_out, action);
 	REQUIRE(graph.is_expanded_at(state_in_out, action));
-	double weight_sum = 0.0;
+	float weight_sum = 0.0;
 	for (sag::ActionEdge<S> const& edge : graph.list_edges(state_in_out, action)) {
-		weight_sum += edge.weight();
+		weight_sum += edge.weight().value();
 	}
 	REQUIRE(weight_sum == 1.0);
 	state_in_out = graph.follow(state_in_out, action, unit_distribution(rng));
@@ -98,8 +98,8 @@ TEST_CASE("ExampleGraph tests", "[graph]") {
 	sag::example::GraphStructure const graph_structure = {
 		{1,
 			{
-				{{1.0 / 3, 2}, {2.0 / 3, 3}},
-				{{0.25, 5}, {0.75, 6}},
+				{{1.0F / 3, 2}, {2.0F / 3, 3}},
+				{{0.25F, 5}, {0.75F, 6}},
 			}},
 		{2, TERMINAL},
 		{3, {{{1.0, 4}}}},
