@@ -35,10 +35,10 @@ class TicTacToeGraph : public DefaultGraphContainer_v1<StateId, ActionId, TicTac
  public:
 	TicTacToeGraph() : DefaultGraphContainer_v1<StateId, ActionId, TicTacToeRules>(TicTacToeRules()) {}
 
-	[[nodicard]] auto stringify(StateId state) const -> std::string;
-	[[nodicard]] auto stringify_formatted(StateId state) const -> std::string;
-	[[nodicard]] auto stringify(StateId state, ActionId action) const -> std::string;
-	[[nodicard]] auto stringify_formatted(StateId state, ActionId action) const -> std::string;
+	[[nodiscard]] auto stringify(StateId state) const -> std::string;
+	[[nodiscard]] auto stringify_formatted(StateId state) const -> std::string;
+	[[nodiscard]] auto stringify(StateId state, ActionId action) const -> std::string;
+	[[nodiscard]] auto stringify_formatted(StateId state, ActionId action) const -> std::string;
 };
 
 static_assert(GraphContainer<TicTacToeGraph, StateId, ActionId>);
