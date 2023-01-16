@@ -54,7 +54,7 @@ auto ExampleRulesEngine::list_edges(State state, Action action) const -> ActionE
 	return graph_structure_.at(state)[static_cast<size_t>(action)];
 }
 
-auto ExampleRulesEngine::score(State state) const -> double {
-	return graph_structure_.at(state).empty() ? -1.0 : 0.0;
+auto ExampleRulesEngine::score(State state) const -> Score {
+	return graph_structure_.at(state).empty() ? Score(-1.0F) : Score(0.0F);
 }
 }  // namespace sag::example

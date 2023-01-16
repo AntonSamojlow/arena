@@ -12,121 +12,79 @@
 
 namespace sag {
 
+/*
+	{ const_graph.is_terminal_at(state) } -> std::same_as<bool>;
+	{ const_graph.is_expanded_at(state, action) } -> std::same_as<bool>;
+	{ const_graph.roots() } -> std::same_as<std::vector<S>>;
+	{ const_graph.actions_at(state) } -> std::same_as<std::vector<A>>;
+	{
+		const_graph.edges_at(state, action)
+		} -> std::same_as<std::vector<ActionEdge<S>>>;
+	{ const_graph.action_count_at(state) } -> std::same_as<size_t>;
+	{ const_graph.edge_count_at(state, action) } -> std::same_as<size_t>;
+	// non-const operations
+	{
+		graph.expand_at(state, action, new_edges, next_states)
+		} -> std::same_as<bool>;
+*/
 
-//
-///// <summary>
-///// Threadsafe default implementation, relying on a `StateActionRulesEngine`.
-///// </summary>
-//template <typename S, typename A>
-//class DefaultGraphContainer_v1 {
-// public:
-//	explicit DefaultGraphContainer_v1() : rules_engine_(rules_engine), roots_(rules_engine.list_roots()) {
-//		// initialize roots
-//		std::unique_lock lock{action_data_mutex_};
-//		for (S root : roots_)
-//			initialize_state_nolock(root);
-//	}
-//
-//	auto list_roots() const -> std::vector<S> { return roots_; }
-//	auto list_actions(S state) const -> std::vector<A> {
-//		std::shared_lock lock{action_data_mutex_};
-//
-//		std::vector<A> result;
-//		ActionDetails const& action_details = action_data_.at(state);
-//		result.reserve(action_details.size());
-//		for (auto const& entry : action_details) {
-//			result.push_back(entry.first);
-//		}
-//		return result;
-//	}
-//
-//	auto list_edges(S state, A action) const -> std::vector<ActionEdge<S>> {
-//		std::shared_lock lock{action_data_mutex_};
-//		return action_data_.at(state).at(action);
-//	}
-//	auto score(S state) const -> double { return rules_engine_.score(state); }
-//
-//	auto is_terminal_at(S state) const -> bool {
-//		std::shared_lock lock{action_data_mutex_};
-//		return action_data_.at(state).empty();
-//	}
-//
-//	auto is_expanded_at(S state, A action) const -> bool { return count_edges(state, action) > 0; }
-//	auto follow(S state, A action, UnitValue unit) const -> S;
-//
-//	auto count_actions(S state) const -> size_t {
-//		std::shared_lock lock{action_data_mutex_};
-//		return action_data_.at(state).size();
-//	}
-//
-//	auto count_edges(S state, A action) const -> size_t {
-//		std::shared_lock lock{action_data_mutex_};
-//		return action_data_.at(state).at(action).size();
-//	}
-//	void expand(S state, A action);
-//	auto get_rules_engine() const -> const R& { return rules_engine_; }
-//
-// private:
-//	using ActionDetails = std::unordered_map<A, std::vector<ActionEdge<S>>>;
-//	R rules_engine_;
-//	std::vector<S> roots_;
-//	std::unordered_map<S, ActionDetails> action_data_;
-//	mutable std::shared_mutex action_data_mutex_;
-//
-//	void initialize_state_nolock(S state);
-//};
-//
-//template <typename S, typename A, RulesEngine<S, A> R>
-//auto DefaultGraphContainer_v1<S, A, R>::follow(S state, A action, UnitValue value) const -> S {
-//	if (!is_expanded_at(state, action))
-//		throw std::logic_error("can not follow an unexpanded action");
-//
-//#ifdef _DEBUG
-//	if (unit_range_value < 0.0 || unit_range_value > 1.0)
-//		throw std::range_error("expected value in [0,1]");
-//#endif  // _DEBUG
-//
-//	float sum = 0.0;
-//	std::vector<ActionEdge<S>> edges = list_edges(state, action);
-//	auto match = std::find_if(edges.begin(), edges.end(), [&](ActionEdge<S> edge) {
-//		sum += edge.weight().value();
-//		return sum >= value;
-//	});
-//#ifdef _DEBUG
-//	if (match == edges.end()) {
-//		throw std::logic_error("unexpected case during method 'follow': sum (" + std::to_string(sum) +
-//													 ") does not exceed value (" + std::to_string(value) + ")");
-//	}
-//#endif  // _DEBUG
-//
-//	return match->state();
-//}
-//
-//template <typename S, typename A, RulesEngine<S, A> R>
-//void DefaultGraphContainer_v1<S, A, R>::expand(S state, A action) {
-//	std::unique_lock lock{action_data_mutex_};
-//
-//	// skip if already expanded
-//	// note: we could promote this to an exception, forcing the calling algorithm to check beforehand (they typically do
-//	// already...)
-//	if (action_data_.at(state).at(action).size() > 0)
-//		return;
-//
-//	std::vector<ActionEdge<S>> edges = rules_engine_.list_edges(state, action);
-//	action_data_.at(state).at(action) = edges;
-//	for (const ActionEdge<S>& edge : edges)
-//		initialize_state_nolock(edge.state());
-//}
-//
-//// initializes a state by adding all its actions - the caller is responsible of ensuring action_data_ is locked!
-//template <typename S, typename A, RulesEngine<S, A> R>
-//void DefaultGraphContainer_v1<S, A, R>::initialize_state_nolock(S state) {
-//	if (action_data_.try_emplace(state).second) {
-//		for (A action : rules_engine_.list_actions(state))
-//			action_data_.at(state).emplace(action, std::vector<ActionEdge<S>>());
-//	}
+template <typename S, typename A, RulesEngine<S, A> R>
+class DefaultGraphContainer_v1 {
+ public:
+	explicit DefaultGraphContainer_v1(R&& rules_engine) : rules_engine_(rules_engine){};
 
-	// else do nothing: already initialied (might have been visited via a different parent, repeated init calles, etc.)
+	[[nodiscard]] auto is_terminal_at(S state) const -> bool { return data_.empty(); }
+	[[nodiscard]] auto is_expanded_at(S state, A action) const -> bool { return edge_count_at(state, action) > 0; }
+	[[nodiscard]] auto roots() const -> std::vector<S> { return roots_; }
+	[[nodiscard]] auto actions_at(S state) const -> std::vector<A> {
+		std::vector<A> result;
+		ActionDetails const& action_details = action_data_.at(state);
+		result.reserve(action_details.size());
+		for (auto const& entry : action_details) {
+			result.push_back(entry.first);
+		}
+		return result;
+	}
+
+	[[nodiscard]] auto edges_at(S state, A action) const -> std::vector<ActionEdge<S>> {
+		return action_data_.at(state).at(action)
+	}
+
+	[[nodiscard]] auto action_count_at(S state) const -> size_t { return action_data_.at(state).size() }
+
+	[[nodiscard]] auto edge_count_at(S state, A action) const -> size_t {
+		return action_data_.at(state).at(action).size()
+	}
+
+	auto expand_at(
+		S state, A action, std::vector<ActionEdge<S>> new_edges, std::unordered_map<S, std::vector<A>> next_states)
+		-> bool;
+
+ private:
+	R rules_engine_;
+	std::vector<S> roots_;
+	using ActionDetails = std::unordered_map<A, std::vector<ActionEdge<S>>>;
+	std::unordered_map<S, ActionDetails> data_;
+};
+
+template <typename S, typename A, RulesEngine<S, A> R>
+auto DefaultGraphContainer_v1<S, A, R>::expand_at(
+	S state, A action, std::vector<ActionEdge<S>> new_edges, std::unordered_map<S, std::vector<A>> next_states)
+	-> bool {
+
+	if (is_expanded_at(state, action))
+		return false;
+
+	std::vector<ActionEdge<S>> edges = rules_engine_.list_edges(state, action);
+	action_data_.at(state).at(action) = edges;
+	for (const ActionEdge<S>& edge : edges) {
+		if (action_data_.try_emplace(state).second) {
+			for (A action : rules_engine_.list_actions(state))
+				action_data_.at(state).emplace(action, std::vector<ActionEdge<S>>());
+		}
+		// else do nothing: already initialied (possibly visited via a different parent, etc.)
+	}
+	return true;
 }
 
 }  // namespace sag

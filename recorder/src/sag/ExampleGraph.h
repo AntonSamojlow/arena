@@ -5,16 +5,14 @@
 #include <string>
 #include <utility>
 
-#include "GraphConcepts.h"
 #include "DefaultGraphContainer_v1.h"
+#include "GraphConcepts.h"
 
 namespace sag::example {
 
 using State = int;
 using Action = int;
-
 using ActionEdges = std::vector<ActionEdge<State>>;
-
 using GraphStructure = std::map<State, std::vector<ActionEdges>>;
 
 class ExampleRulesEngine {
@@ -24,12 +22,14 @@ class ExampleRulesEngine {
 	[[nodiscard]] auto list_roots() const -> std::vector<State> { return roots_; }
 	[[nodiscard]] auto list_actions(State state) const -> std::vector<Action>;
 	[[nodiscard]] auto list_edges(State state, Action action) const -> std::vector<ActionEdge<State>>;
-	[[nodiscard]] auto score(State state) const -> double;
+	[[nodiscard]] auto score(State state) const -> Score;
 
  private:
 	std::vector<State> roots_;
 	GraphStructure graph_structure_;
 };
+
+static_assert(RulesEngine<ExampleRulesEngine,State,Action>);
 
 class ExampleGraph : public sag::DefaultGraphContainer_v1<State, Action, ExampleRulesEngine> {
  public:
@@ -41,5 +41,8 @@ class ExampleGraph : public sag::DefaultGraphContainer_v1<State, Action, Example
 		return fmt::format("action-{} at state '{}'", action, state);
 	}
 };
+
+static_assert(GraphContainer<ExampleGraph, State, Action>);
+static_assert(VertexStringifier<ExampleGraph, State, Action>);
 
 }  // namespace sag::example
