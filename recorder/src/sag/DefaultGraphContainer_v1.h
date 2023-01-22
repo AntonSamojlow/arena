@@ -15,7 +15,7 @@ namespace sag {
 template <typename S, typename A, RulesEngine<S, A> R>
 class DefaultGraphContainer_v1 {
  public:
-	explicit DefaultGraphContainer_v1(R&& rules_engine) : rules_engine_(rules_engine) {
+	explicit DefaultGraphContainer_v1(R&& rules_engine) : rules_engine_(std::forward<R>(rules_engine)) {
 		roots_ = rules_engine_.list_roots();
 		for (S const& root : roots_) {
 			ActionDetails actions{};
