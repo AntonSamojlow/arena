@@ -30,7 +30,7 @@ auto descend_once_(
 	REQUIRE(actions_size > 0);
 	REQUIRE(actions_size < static_cast<size_t>(std::numeric_limits<float>::max()));
 
-	size_t const index = static_cast<size_t>(std::ceil(random_value * static_cast<float>(actions_size)) - 1);
+	auto const index = static_cast<size_t>(std::ceil(random_value * static_cast<float>(actions_size)) - 1);
 	auto action = actions[index];
 
 	// test expansion
@@ -63,7 +63,7 @@ void test_full_descend(sag::GraphContainer<S, A> auto& graph,
 	REQUIRE(roots_size > 0);
 	REQUIRE(roots_size < static_cast<size_t>(std::numeric_limits<double>::max()));
 
-	size_t const index = static_cast<size_t>(std::ceil(random_value * static_cast<double>(roots_size)) - 1);
+	auto const index = static_cast<size_t>(std::ceil(random_value * static_cast<double>(roots_size)) - 1);
 	S state = roots[index];
 	visited_states.push_back(state);
 
