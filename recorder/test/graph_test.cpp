@@ -18,6 +18,17 @@ void test_roots_nonterminal(sag::GraphContainer<S, A> auto& graph, sag::RulesEng
 	}
 }
 
+namespace {
+template <typename T, typename R>
+	requires std::is_floating_point_v<R>
+auto get_random_element(std::vector<T> vec, R random) -> T {
+	auto const size = vec.size();
+	REQUIRE(size > 0);
+	auto const index = static_cast<size_t>(std::ceil(random * static_cast<R>(size)) - 1);
+	return vec.at(index);
+}
+}  // namespace
+
 template <typename S, typename A>
 auto descend_once_(
 	sag::GraphContainer<S, A> auto& graph, sag::RulesEngine<S, A> auto const& rules, S state, bool randomized) -> S {
@@ -26,12 +37,7 @@ auto descend_once_(
 	float const random_value = randomized ? unit_distribution(rng) : 1.0F;
 
 	auto actions = graph.actions_at(state);
-	size_t const actions_size = actions.size();
-	REQUIRE(actions_size > 0);
-	REQUIRE(actions_size < static_cast<size_t>(std::numeric_limits<float>::max()));
-
-	auto const index = static_cast<size_t>(std::ceil(random_value * static_cast<float>(actions_size)) - 1);
-	auto action = actions[index];
+	auto action = get_random_element(actions, random_value);
 
 	// test expansion
 	sag::expand(graph, rules, state, action);
@@ -58,13 +64,8 @@ void test_full_descend(sag::GraphContainer<S, A> auto& graph,
 	std::uniform_real_distribution<double> unit_distribution(0.0, 1.0);
 	double const random_value = randomized ? unit_distribution(rng) : 1.0;
 
-	std::vector<S> roots = graph.roots();
-	size_t const roots_size = roots.size();
-	REQUIRE(roots_size > 0);
-	REQUIRE(roots_size < static_cast<size_t>(std::numeric_limits<double>::max()));
-
-	auto const index = static_cast<size_t>(std::ceil(random_value * static_cast<double>(roots_size)) - 1);
-	S state = roots[index];
+	auto roots = graph.roots();
+	S state = get_random_element(roots, random_value);
 	visited_states.push_back(state);
 
 	while (!graph.is_terminal_at(state)) {
