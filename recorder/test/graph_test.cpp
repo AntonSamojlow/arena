@@ -52,7 +52,7 @@ auto descend_once_(
 	REQUIRE(weight_sum == 1.0F);
 
 	// run 'follow' operation
-	return sag::follow(edges, UnitValue(unit_distribution(rng)));
+	return sag::follow(edges, sag::UnitValue(unit_distribution(rng)));
 }
 
 template <typename S, typename A>

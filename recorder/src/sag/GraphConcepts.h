@@ -80,7 +80,7 @@ template <typename G, typename S, typename A>
 /// - 'edges_at' for a non-expanded state-action returns emtpy.
 /// - 'expand_at' for an expanded state-action a no-op which returns false.
 /// - 'expand_at' returns false iff the graph failed to add the new edges and next states to itself.
-concept GraphContainer = Vertices<S, A> && requires(G graph,
+concept GraphContainer = Vertices<S, A> && std::regular<G> && requires(G graph,
 	G const const_graph,
 	S state,
 	A action,
@@ -91,9 +91,7 @@ concept GraphContainer = Vertices<S, A> && requires(G graph,
 	{ const_graph.is_expanded_at(state, action) } -> std::same_as<bool>;
 	{ const_graph.roots() } -> std::same_as<std::vector<S>>;
 	{ const_graph.actions_at(state) } -> std::same_as<std::vector<A>>;
-	{
-		const_graph.edges_at(state, action)
-		} -> std::same_as<std::vector<ActionEdge<S>>>;
+	{ const_graph.edges_at(state, action) } -> std::same_as<std::vector<ActionEdge<S>>>;
 	{ const_graph.action_count_at(state) } -> std::same_as<size_t>;
 	{ const_graph.edge_count_at(state, action) } -> std::same_as<size_t>;
 	// non-const operations
@@ -113,9 +111,7 @@ template <typename R, typename S, typename A>
 concept RulesEngine = Vertices<S, A> && requires(R const const_rules_engine, S state, A action) {
 	{ const_rules_engine.list_roots() } -> std::same_as<std::vector<S>>;
 	{ const_rules_engine.list_actions(state) } -> std::same_as<std::vector<A>>;
-	{
-		const_rules_engine.list_edges(state, action)
-		} -> std::same_as<std::vector<ActionEdge<S>>>;
+	{ const_rules_engine.list_edges(state, action) } -> std::same_as<std::vector<ActionEdge<S>>>;
 	{ const_rules_engine.score(state) } -> std::same_as<Score>;
 };
 
@@ -131,9 +127,7 @@ concept CountingGraphContainer = GraphContainer<G, S, A> && requires(G const con
 template <typename N, typename S, typename A>
 concept VertexStringifier = Vertices<S, A> && requires(N const const_stringifier, S state, A action) {
 	{ const_stringifier.stringify(state) } -> std::same_as<std::string>;
-	{
-		const_stringifier.stringify(state, action)
-		} -> std::same_as<std::string>;
+	{ const_stringifier.stringify(state, action) } -> std::same_as<std::string>;
 };
 
 }  // namespace sag

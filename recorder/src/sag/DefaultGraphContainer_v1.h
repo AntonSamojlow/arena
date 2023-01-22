@@ -34,6 +34,8 @@ class DefaultGraphContainer_v1 {
 	explicit DefaultGraphContainer_v1(R&& rules_engine)
 			: DefaultGraphContainer_v1(get_root_data(std::forward<R>(rules_engine))) {}
 
+	friend auto operator==(const DefaultGraphContainer_v1&, const DefaultGraphContainer_v1&) -> bool = default;
+
 	[[nodiscard]] auto is_terminal_at(S state) const -> bool { return data_.at(state).empty(); }
 	[[nodiscard]] auto is_expanded_at(S state, A action) const -> bool { return edge_count_at(state, action) > 0; }
 	[[nodiscard]] auto roots() const -> std::vector<S> { return roots_; }
