@@ -29,7 +29,7 @@ class ExampleRulesEngine {
 	GraphStructure graph_structure_;
 };
 
-static_assert(RulesEngine<ExampleRulesEngine,State,Action>);
+static_assert(RulesEngine<ExampleRulesEngine, State, Action>);
 
 class ExampleGraph : public sag::DefaultGraphContainer_v1<State, Action, ExampleRulesEngine> {
  public:
