@@ -102,14 +102,14 @@ void test_base_operations(sag::GraphContainer<S, A> auto& graph, sag::RulesEngin
 
 TEST_CASE("TicTacToe graph tests", "[graph, tictactoe]") {
 	sag::tic_tac_toe::TicTacToeGraph graph;
-	test_base_operations<sag::tic_tac_toe::StateId, sag::tic_tac_toe::ActionId>(graph, graph.rules_engine());
+	sag::tic_tac_toe::TicTacToeRules const rules;
+	test_base_operations<sag::tic_tac_toe::StateId, sag::tic_tac_toe::ActionId>(graph, rules);
 
 	// test output
 	auto logger = spdlog::default_logger();
 	logger->info("root: {}", graph.stringify(graph.roots().front()));
 	std::vector<sag::tic_tac_toe::StateId> visited_states{};
-	test_full_descend<sag::tic_tac_toe::StateId, sag::tic_tac_toe::ActionId>(
-		graph, graph.rules_engine(), false, visited_states);
+	test_full_descend<sag::tic_tac_toe::StateId, sag::tic_tac_toe::ActionId>(graph, rules, false, visited_states);
 	logger->info("logging all states of a full descend");
 	for (auto state : visited_states)
 		logger->info("\n{}", graph.stringify_formatted(state));
@@ -135,5 +135,5 @@ TEST_CASE("ExampleGraph tests", "[graph]") {
 
 	sag::example::ExampleRulesEngine const rules(graph_structure);
 	sag::example::ExampleGraph graph(rules);
-	test_base_operations<sag::example::State, sag::example::Action>(graph, graph.rules_engine());
+	test_base_operations<sag::example::State, sag::example::Action>(graph, rules);
 }

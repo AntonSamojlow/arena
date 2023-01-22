@@ -31,14 +31,14 @@ class TicTacToeRules {
 
 static_assert(RulesEngine<TicTacToeRules, StateId, ActionId>);
 
-class TicTacToeGraph : public DefaultGraphContainer_v1<StateId, ActionId, TicTacToeRules> {
+class TicTacToeGraph : public DefaultGraphContainer_v1<StateId, ActionId> {
  public:
-	TicTacToeGraph() : DefaultGraphContainer_v1<StateId, ActionId, TicTacToeRules>(TicTacToeRules()) {}
+	TicTacToeGraph() : DefaultGraphContainer_v1<StateId, ActionId>(TicTacToeRules()) {}
 
-	[[nodiscard]] auto stringify(StateId state) const -> std::string;
-	[[nodiscard]] auto stringify_formatted(StateId state) const -> std::string;
-	[[nodiscard]] auto stringify(StateId state, ActionId action) const -> std::string;
-	[[nodiscard]] auto stringify_formatted(StateId state, ActionId action) const -> std::string;
+	[[nodiscard]] static auto stringify(StateId state) -> std::string;
+	[[nodiscard]] static auto stringify_formatted(StateId state) -> std::string;
+	[[nodiscard]] static auto stringify(StateId state, ActionId action) -> std::string;
+	[[nodiscard]] static auto stringify_formatted(StateId state, ActionId action) -> std::string;
 };
 
 static_assert(GraphContainer<TicTacToeGraph, StateId, ActionId>);

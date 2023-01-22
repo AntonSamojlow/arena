@@ -12,20 +12,27 @@
 
 namespace sag {
 
-template <typename S, typename A, RulesEngine<S, A> R>
+template <typename S, typename A>
 class DefaultGraphContainer_v1 {
  public:
-	explicit DefaultGraphContainer_v1(R&& rules_engine) : rules_engine_(std::forward<R>(rules_engine)) {
-		roots_ = rules_engine_.list_roots();
-		for (S const& root : roots_) {
-			ActionDetails actions{};
-			for (A const action : rules_engine_.list_actions(root)) {
+	using RootData = std::vector<std::pair<S, std::vector<A>>>;
+
+	explicit DefaultGraphContainer_v1(RootData&& root_data) {
+		roots_.reserve(root_data.size());
+		for (auto const& [root, actions] : root_data) {
+			roots_.push_back(root);
+			ActionDetails action_details{};
+			for (A const action : actions) {
 				// initialize all root actions as unexpanded
-				actions[action] = {};
+				action_details[action] = {};
 			}
-			data_[root] = actions;
+			data_[root] = action_details;
 		}
 	}
+
+	template <RulesEngine<S, A> R>
+	explicit DefaultGraphContainer_v1(R&& rules_engine)
+			: DefaultGraphContainer_v1(get_root_data(std::forward<R>(rules_engine))) {}
 
 	[[nodiscard]] auto is_terminal_at(S state) const -> bool { return data_.at(state).empty(); }
 	[[nodiscard]] auto is_expanded_at(S state, A action) const -> bool { return edge_count_at(state, action) > 0; }
@@ -52,17 +59,25 @@ class DefaultGraphContainer_v1 {
 		S state, A action, std::vector<ActionEdge<S>> new_edges, std::vector<std::pair<S, std::vector<A>>> next_states)
 		-> bool;
 
-	auto rules_engine() const -> R const& { return rules_engine_; }
-
  private:
-	R rules_engine_;
 	std::vector<S> roots_;
 	using ActionDetails = std::unordered_map<A, std::vector<ActionEdge<S>>>;
 	std::unordered_map<S, ActionDetails> data_;
+
+	template <RulesEngine<S, A> R>
+	static auto get_root_data(R&& rules) -> RootData {
+		RootData rootData{};
+		auto roots = rules.list_roots();
+		rootData.reserve(roots.size());
+		for (S const root : roots) {
+			rootData.push_back({root, rules.list_actions(root)});
+		}
+		return rootData;
+	}
 };
 
-template <typename S, typename A, RulesEngine<S, A> R>
-auto DefaultGraphContainer_v1<S, A, R>::expand_at(
+template <typename S, typename A>
+auto DefaultGraphContainer_v1<S, A>::expand_at(
 	S state, A action, std::vector<ActionEdge<S>> new_edges, std::vector<std::pair<S, std::vector<A>>> next_states)
 	-> bool {
 	if (is_expanded_at(state, action))

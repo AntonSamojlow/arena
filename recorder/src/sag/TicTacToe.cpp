@@ -116,21 +116,19 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 	return result;
 }
 
-auto TicTacToeGraph::stringify(StateId state) const -> std::string {
-	auto const& rules_engine = this->rules_engine();
-	return rules_engine.to_string(rules_engine.decode(state), false);
+auto TicTacToeGraph::stringify(StateId state) -> std::string {
+	return TicTacToeRules::to_string(TicTacToeRules::decode(state), false);
 }
 
-auto TicTacToeGraph::stringify(StateId state, ActionId action) const -> std::string {
+auto TicTacToeGraph::stringify(StateId state, ActionId action) -> std::string {
 	return fmt::format("action-{} at: {})", action, stringify(state));
 }
 
-auto TicTacToeGraph::stringify_formatted(StateId state) const -> std::string {
-	auto const& rules_engine = this->rules_engine();
-	return rules_engine.to_string(rules_engine.decode(state), true);
+auto TicTacToeGraph::stringify_formatted(StateId state) -> std::string {
+	return TicTacToeRules::to_string(TicTacToeRules::decode(state), true);
 }
 
-auto TicTacToeGraph::stringify_formatted(StateId state, ActionId action) const -> std::string {
+auto TicTacToeGraph::stringify_formatted(StateId state, ActionId action) -> std::string {
 	return fmt::format("action-{} at::\n{})", action, stringify(state));
 }
 
