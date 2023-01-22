@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <concepts>
 
+namespace sag {
+
 /// <summary>
 /// Arithmetic read-only value forced to be between Min and Max.
 /// </summary>
@@ -15,13 +17,22 @@ struct Boundedvalue {
 
 	[[nodiscard]] auto value() const -> T { return value_; }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+	friend auto operator<=>(const Boundedvalue&, const Boundedvalue&) = default;
+#pragma GCC diagnostic pop
+
  private:
 	T value_ = static_cast<T>(0);
 };
 
-static_assert(std::semiregular<Boundedvalue<int, -1, 1>>);
-static_assert(std::semiregular<Boundedvalue<double, -1, 1>>);
-static_assert(std::semiregular<Boundedvalue<float, 0, 1>>);
-
 using Score = Boundedvalue<float, -1, 1>;
 using UnitValue = Boundedvalue<float, 0, 1>;
+
+static_assert(std::regular<Boundedvalue<int, -1, 1>>);
+static_assert(std::regular<Boundedvalue<double, -1, 1>>);
+static_assert(std::regular<Score>);
+static_assert(std::regular<UnitValue>);
+
+}  // namespace sag
