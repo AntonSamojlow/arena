@@ -1,5 +1,6 @@
 #include <sag/ExampleGraph.h>
 #include <sag/GraphConcepts.h>
+#include <sag/GraphOperations.h>
 #include <sag/TicTacToe.h>
 #include <spdlog/spdlog.h>
 
@@ -18,38 +19,56 @@ void test_roots_nonterminal(sag::GraphContainer<S, A> auto& graph, sag::RulesEng
 }
 
 template <typename S, typename A>
-void descend_once_(sag::GraphContainer<S, A> auto& graph, S& state_in_out, bool randomized) {
-	//std::mt19937 rng({});  // NOLINT (cert-*)
-	//std::uniform_real_distribution<double> unit_distribution(0.0, 1.0);
-	//double const random_value = randomized ? unit_distribution(rng) : 1.0;
+auto descend_once_(
+	sag::GraphContainer<S, A> auto& graph, sag::RulesEngine<S, A> auto const& rules, S state, bool randomized) -> S {
+	std::mt19937 rng({});  // NOLINT (cert-*)
+	std::uniform_real_distribution<float> unit_distribution(0.0F, 1.0F);
+	float const random_value = randomized ? unit_distribution(rng) : 1.0F;
 
-	//auto actions = graph.actions_at(state_in_out);
-	//REQUIRE(actions.size() > 0);
-	//auto action = actions[static_cast<size_t>(std::ceil(random_value * static_cast<double>(actions.size())) - 1)];
+	auto actions = graph.actions_at(state);
+	size_t const actions_size = actions.size();
+	REQUIRE(actions_size > 0);
+	REQUIRE(actions_size < static_cast<size_t>(std::numeric_limits<float>::max()));
 
-	// if (!graph.is_expanded_at(state_in_out, action))
-	//	graph.expand_at(state_in_out, action);
-	// REQUIRE(graph.is_expanded_at(state_in_out, action));
-	// float weight_sum = 0.0;
-	// for (sag::ActionEdge<S> const& edge : graph.edges_at(state_in_out, action)) {
-	//	weight_sum += edge.weight().value();
-	// }
-	// REQUIRE(weight_sum == 1.0);
-	// state_in_out = graph.follow(state_in_out, action, unit_distribution(rng));
+	size_t const index = static_cast<size_t>(std::ceil(random_value * static_cast<float>(actions_size)) - 1);
+	auto action = actions[index];
+
+	// test expansion
+	sag::expand(graph, rules, state, action);
+	REQUIRE(graph.is_expanded_at(state, action));
+
+	// test edges sum to one
+	auto edges = graph.edges_at(state, action);
+	float weight_sum = 0.0;
+	for (sag::ActionEdge<S> const& edge : edges) {
+		weight_sum += edge.weight().value();
+	}
+	REQUIRE(weight_sum == 1.0F);
+
+	// run 'follow' operation
+	return sag::follow(edges, UnitValue(unit_distribution(rng)));
 }
 
 template <typename S, typename A>
-void test_full_descend(sag::GraphContainer<S, A> auto& graph, bool randomized, std::vector<S>& visited_states) {
+void test_full_descend(sag::GraphContainer<S, A> auto& graph,
+	sag::RulesEngine<S, A> auto const& rules,
+	bool randomized,
+	std::vector<S>& visited_states) {
 	std::mt19937 rng({});  // NOLINT (cert-*)
 	std::uniform_real_distribution<double> unit_distribution(0.0, 1.0);
 	double const random_value = randomized ? unit_distribution(rng) : 1.0;
 
 	std::vector<S> roots = graph.roots();
-	S state = roots[static_cast<size_t>(std::ceil(random_value * static_cast<double>(roots.size())) - 1)];
+	size_t const roots_size = roots.size();
+	REQUIRE(roots_size > 0);
+	REQUIRE(roots_size < static_cast<size_t>(std::numeric_limits<double>::max()));
+
+	size_t const index = static_cast<size_t>(std::ceil(random_value * static_cast<double>(roots_size)) - 1);
+	S state = roots[index];
 	visited_states.push_back(state);
 
 	while (!graph.is_terminal_at(state)) {
-		descend_once_<S, A>(graph, state, randomized);
+		state = descend_once_<S, A>(graph, rules, state, randomized);
 		visited_states.push_back(state);
 	}
 }
@@ -65,8 +84,8 @@ template <typename S, typename A>
 void test_base_operations(sag::GraphContainer<S, A> auto& graph, sag::RulesEngine<S, A> auto const& rules) {
 	std::vector<S> visited_states = {};
 	test_roots_nonterminal<S, A>(graph, rules);
-	test_full_descend<S, A>(graph, false, visited_states);
-	test_full_descend<S, A>(graph, true, visited_states);
+	test_full_descend<S, A>(graph, rules, false, visited_states);
+	test_full_descend<S, A>(graph, rules, true, visited_states);
 
 	std::vector<S> terminal_states = {};
 	for (S state : visited_states) {
@@ -88,7 +107,8 @@ TEST_CASE("TicTacToe graph tests", "[graph, tictactoe]") {
 	auto logger = spdlog::default_logger();
 	logger->info("root: {}", graph.stringify(graph.roots().front()));
 	std::vector<sag::tic_tac_toe::StateId> visited_states{};
-	test_full_descend<sag::tic_tac_toe::StateId, sag::tic_tac_toe::ActionId>(graph, false, visited_states);
+	test_full_descend<sag::tic_tac_toe::StateId, sag::tic_tac_toe::ActionId>(
+		graph, graph.rules_engine(), false, visited_states);
 	logger->info("logging all states of a full descend");
 	for (auto state : visited_states)
 		logger->info("\n{}", graph.stringify_formatted(state));

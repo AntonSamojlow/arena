@@ -2,7 +2,6 @@
 
 #include <concepts>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -86,7 +85,7 @@ concept GraphContainer = Vertices<S, A> && requires(G graph,
 	S state,
 	A action,
 	std::vector<ActionEdge<S>> new_edges,
-	std::unordered_map<S, std::vector<A>> next_states) {
+	std::vector<std::pair<S, std::vector<A>>> next_states) {
 	// const operations
 	{ const_graph.is_terminal_at(state) } -> std::same_as<bool>;
 	{ const_graph.is_expanded_at(state, action) } -> std::same_as<bool>;

@@ -12,26 +12,20 @@
 
 namespace sag {
 
-/*
-	{ const_graph.is_terminal_at(state) } -> std::same_as<bool>;
-	{ const_graph.is_expanded_at(state, action) } -> std::same_as<bool>;
-	{ const_graph.roots() } -> std::same_as<std::vector<S>>;
-	{ const_graph.actions_at(state) } -> std::same_as<std::vector<A>>;
-	{
-		const_graph.edges_at(state, action)
-		} -> std::same_as<std::vector<ActionEdge<S>>>;
-	{ const_graph.action_count_at(state) } -> std::same_as<size_t>;
-	{ const_graph.edge_count_at(state, action) } -> std::same_as<size_t>;
-	// non-const operations
-	{
-		graph.expand_at(state, action, new_edges, next_states)
-		} -> std::same_as<bool>;
-*/
-
 template <typename S, typename A, RulesEngine<S, A> R>
 class DefaultGraphContainer_v1 {
  public:
-	explicit DefaultGraphContainer_v1(R&& rules_engine) : rules_engine_(rules_engine){}
+	explicit DefaultGraphContainer_v1(R&& rules_engine) : rules_engine_(rules_engine) {
+		roots_ = rules_engine_.list_roots();
+		for (S const& root : roots_) {
+			ActionDetails actions{};
+			for (A const action : rules_engine.list_actions(root)) {
+				// initialize all root actions as unexpanded
+				actions[action] = {};
+			}
+			data_[root] = actions;
+		}
+	}
 
 	[[nodiscard]] auto is_terminal_at(S state) const -> bool { return data_.at(state).empty(); }
 	[[nodiscard]] auto is_expanded_at(S state, A action) const -> bool { return edge_count_at(state, action) > 0; }
@@ -55,7 +49,8 @@ class DefaultGraphContainer_v1 {
 	[[nodiscard]] auto edge_count_at(S state, A action) const -> size_t { return data_.at(state).at(action).size(); }
 
 	auto expand_at(
-		S state, A action, std::vector<ActionEdge<S>> new_edges, std::unordered_map<S, std::vector<A>> next_states) -> bool;
+		S state, A action, std::vector<ActionEdge<S>> new_edges, std::vector<std::pair<S, std::vector<A>>> next_states)
+		-> bool;
 
 	auto rules_engine() const -> R const& { return rules_engine_; }
 
@@ -68,18 +63,18 @@ class DefaultGraphContainer_v1 {
 
 template <typename S, typename A, RulesEngine<S, A> R>
 auto DefaultGraphContainer_v1<S, A, R>::expand_at(
-	S state, A action, std::vector<ActionEdge<S>> new_edges, std::unordered_map<S, std::vector<A>> next_states) -> bool {
+	S state, A action, std::vector<ActionEdge<S>> new_edges, std::vector<std::pair<S, std::vector<A>>> next_states)
+	-> bool {
 	if (is_expanded_at(state, action))
 		return false;
 
-	std::vector<ActionEdge<S>> edges = rules_engine_.list_edges(state, action);
-	data_.at(state).at(action) = edges;
-	for (const ActionEdge<S>& edge : edges) {
-		if (data_.try_emplace(state).second) {
-			for (A action : rules_engine_.list_actions(state))
-				data_.at(state).emplace(action, std::vector<ActionEdge<S>>());
+	data_.at(state).at(action) = new_edges;
+	for (const auto& [child, actions] : next_states) {
+		if (data_.try_emplace(child).second) {
+			for (A child_action : actions)
+				data_.at(child).emplace(child_action, std::vector<ActionEdge<S>>());
 		}
-		// else do nothing: already initialied (possibly visited via a different parent, etc.)
+		// else do nothing: state already known/initialised (possibly visited via a different parent, etc.)
 	}
 	return true;
 }
