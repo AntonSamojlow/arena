@@ -19,7 +19,7 @@ class DefaultGraphContainer_v1 {
 		roots_ = rules_engine_.list_roots();
 		for (S const& root : roots_) {
 			ActionDetails actions{};
-			for (A const action : rules_engine.list_actions(root)) {
+			for (A const action : rules_engine_.list_actions(root)) {
 				// initialize all root actions as unexpanded
 				actions[action] = {};
 			}
