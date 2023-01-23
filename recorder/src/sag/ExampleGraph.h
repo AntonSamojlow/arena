@@ -32,10 +32,10 @@ class ExampleRulesEngine {
 static_assert(RulesEngine<ExampleRulesEngine, State, Action>);
 
 class ExampleGraph : public sag::DefaultGraphContainer_v1<State, Action> {
+	using sag::DefaultGraphContainer_v1<State, Action>::DefaultGraphContainer_v1;
+
  public:
 	ExampleGraph() : ExampleGraph(ExampleRulesEngine({})) {}
-	explicit ExampleGraph(ExampleRulesEngine&& rules) : sag::DefaultGraphContainer_v1<State, Action>(std::move(rules)) {}
-	explicit ExampleGraph(ExampleRulesEngine const& rules) : sag::DefaultGraphContainer_v1<State, Action>(rules) {}
 
 	static auto stringify(State state) -> std::string { return std::to_string(state); }
 	static auto stringify(State state, Action action) -> std::string {
