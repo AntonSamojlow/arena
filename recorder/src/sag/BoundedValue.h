@@ -19,9 +19,6 @@ struct Boundedvalue {
 
 	[[nodiscard]] auto value() const -> T { return value_; }
 
-#pragma warning(push)
-// ignore msvc not recognizing GCC pragmas
-#pragma warning(disable : 4068)
 #pragma GCC diagnostic push
 // reason: https://github.com/llvm/llvm-project/issues/55919
 #pragma GCC diagnostic ignored "-Wfloat-equal"
@@ -30,7 +27,6 @@ struct Boundedvalue {
 	friend auto operator<=>(const Boundedvalue&, const Boundedvalue&) = default;
 
 #pragma GCC diagnostic pop
-#pragma warning(pop)
 
  private:
 	T value_ = static_cast<T>(0);

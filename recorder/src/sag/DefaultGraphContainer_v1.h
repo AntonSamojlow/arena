@@ -17,7 +17,7 @@ class DefaultGraphContainer_v1 {
  public:
 	using RootData = std::vector<std::pair<S, std::vector<A>>>;
 
-	explicit DefaultGraphContainer_v1(RootData const & root_data) {
+	explicit DefaultGraphContainer_v1(RootData const& root_data) {
 		roots_.reserve(root_data.size());
 		for (auto const& [root, actions] : root_data) {
 			roots_.push_back(root);
@@ -31,8 +31,7 @@ class DefaultGraphContainer_v1 {
 	}
 
 	template <RulesEngine<S, A> R>
-	explicit DefaultGraphContainer_v1(R const & rules_engine)
-			: DefaultGraphContainer_v1(get_root_data(rules_engine)) {}
+	explicit DefaultGraphContainer_v1(R const& rules_engine) : DefaultGraphContainer_v1(get_root_data(rules_engine)) {}
 
 	friend auto operator==(const DefaultGraphContainer_v1&, const DefaultGraphContainer_v1&) -> bool = default;
 
