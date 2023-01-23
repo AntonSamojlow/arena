@@ -15,7 +15,7 @@ struct Boundedvalue {
 	explicit Boundedvalue(T const& initial_value)
 			: value_(std::clamp<T>(initial_value, static_cast<T>(Min), static_cast<T>(Max))) {}
 	explicit Boundedvalue(T&& initial_value)
-			: value_(std::clamp<T>(std::forward<T>(initial_value), static_cast<T>(Min), static_cast<T>(Max))) {}
+			: value_(std::clamp<T>(std::move(initial_value), static_cast<T>(Min), static_cast<T>(Max))) {}
 
 	[[nodiscard]] auto value() const -> T { return value_; }
 
