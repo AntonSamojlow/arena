@@ -12,16 +12,25 @@ template <typename T, int Min, int Max>
 	requires std::is_arithmetic_v<T>
 struct Boundedvalue {
 	Boundedvalue() = default;
-	explicit Boundedvalue(T&& initial_value)
+	explicit Boundedvalue(T const& initial_value)
 			: value_(std::clamp<T>(initial_value, static_cast<T>(Min), static_cast<T>(Max))) {}
+	explicit Boundedvalue(T&& initial_value)
+			: value_(std::clamp<T>(std::forward<T>(initial_value), static_cast<T>(Min), static_cast<T>(Max))) {}
 
 	[[nodiscard]] auto value() const -> T { return value_; }
 
+#pragma warning(push)
+// ignore msvc not recognizing GCC pragmas
+#pragma warning(disable : 4068)
 #pragma GCC diagnostic push
+// reason: https://github.com/llvm/llvm-project/issues/55919
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+
 	friend auto operator<=>(const Boundedvalue&, const Boundedvalue&) = default;
+
 #pragma GCC diagnostic pop
+#pragma warning(pop)
 
  private:
 	T value_ = static_cast<T>(0);

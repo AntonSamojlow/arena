@@ -54,7 +54,7 @@ concept Vertices = Identifier<StateId> && Identifier<ActionId>;
 template <Identifier State>
 struct ActionEdge : public std::pair<UnitValue, State> {
 	ActionEdge() = default;
-	ActionEdge(float&& weight, State&& state) : std::pair<UnitValue, State>(std::move(weight), std::move(state)) {}
+	ActionEdge(float weight, State&& state) : std::pair<UnitValue, State>{ weight, std::forward<State>(state) } {}
 
 	[[nodiscard]] auto weight() const -> UnitValue { return this->first; }
 	[[nodiscard]] auto state() const -> State { return this->second; }
