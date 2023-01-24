@@ -57,4 +57,13 @@ auto ExampleRulesEngine::list_edges(State state, Action action) const -> ActionE
 auto ExampleRulesEngine::score(State state) const -> Score {
 	return graph_structure_.at(state).empty() ? Score(-1.0F) : Score(0.0F);
 }
+
+auto ExampleGraph::stringify(State state) -> std::string {
+	return std::to_string(state);
+}
+
+auto ExampleGraph::stringify(State state, Action action) -> std::string {
+	return fmt::format("action-{} at state '{}'", action, state);
+}
+
 }  // namespace sag::example

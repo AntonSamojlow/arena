@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 #include <random>
+#include <set>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
@@ -12,14 +13,18 @@
 
 namespace sag {
 
+/// Basic implentation of a state action graph container
 template <typename S, typename A>
 class DefaultGraphContainer_v1 {
  public:
 	using RootData = std::vector<std::pair<S, std::vector<A>>>;
 
+	/// Constructs a defult graph container from the provided root_data
 	explicit DefaultGraphContainer_v1(RootData const& root_data) {
 		roots_.reserve(root_data.size());
 		for (auto const& [root, actions] : root_data) {
+			if (std::ranges::find(roots_, root) != roots_.end())
+				throw std::invalid_argument("inconsistent root data - duplicate entry: " + std::to_string(root));
 			roots_.push_back(root);
 			ActionDetails action_details{};
 			for (A const action : actions) {
