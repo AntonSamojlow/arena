@@ -7,7 +7,7 @@ find_package(spdlog REQUIRED)
 # source files
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
 set(SOURCES ${SOURCES})
-set(LIBRARIESUNDERTEST graph)
+set(LIBRARIESUNDERTEST sag)
 
 # build target test (executable)
 add_executable(tests ${SOURCES})

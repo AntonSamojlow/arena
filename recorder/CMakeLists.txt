@@ -33,7 +33,7 @@ endif()
 
 # include sub-projects
 add_subdirectory (src/recorder)
-add_subdirectory (src/graph)
+add_subdirectory (src/sag)
 
 # set up testing
 enable_testing()

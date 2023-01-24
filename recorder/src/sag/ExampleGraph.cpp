@@ -2,7 +2,7 @@
 
 #include <set>
 
-namespace graph::example {
+namespace sag::example {
 
 namespace {
 void validate_child(State child, std::vector<State> const& valid_states) {
@@ -54,7 +54,16 @@ auto ExampleRulesEngine::list_edges(State state, Action action) const -> ActionE
 	return graph_structure_.at(state)[static_cast<size_t>(action)];
 }
 
-auto ExampleRulesEngine::score(State state) const -> double {
-	return graph_structure_.at(state).empty() ? -1.0 : 0.0;
+auto ExampleRulesEngine::score(State state) const -> Score {
+	return graph_structure_.at(state).empty() ? Score(-1.0F) : Score(0.0F);
 }
-}  // namespace graph::example
+
+auto ExampleGraph::stringify(State state) -> std::string {
+	return std::to_string(state);
+}
+
+auto ExampleGraph::stringify(State state, Action action) -> std::string {
+	return fmt::format("action-{} at state '{}'", action, state);
+}
+
+}  // namespace sag::example

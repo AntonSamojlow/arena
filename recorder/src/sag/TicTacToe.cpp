@@ -4,9 +4,7 @@
 
 #include <vector>
 
-#include "graph/TicTacToe.h"
-
-namespace graph::tic_tac_toe {
+namespace sag::tic_tac_toe {
 auto TicTacToeRules::list_actions(StateId state) -> std::vector<ActionId> {
 	Board const board = decode(state);
 
@@ -30,8 +28,8 @@ auto TicTacToeRules::list_edges(StateId state, ActionId action) -> std::vector<A
 	return {ActionEdge<StateId>(1.0, encode(invert(board)))};
 }
 
-auto TicTacToeRules::score(StateId state) -> double {
-	return opponent_has_won(decode(state)) ? -1.0 : 0.0;
+auto TicTacToeRules::score(StateId state) -> Score {
+	return opponent_has_won(decode(state)) ? Score(-1.0F) : Score(0.0F);
 }
 
 auto TicTacToeRules::encode(const Board& board) -> StateId {
@@ -118,22 +116,20 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 	return result;
 }
 
-auto TicTacToeGraph::stringify(StateId state) const -> std::string {
-	const auto& rules_engine = get_rules_engine();
-	return rules_engine.to_string(rules_engine.decode(state), false);
+auto TicTacToeGraph::stringify(StateId state) -> std::string {
+	return TicTacToeRules::to_string(TicTacToeRules::decode(state), false);
 }
 
-auto TicTacToeGraph::stringify(StateId state, ActionId action) const -> std::string {
+auto TicTacToeGraph::stringify(StateId state, ActionId action) -> std::string {
 	return fmt::format("action-{} at: {})", action, stringify(state));
 }
 
-auto TicTacToeGraph::stringify_formatted(StateId state) const -> std::string {
-	const auto& rules_engine = get_rules_engine();
-	return rules_engine.to_string(rules_engine.decode(state), true);
+auto TicTacToeGraph::stringify_formatted(StateId state) -> std::string {
+	return TicTacToeRules::to_string(TicTacToeRules::decode(state), true);
 }
 
-auto TicTacToeGraph::stringify_formatted(StateId state, ActionId action) const -> std::string {
+auto TicTacToeGraph::stringify_formatted(StateId state, ActionId action) -> std::string {
 	return fmt::format("action-{} at::\n{})", action, stringify(state));
 }
 
-}  // namespace graph::tic_tac_toe
+}  // namespace sag::tic_tac_toe
