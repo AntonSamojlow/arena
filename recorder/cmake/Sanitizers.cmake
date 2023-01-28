@@ -66,14 +66,21 @@ function(enable_sanitizers
   if(NOT LIST_OF_SANITIZERS OR "${LIST_OF_SANITIZERS}" STREQUAL "")
     message(STATUS "no SANITIZERS enabled for '${target_name}'")
   else()
-    message(STATUS "SANITIZERS enabled for '${target_name}': ${LIST_OF_SANITIZERS}")
-    if(NOT MSVC)
-      message(STATUS "(compiler is not MSVC-like)")
+    if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
       target_compile_options(${target_name} INTERFACE -fsanitize=${LIST_OF_SANITIZERS})
       target_link_options(${target_name} INTERFACE -fsanitize=${LIST_OF_SANITIZERS})
+      message(STATUS "SANITIZERS enabled for '${target_name}': ${LIST_OF_SANITIZERS}")
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+      target_compile_options(${target_name} PUBLIC /fsanitize=${LIST_OF_SANITIZERS})
+      target_link_options(${target_name} INTERFACE /fsanitize=${LIST_OF_SANITIZERS})
+      message(STATUS "SANITIZERS enabled for '${target_name}': ${LIST_OF_SANITIZERS}")
     else()
-      message(STATUS "compiler is MSVC-like")
-      
+      message(SEND_ERROR "No sanitizers supported CXX compiler: '${CMAKE_CXX_COMPILER_ID}'")
+    endif()
+
+    if(MSVC) # both msvc and clang-cl qualify here
+      target_compile_options(${target_name} PUBLIC /Zi /INCREMENTAL:NO)
+      target_link_options(${target_name} INTERFACE /INCREMENTAL:NO)
       if("${index_of_vs_install_dir}" STREQUAL "-1")
         message(
         SEND_ERROR
@@ -83,9 +90,6 @@ function(enable_sanitizers
       
       # apply temporary fix for https://github.com/llvm/llvm-project/issues/56300 (and related solution https://stackoverflow.com/q/74186326)
       add_compile_definitions(_DISABLE_STRING_ANNOTATION=1 _DISABLE_VECTOR_ANNOTATION=1)
-      
-      target_compile_options(${target_name} PUBLIC /fsanitize=${LIST_OF_SANITIZERS} /Zi /INCREMENTAL:NO)
-      target_link_options(${target_name} INTERFACE /fsanitize=${LIST_OF_SANITIZERS} /INCREMENTAL:NO)
       
       if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
         # detected MSVC+Clang => compiler is (clang-cl) => need to link the clang_rt.asan* libs
