@@ -72,6 +72,12 @@
 		},
 
 		{
+			"name": "cmake-debug",
+			"hidden": true,
+			"debug": {"output": true, "find": true}
+		},
+
+		{
 			"name": "asan",
 			"hidden": true,
 			"cacheVariables": {
@@ -134,7 +140,7 @@
 		{
 			"name": "msvc-debug",
 			"displayName": "MSVC Debug",
-			"inherits": [ "windows", "msvc", "debug"]
+			"inherits": [ "windows", "msvc", "debug" ]
 		},
 		{
 			"name": "msvc-asan",
@@ -144,7 +150,7 @@
 		{
 			"name": "clang-cl-debug",
 			"displayName": "ClangCl Debug",
-			"inherits": [ "windows", "clang-cl", "debug"]
+			"inherits": [ "windows", "clang-cl", "debug" ]
 		},
 		{
 			"name": "clang-cl-asan",

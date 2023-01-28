@@ -89,20 +89,22 @@ function(set_specific_warnings
   CLANG_WARNINGS
   GCC_WARNINGS)
 
+  message(DEBUG "[${target_name}] - set_specific_warnings")
+
   if("${MSVC_WARNINGS}" STREQUAL "")
-    message(SEND_ERROR "No warnings specified for MSVC") 
+    message(SEND_ERROR "[${target_name}] No warnings specified for MSVC") 
   endif()
 
   if("${CLANG_WARNINGS}" STREQUAL "")
-    message(SEND_ERROR "No warnings specified for CLANG")
+    message(SEND_ERROR "[${target_name}] No warnings specified for CLANG")
   endif()
 
   if("${GCC_WARNINGS}" STREQUAL "")
-    message(SEND_ERROR "No warnings specified for GCC")
+    message(SEND_ERROR "[${target_name}] No warnings specified for GCC")
   endif()
 
   if(WARNINGS_AS_ERRORS)
-    message(TRACE "Warnings are treated as errors")
+    message(DEBUG "[${target_name}] warnings are treated as errors")
     list(APPEND CLANG_WARNINGS -Werror)
     list(APPEND GCC_WARNINGS -Werror)
     list(APPEND MSVC_WARNINGS /WX)
@@ -116,16 +118,16 @@ function(set_specific_warnings
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(ENABLED_WARNINGS ${GCC_WARNINGS})
   else()
-    message(SEND_ERROR "No compiler warnings set for CXX compiler: '${CMAKE_CXX_COMPILER_ID}'")
+    message(SEND_ERROR "[${target_name}] No compiler warnings set for CXX compiler: '${CMAKE_CXX_COMPILER_ID}'")
   endif()
 
-  message(STATUS "enabled warnings for '${target_name}': ${ENABLED_WARNINGS}")
+  message(STATUS "[${target_name}] warnings enabled: ${ENABLED_WARNINGS}")
   target_compile_options(${target_name} PRIVATE ${ENABLED_WARNINGS})
 endfunction()
 
 function(set_default_warnings
   target_name)
-  
+  message(DEBUG "[${target_name}] - set_default_warnings")
   set_specific_warnings(
     ${target_name}
     "${WARNINGS_AS_ERRORS}" 
