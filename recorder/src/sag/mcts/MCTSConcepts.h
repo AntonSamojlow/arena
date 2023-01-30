@@ -1,3 +1,4 @@
+#pragma once
 #include <concepts>
 
 #include "GraphConcepts.h"
@@ -7,7 +8,7 @@ namespace sag::mcts {
 // todo: improve naming
 struct StatsEntry {
 	int N = 0;
-	double Q = 0.0;
+	float Q = 0.0;
 };
 
 // disable until clang-format 16 with 'RequiresExpressionIndentation : OuterScope' is available
