@@ -15,11 +15,36 @@ struct Path {
 	std::vector<S> values = {};
 };
 
+template <typename S, typename A>
+	requires sag::Vertices<S, A>
+struct Configuration {
+	bool sample_actions_uniformly = false;
+	std::function<float(S)> initial_value_estimate;
+	std::function<float(S, A)> U_bound;
+	std::function<UnitValue(void)> random_source;
+};
+
+template <typename S, typename A>
+auto descend(S state,
+	StatsContainer<S> auto& stats,
+	sag::GraphContainer<S, A> auto& graph,
+	sag::RulesEngine<S, A> auto const& rules,
+	Configuration<S, A> config) -> void {
+	// ensure start state is listed
+	if (!stats.has(state))
+		stats..initialize(state, rules.score(state));
+
+	Path const path = select(state, graph, config.sample_actions_uniformly, config.U_bound, config.random_source);
+	expand(path, stats, graph, rules, config.initial_value_estimate);
+	update(path, stats);
+}
+
 // ----------------------------------------------------------------------------
 //			the core MCTS routine: selection - expansion - update
 // ----------------------------------------------------------------------------
 
-template <sag::Identifier S, sag::Identifier A>
+template <typename S, typename A>
+	requires sag::Vertices<S, A>
 auto select(S state,
 	StatsContainer<S> auto& stats,
 	sag::GraphContainer<S, A> auto& graph,
@@ -64,7 +89,8 @@ auto select(S state,
 	return path;
 }
 
-template <sag::Identifier S, sag::Identifier A>
+template <typename S, typename A>
+	requires sag::Vertices<S, A>
 void expand(Path<S> const& path,
 	StatsContainer<S> auto& stats,
 	sag::GraphContainer<S, A> auto& graph,
