@@ -15,7 +15,7 @@ struct StatsEntry {
 // clang-format off
 
 template <typename C, typename Key>
-concept StatsContainer = sag::Identifier<Key> && std::semiregular<C> &&
+concept StatsContainer = sag::Identifier<Key> && std::regular<C> &&
 requires(const C const_container, C container, Key key, sag::Score score) {
 	{ const_container.at(key) } -> std::same_as<StatsEntry>;
 	{ const_container.has(key) } -> std::same_as<bool>;

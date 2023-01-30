@@ -7,10 +7,9 @@ namespace sag::mcts {
 
 /// Wrapper around std::unordered_map<K, StatsEntry>
 template <typename K>
-class Statistics{
+class Statistics {
  public:
-	[[nodiscard]] auto at(K key) const -> StatsEntry 
-		{ return data_.at(key); }
+	[[nodiscard]] auto at(K key) const -> StatsEntry { return data_.at(key); }
 	[[nodiscard]] auto has(K key) const -> bool { return data_.contains(key); }
 
 	auto clear() -> void { this.clear(); }
@@ -24,7 +23,9 @@ class Statistics{
 		entry.Q += (end_value.value() - entry.Q) / static_cast<float>(entry.N);
 	}
 
-private:
+	friend auto operator<=>(const Statistics<K>&, const Statistics<K>&) = default;
+
+ private:
 	std::unordered_map<K, StatsEntry> data_;
 };
 
