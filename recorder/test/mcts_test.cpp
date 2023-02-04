@@ -30,7 +30,7 @@ TEST_CASE("MCTS test", "[mcts]") {
 	ExampleRulesEngine const rules(graph_structure);
 	ExampleGraph graph(rules);
 	sag::mcts::Statistics<State> stats;
-	sag::mcts::MCTS<State, Action> mcts_algo(true, 2.0);
+	sag::mcts::MCTS<State, Action> mcts_algo(true, 2);
 	State const root = graph.roots()[0];
 
 	// Test that MCTS finds the correct (true) action values at root 1 are: 1/3 and -1/4
@@ -42,5 +42,5 @@ TEST_CASE("MCTS test", "[mcts]") {
 	auto result = sag::mcts::action_estimates_at<State, Action>(root, graph, stats);
 	CHECK(result.size() == 2);
 	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.001));
-	// CHECK_THAT(result[1], Catch::Matchers::WithinAbs(-0.25, 0.001));
+	CHECK_THAT(result[1], Catch::Matchers::WithinAbs(-0.25, 0.001));
 }
