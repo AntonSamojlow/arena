@@ -2,5 +2,6 @@
     "cmake.sourceDirectory": "${workspaceFolder}/recorder",
     "cmake.copyCompileCommands": "${workspaceFolder}/recorder/compile_commands.json",
     "sonarlint.pathToCompileCommands": "${workspaceFolder}/recorder/compile_commands.json",
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "cmake.configureOnOpen": true
 }
