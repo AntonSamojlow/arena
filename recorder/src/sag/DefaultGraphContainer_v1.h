@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <random>
@@ -7,7 +8,6 @@
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
-#include <map>
 #include <vector>
 
 #include "GraphConcepts.h"

@@ -139,7 +139,7 @@ auto update(Path<S> const& path, StatsContainer<S> auto& stats) -> void {
 		return;
 
 	float const end_value = stats.at(path.values.back()).Q;
-	float sign = static_cast<float>(2 * (path.values.size() % 2) - 1);
+	float sign = 2 * static_cast<float>(path.values.size() % 2) - 1;
 	for (auto it = path.values.begin(); it < path.values.end() - 1; ++it, sign *= -1)
 		stats.add_visit_result(*it, Score(sign * end_value));
 
@@ -185,7 +185,7 @@ auto random_rollout(S state,
 		state = sag::follow(graph.edges_at(state, action), random_source());
 		rollout_length++;
 	}
-	float value = static_cast<float>(1 - 2 * (rollout_length % 2)) * rules.score(state).value();
+	float value = (1 - 2 * static_cast<float>(rollout_length % 2)) * rules.score(state).value();
 	return Score(std::move(value));
 }
 
