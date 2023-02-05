@@ -1,4 +1,7 @@
 ---
 Checks : "-*magic-numbers" 
 InheritParentConfig : true 
+CheckOptions:
+  - key:    readability-function-cognitive-complexity.IgnoreMacros
+    value:  'true'
 ---

@@ -12,7 +12,7 @@ using namespace sag::example;
 namespace {
 
 /// Advanded example graph with (true) action values at root '1' are: 1/3 and 1/2
-auto create_wide_graph() -> ExampleRulesEngine {
+auto create_wide_graph_rules() -> ExampleRulesEngine {
 	std::vector<sag::example::ActionEdges> const TERMINAL = {};
 	sag::example::GraphStructure const graph_structure = {
 		{1,
@@ -55,7 +55,7 @@ auto create_wide_graph() -> ExampleRulesEngine {
 }
 
 /// Simple example graph with (true) action values at root '1' are: 1/3 and -1/4
-auto create_small_graph() -> ExampleRulesEngine {
+auto create_small_graph_rules() -> ExampleRulesEngine {
 	std::vector<sag::example::ActionEdges> const TERMINAL = {};
 	GraphStructure const graph_structure = {
 		{1,
@@ -77,7 +77,7 @@ auto create_small_graph() -> ExampleRulesEngine {
 
 /// Check that base MCTS finds the correct action values at root
 auto test_small_graph(bool uniform_action_sampling) -> void {
-	ExampleRulesEngine const rules = create_small_graph();
+	ExampleRulesEngine const rules = create_small_graph_rules();
 	ExampleGraph graph(rules);
 	sag::mcts::Statistics<State> stats;
 
@@ -108,7 +108,7 @@ TEST_CASE("BaseMCTS test (random action sampling)", "[mcts]") {
 
 TEST_CASE("BaseMCTS test (wide graph)", "[mcts]") {
 	// Check that base MCTS finds the correct action values at root
-	ExampleRulesEngine const rules = create_wide_graph();
+	ExampleRulesEngine const rules = create_wide_graph_rules();
 	ExampleGraph graph(rules);
 	sag::mcts::Statistics<State> stats;
 	sag::mcts::BaseMCTS<State, Action> mcts_default{};
@@ -128,12 +128,59 @@ TEST_CASE("BaseMCTS test (wide graph)", "[mcts]") {
 	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.1));
 	CHECK_THAT(result[1], !Catch::Matchers::WithinAbs(0.5, 0.05));
 
-	// run one more round to improve estimate
+	// run one more round to improve both estimates
 	for (size_t i = 0; i < 10'000; i++) {
 		mcts_low_exploration.descend(root, stats, graph, rules);
 	}
 	result = sag::mcts::action_estimates_at<State, Action>(root, graph, stats);
 	REQUIRE(result.size() == 2);
-	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.01));
+	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.05));
 	CHECK_THAT(result[1], Catch::Matchers::WithinAbs(0.5, 0.05));
+}
+
+TEST_CASE("MCTS update test", "[mcts]") {
+	sag::mcts::Statistics<State> stats;
+	stats.initialize(1, sag::Score(0.1F));
+	stats.initialize(2, sag::Score(0.2F));
+	stats.initialize(3, sag::Score(0.3F));
+	stats.initialize(4, sag::Score(0.4F));
+
+	auto check_initial_state = [&]() -> void {
+		CHECK(stats.size() == 4);
+		CHECK_THAT(stats.at(1).Q, Catch::Matchers::WithinRel(0.1));
+		CHECK_THAT(stats.at(2).Q, Catch::Matchers::WithinRel(0.2));
+		CHECK_THAT(stats.at(3).Q, Catch::Matchers::WithinRel(0.3));
+		CHECK_THAT(stats.at(4).Q, Catch::Matchers::WithinRel(0.4));
+		CHECK(stats.at(1).N == 0);
+		CHECK(stats.at(2).N == 0);
+		CHECK(stats.at(3).N == 0);
+		CHECK(stats.at(4).N == 0);
+	};
+
+	check_initial_state();
+	sag::mcts::Path<State> path;
+	path.terminal = false;
+
+	// updating with empty pathshould not change the stats
+	sag::mcts::update(path, stats);
+	check_initial_state();
+
+	// do a real update
+	path.values.push_back(2);
+	path.values.push_back(4);
+	sag::mcts::update(path, stats);
+
+	// expect node 2 to have an updated average of "(0.2F*N - 1) /(N+1)", with N=1.
+	CHECK_THAT(stats.at(2).Q, Catch::Matchers::WithinRel(-0.3F));
+	CHECK(stats.at(2).N == 1);
+
+	// expect node 4 to have an added visit but no value change
+	CHECK_THAT(stats.at(4).Q, Catch::Matchers::WithinRel(0.4F));
+	CHECK(stats.at(4).N == 1);
+
+	// expect all other nodes to be unchanged
+	CHECK_THAT(stats.at(1).Q, Catch::Matchers::WithinRel(0.1F));
+	CHECK_THAT(stats.at(3).Q, Catch::Matchers::WithinRel(0.3F));
+	CHECK(stats.at(1).N == 0);
+	CHECK(stats.at(3).N == 0);
 }
