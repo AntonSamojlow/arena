@@ -147,10 +147,10 @@ TEST_CASE("MCTS update test", "[mcts]") {
 
 	auto check_initial_state = [&]() -> void {
 		CHECK(stats.size() == 4);
-		CHECK_THAT(stats.at(1).Q, Catch::Matchers::WithinRel(0.1));
-		CHECK_THAT(stats.at(2).Q, Catch::Matchers::WithinRel(0.2));
-		CHECK_THAT(stats.at(3).Q, Catch::Matchers::WithinRel(0.3));
-		CHECK_THAT(stats.at(4).Q, Catch::Matchers::WithinRel(0.4));
+		CHECK_THAT(stats.at(1).Q, Catch::Matchers::WithinRel(0.1F));
+		CHECK_THAT(stats.at(2).Q, Catch::Matchers::WithinRel(0.2F));
+		CHECK_THAT(stats.at(3).Q, Catch::Matchers::WithinRel(0.3F));
+		CHECK_THAT(stats.at(4).Q, Catch::Matchers::WithinRel(0.4F));
 		CHECK(stats.at(1).N == 0);
 		CHECK(stats.at(2).N == 0);
 		CHECK(stats.at(3).N == 0);
@@ -166,12 +166,12 @@ TEST_CASE("MCTS update test", "[mcts]") {
 	check_initial_state();
 
 	// do a real update
-	path.values.push_back(2);
-	path.values.push_back(4);
+	path.values = {2, 4};
 	sag::mcts::update(path, stats);
 
-	// expect node 2 to have an updated average of "(0.2F*N - 1) /(N+1)", with N=1.
-	CHECK_THAT(stats.at(2).Q, Catch::Matchers::WithinRel(-0.3F));
+	// expect node 2 to have an updated average of "(old_val*(N-1) + new_val) /N"
+	// with N=1, old_val=0.2F, new_val=-0.4F, hence in total: -0.4F in total
+	CHECK_THAT(stats.at(2).Q, Catch::Matchers::WithinRel(-0.4F));
 	CHECK(stats.at(2).N == 1);
 
 	// expect node 4 to have an added visit but no value change
@@ -183,4 +183,24 @@ TEST_CASE("MCTS update test", "[mcts]") {
 	CHECK_THAT(stats.at(3).Q, Catch::Matchers::WithinRel(0.3F));
 	CHECK(stats.at(1).N == 0);
 	CHECK(stats.at(3).N == 0);
+
+	// update once more, now with a path of 2-to-3
+	sag::mcts::Path<State> second_path;
+	second_path.values = {2, 3};
+	sag::mcts::update(second_path, stats);
+
+	// expect node 2 to have an updated average of "(old_val*(N-1) + new_val) /N"
+	// with N=2, old_val=-0.4F, new_val=-0.3F, hence in total: -0.35F
+	CHECK_THAT(stats.at(2).Q, Catch::Matchers::WithinRel(-0.35F));
+	CHECK(stats.at(2).N == 2);
+
+	// expect node 3 to have an added visit but no value change
+	CHECK_THAT(stats.at(3).Q, Catch::Matchers::WithinRel(0.3F));
+	CHECK(stats.at(3).N == 1);
+
+	// expect all other nodes to be unchanged
+	CHECK_THAT(stats.at(1).Q, Catch::Matchers::WithinRel(0.1F));
+	CHECK_THAT(stats.at(4).Q, Catch::Matchers::WithinRel(0.4F));
+	CHECK(stats.at(1).N == 0);
+	CHECK(stats.at(4).N == 1);
 }
