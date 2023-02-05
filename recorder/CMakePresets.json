@@ -51,7 +51,7 @@
 			"vendor": {
 				"microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
 					"sourceDir": "$env{HOME}/.vs/",
-					"copySourcesOptions": { "exclusionList": [ ".vs", ".git", ".cache", "out", "build", "predictor"] }
+					"copySourcesOptions": { "exclusionList": [ ".vs", ".git", ".cache", "out", "build", "predictor" ] }
 				}
 			}
 		},
@@ -75,7 +75,10 @@
 		{
 			"name": "cmake-debug",
 			"hidden": true,
-			"debug": {"output": true, "find": true}
+			"debug": {
+				"output": true,
+				"find": true
+			}
 		},
 
 		{
@@ -119,6 +122,11 @@
 			"cacheVariables": {
 				"CMAKE_C_COMPILER": "cl.exe",
 				"CMAKE_CXX_COMPILER": "cl.exe"
+			},
+			"vendor": {
+				"microsoft.com/VisualStudioSettings/CMake/1.0": {
+					"intelliSenseMode": "windows-msvc-x64"
+				}
 			}
 		},
 		{
@@ -127,6 +135,11 @@
 			"cacheVariables": {
 				"CMAKE_C_COMPILER": "clang",
 				"CMAKE_CXX_COMPILER": "clang++"
+			},
+			"vendor": {
+				"microsoft.com/VisualStudioSettings/CMake/1.0": {
+					"intelliSenseMode": "windows-clang-x64"
+				}
 			}
 		},
 		{
@@ -135,6 +148,11 @@
 			"cacheVariables": {
 				"CMAKE_C_COMPILER": "gcc",
 				"CMAKE_CXX_COMPILER": "g++"
+			},
+			"vendor": {
+				"microsoft.com/VisualStudioSettings/CMake/1.0": {
+					"intelliSenseMode": "linux-gcc-x64"
+				}
 			}
 		},
 
@@ -149,6 +167,11 @@
 			"inherits": [ "windows", "msvc", "debug", "asan" ]
 		},
 		{
+			"name": "msvc-release",
+			"displayName": "MSVC Release",
+			"inherits": [ "windows", "msvc", "release" ]
+		},
+		{
 			"name": "clang-cl-debug",
 			"displayName": "ClangCl Debug",
 			"inherits": [ "windows", "clang-cl", "debug" ]
@@ -161,11 +184,6 @@
 
 
 		{
-			"name": "msvc-release",
-			"displayName": "MSVC Release",
-			"inherits": [ "windows", "msvc", "release" ]
-		},
-		{
 			"name": "clang-cl-release",
 			"displayName": "ClangCl Release",
 			"inherits": [ "windows", "clang-cl", "release" ]
@@ -174,16 +192,6 @@
 			"name": "clang-cl-release-tidy",
 			"displayName": "ClangCl Release (with clang-tidy)",
 			"inherits": [ "windows", "clang-cl", "release", "clangtidy" ]
-		},
-		{
-			"name": "clang-release",
-			"displayName": "Clang Release",
-			"inherits": [ "unix-like", "clang", "release" ]
-		},
-		{
-			"name": "clang-release-tidy",
-			"displayName": "Clang Release (with clang-tidy)",
-			"inherits": [ "unix-like", "clang", "release", "clangtidy" ]
 		},
 		{
 			"name": "gcc-release",
@@ -199,6 +207,21 @@
 			"name": "gcc-debug-coverage",
 			"displayName": "Gcc Debug Coverage (with coverage)",
 			"inherits": [ "unix-like", "gcc", "debug", "coverage" ]
+		},
+		{
+			"name": "clang-debug",
+			"displayName": "Clang Debug",
+			"inherits": [ "unix-like", "clang", "debug" ]
+		},
+		{
+			"name": "clang-release",
+			"displayName": "Clang Release",
+			"inherits": [ "unix-like", "clang", "release" ]
+		},
+		{
+			"name": "clang-release-tidy",
+			"displayName": "Clang Release (with clang-tidy)",
+			"inherits": [ "unix-like", "clang", "release", "clangtidy" ]
 		}
 	],
 

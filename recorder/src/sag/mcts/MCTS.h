@@ -236,5 +236,4 @@ class BaseMCTS {
 
 static_assert(std::semiregular<BaseMCTS<int, int>>);
 
-
 }  // namespace sag::mcts
