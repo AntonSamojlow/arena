@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <random>
@@ -67,7 +68,8 @@ class DefaultGraphContainer_v1 {
 
  private:
 	std::vector<S> roots_;
-	using ActionDetails = std::unordered_map<A, std::vector<ActionEdge<S>>>;
+	// listing the actions of a state requires an ordered container
+	using ActionDetails = std::map<A, std::vector<ActionEdge<S>>>;
 	std::unordered_map<S, ActionDetails> data_;
 
 	template <RulesEngine<S, A> R>

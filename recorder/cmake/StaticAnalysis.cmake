@@ -4,7 +4,6 @@
 
 # Enable static analysis with clang-tidy
 macro(enable_clang_tidy)
-
   find_program(CLANGTIDY clang-tidy)
   if(NOT CLANGTIDY)
     message(FATAL_ERROR "clang-tidy requested but executable not found. Consider disabling static analysis.")
@@ -66,9 +65,11 @@ endmacro()
 
 # Disable clang-tidy for target
 function(disable_clang_tidy_for target_name)
+  message(DEBUG "[${target_name}] - disable_clang_tidy_for")
+  
   find_program(CLANGTIDY clang-tidy)
   if(NOT CLANGTIDY)
-    message(WARNING "clang tidy was not found - skipping disabling clang tidy for '${target_name}'")
+    message(WARNING "[${target_name}] clang tidy was not found - skipping disabling clang tidy for '${target_name}'")
   else()
     set_target_properties(${target_name} PROPERTIES C_CLANG_TIDY "")
     set_target_properties(${target_name} PROPERTIES CXX_CLANG_TIDY "")

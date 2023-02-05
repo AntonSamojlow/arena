@@ -21,7 +21,5 @@ enable_sanitizers(recorder
   "${ENABLE_SANITIZER_THREAD}"
   "${ENABLE_SANITIZER_MEMORY}")
 
-if(ENABLE_COVERAGE)
-  enable_coverage(recorder)
-endif()
+enable_coverage(recorder)
 

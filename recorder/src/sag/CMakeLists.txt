@@ -1,5 +1,6 @@
 # cmake file for src/sag
 
+
 # external dependencies
 find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
@@ -14,6 +15,10 @@ add_library(sag ${SOURCES})
 target_link_libraries(sag PRIVATE spdlog::spdlog)
 set_target_properties(sag PROPERTIES LINKER_LANGUAGE CXX)
 
+target_include_directories(sag PRIVATE "")
+get_property(include_dirs TARGET sag PROPERTY INCLUDE_DIRECTORIES)
+message(STATUS "[sag] include directories:'${include_dirs}'")
+
 set_default_warnings(sag)
 
 enable_sanitizers(sag
@@ -23,6 +28,4 @@ enable_sanitizers(sag
   "${ENABLE_SANITIZER_THREAD}"
   "${ENABLE_SANITIZER_MEMORY}")
 
-if(ENABLE_COVERAGE)
-  enable_coverage(sag)
-endif()
+enable_coverage(sag)

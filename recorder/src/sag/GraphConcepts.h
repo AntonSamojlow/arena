@@ -52,20 +52,23 @@ concept Vertices = Identifier<StateId> && Identifier<ActionId>;
 
 /// Wrapper around std::pair, representing an edge weight with the successor state
 template <Identifier State>
-struct ActionEdge : public std::pair<UnitValue, State> {
+class ActionEdge{
+public:
 	ActionEdge() = default;
-	ActionEdge(float weight, State const& state) : std::pair<UnitValue, State>{ weight, state} {}
-	ActionEdge(float weight, State&& state) : std::pair<UnitValue, State>{ weight, std::move(state) } {}
+	ActionEdge(float weight, State const& state) : data_{ weight, state} {}
+	ActionEdge(float weight, State&& state) : data_{ weight, std::move(state) } {}
 
-	[[nodiscard]] auto weight() const -> UnitValue { return this->first; }
-	[[nodiscard]] auto state() const -> State { return this->second; }
+	[[nodiscard]] auto weight() const -> UnitValue { return data_.first; }
+	[[nodiscard]] auto state() const -> State { return data_.second; }
+
+	friend auto operator<=>(const ActionEdge<State>&, const ActionEdge<State>&) = default;
 
  private:
-	using std::pair<UnitValue, State>::first;
-	using std::pair<UnitValue, State>::second;
+	std::pair<UnitValue, State> data_;
 };
 
 static_assert(std::regular<ActionEdge<int>>);
+static_assert(std::regular<ActionEdge<double>>);
 static_assert(std::regular<ActionEdge<std::string>>);
 
 // --------------------------------------------------------------------------------------------------------------------
