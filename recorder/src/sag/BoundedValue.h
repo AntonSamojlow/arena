@@ -34,10 +34,12 @@ struct Boundedvalue {
 
 using Score = Boundedvalue<float, -1, 1>;
 using UnitValue = Boundedvalue<float, 0, 1>;
+using NonNegative = Boundedvalue<float, 0, std::numeric_limits<int>::max()>;
 
 static_assert(std::regular<Boundedvalue<int, -1, 1>>);
 static_assert(std::regular<Boundedvalue<double, -1, 1>>);
 static_assert(std::regular<Score>);
 static_assert(std::regular<UnitValue>);
+static_assert(std::regular<NonNegative>);
 
 }  // namespace sag

@@ -152,11 +152,9 @@ auto update(Path<S> const& path, StatsContainer<S> auto& stats) -> void {
 
 template <typename S, typename A>
 	requires sag::Vertices<S, A>
-[[nodiscard]] auto upper_confidence_bound(S state,
-	A action,
-	sag::GraphContainer<S, A> auto& graph,
-	StatsContainer<S> auto& stats,
-	unsigned int explore_constant) -> float {
+[[nodiscard]] auto upper_confidence_bound(
+	S state, A action, sag::GraphContainer<S, A> auto& graph, StatsContainer<S> auto& stats, NonNegative explore_constant)
+	-> float {
 	float value_estimate = 0.0;
 	int action_visits = 0;
 	for (ActionEdge egde : graph.edges_at(state, action)) {
@@ -164,7 +162,8 @@ template <typename S, typename A>
 		action_visits += stats.at(egde.state()).N;
 	}
 
-	return value_estimate - static_cast<float>(explore_constant * std::sqrt(stats.at(state).N / (1 + action_visits)));
+	return value_estimate -
+				 explore_constant.value() * static_cast<float>(std::sqrt(stats.at(state).N / (1 + action_visits)));
 }
 
 template <typename S, typename A>
@@ -202,7 +201,7 @@ class BaseMCTS {
 		rng_ = std::mt19937(rd());
 	}
 
-	BaseMCTS(bool sample_actions_uniformly, unsigned int explore_constant) : BaseMCTS() {
+	BaseMCTS(bool sample_actions_uniformly, NonNegative explore_constant) : BaseMCTS() {
 		sample_actions_uniformly_ = sample_actions_uniformly;
 		explore_constant_ = explore_constant;
 	}
@@ -228,8 +227,8 @@ class BaseMCTS {
 	}
 
  private:
-	bool sample_actions_uniformly_ = true;
-	unsigned int explore_constant_ = 2;
+	bool sample_actions_uniformly_ = false;
+	NonNegative explore_constant_ = NonNegative(1.0F);
 	std::mt19937 rng_;
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 };
