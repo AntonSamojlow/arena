@@ -13,7 +13,7 @@ class Statistics {
 	[[nodiscard]] auto has(K key) const -> bool { return data_.contains(key); }
 	[[nodiscard]] auto size() const -> size_t { return data_.size(); }
 
-	auto clear() -> void { this.clear(); }
+	auto clear() -> void { this->clear(); }
 	auto initialize(K key, sag::Score q_value) -> void { data_.insert({key, {.N = 0, .Q = q_value.value()}}); }
 	auto add_visit(K key) -> void { data_.at(key).N++; }
 	auto add_visit_result(K key, sag::Score end_value) -> void {

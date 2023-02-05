@@ -9,7 +9,11 @@ namespace sag::mcts {
 struct StatsEntry {
 	int N = 0;
 	float Q = 0.0;
+
+	friend auto operator<=>(const StatsEntry&, const StatsEntry&) = default;
 };
+
+static_assert(std::regular<StatsEntry>);
 
 // disable until clang-format 16 with 'RequiresExpressionIndentation : OuterScope' is available
 // clang-format off

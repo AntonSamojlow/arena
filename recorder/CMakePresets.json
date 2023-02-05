@@ -2,7 +2,7 @@
 	"version": 4,
 	"cmakeMinimumRequired": {
 		"major": 3,
-		"minor": 24,
+		"minor": 22,
 		"patch": 0
 	},
 	"configurePresets": [
@@ -50,7 +50,8 @@
 			},
 			"vendor": {
 				"microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
-					"sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
+					"sourceDir": "$env{HOME}/.vs/",
+					"copySourcesOptions": { "exclusionList": [ ".vs", ".git", ".cache", "out", "build", "predictor"] }
 				}
 			}
 		},
@@ -188,6 +189,11 @@
 			"name": "gcc-release",
 			"displayName": "Gcc Release",
 			"inherits": [ "unix-like", "gcc", "release" ]
+		},
+		{
+			"name": "gcc-debug",
+			"displayName": "Gcc Debug",
+			"inherits": [ "unix-like", "gcc", "debug" ]
 		},
 		{
 			"name": "gcc-debug-coverage",

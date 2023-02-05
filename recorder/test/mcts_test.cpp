@@ -30,7 +30,7 @@ TEST_CASE("MCTS test", "[mcts]") {
 	ExampleRulesEngine const rules(graph_structure);
 	ExampleGraph graph(rules);
 	sag::mcts::Statistics<State> stats;
-	sag::mcts::MCTS<State, Action> mcts_algo(true, 2);
+	sag::mcts::BaseMCTS<State, Action> mcts_algo(true, 2);
 	State const root = graph.roots()[0];
 
 	// Test that MCTS finds the correct (true) action values at root 1 are: 1/3 and -1/4
