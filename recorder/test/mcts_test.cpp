@@ -56,7 +56,7 @@ auto create_wide_graph_rules() -> ExampleRulesEngine {
 
 /// Simple example graph with (true) action values at root '1' are: 1/3 and -1/4
 auto create_small_graph_rules() -> ExampleRulesEngine {
-	std::vector<sag::example::ActionEdges> const TERMINAL = {};
+	std::vector<ActionEdges> const TERMINAL = {};
 	GraphStructure const graph_structure = {
 		{1,
 			{

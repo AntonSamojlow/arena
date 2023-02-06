@@ -39,11 +39,11 @@ class ExampleGraph : public sag::DefaultGraphContainer_v1<State, Action> {
  public:
 	ExampleGraph() : ExampleGraph(ExampleRulesEngine({})) {}
 
-	static auto stringify(State state) -> std::string;
-	static auto stringify(State state, Action action) -> std::string;
+	static auto to_string(State state) -> std::string;
+	static auto to_string(State state, Action action) -> std::string;
 };
 
 static_assert(GraphContainer<ExampleGraph, State, Action>);
-static_assert(VertexStringifier<ExampleGraph, State, Action>);
+static_assert(VertexPrinter<ExampleGraph, State, Action>);
 
 }  // namespace sag::example
