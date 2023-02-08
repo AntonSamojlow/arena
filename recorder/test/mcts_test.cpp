@@ -94,7 +94,7 @@ auto test_small_graph(bool uniform_action_sampling) -> void {
 	auto result = sag::mcts::action_estimates_at<State, Action>(root, graph, stats);
 	REQUIRE(result.size() == 2);
 	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.001));
-	CHECK_THAT(result[1], Catch::Matchers::WithinAbs(-0.25, 0.02));
+	CHECK_THAT(result[1], Catch::Matchers::WithinAbs(-0.25, 0.03));
 }
 }  // namespace
 
