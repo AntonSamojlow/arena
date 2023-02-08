@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace sag::tic_tac_toe {
-auto TicTacToeRules::list_actions(Graph::state state) -> std::vector<Graph::action> {
+auto Rules::list_actions(Graph::state state) -> std::vector<Graph::action> {
 	Board const board = decode(state);
 
 	// skip if opponent has won
@@ -22,17 +22,17 @@ auto TicTacToeRules::list_actions(Graph::state state) -> std::vector<Graph::acti
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-auto TicTacToeRules::list_edges(Graph::state state, Graph::action action) -> std::vector<ActionEdge<Graph::state>> {
+auto Rules::list_edges(Graph::state state, Graph::action action) -> std::vector<ActionEdge<Graph::state>> {
 	Board board = decode(state);
 	++board[static_cast<size_t>(action)];
 	return {ActionEdge<Graph::state>(1.0, encode(invert(board)))};
 }
 
-auto TicTacToeRules::score(Graph::state state) -> Score {
+auto Rules::score(Graph::state state) -> Score {
 	return opponent_has_won(decode(state)) ? Score(-1.0F) : Score(0.0F);
 }
 
-auto TicTacToeRules::encode(const Board& board) -> Graph::state {
+auto Rules::encode(const Board& board) -> Graph::state {
 	Graph::state value = 0;
 
 	for (size_t i = 0; i < BoardSize; i++) {
@@ -41,7 +41,7 @@ auto TicTacToeRules::encode(const Board& board) -> Graph::state {
 	return value;
 }
 
-auto TicTacToeRules::decode(Graph::state state_id) -> Board {
+auto Rules::decode(Graph::state state_id) -> Board {
 	Board board{};
 	for (size_t i = BoardSize; i > 0; i--) {
 		board[i - 1] = static_cast<unsigned char>(state_id / std::pow(3, i - 1));
@@ -50,7 +50,7 @@ auto TicTacToeRules::decode(Graph::state state_id) -> Board {
 	return board;
 }
 
-auto TicTacToeRules::invert(Board board) -> Board {
+auto Rules::invert(Board board) -> Board {
 	for (size_t i = 0; i < BoardSize; i++) {
 		if (board[i] > 0)
 			board[i] = 1 + (board[i] % 2);
@@ -59,7 +59,7 @@ auto TicTacToeRules::invert(Board board) -> Board {
 }
 
 // NOLINTBEGIN(*-magic-numbers)
-auto TicTacToeRules::opponent_has_won(const Board& board) -> bool {
+auto Rules::opponent_has_won(const Board& board) -> bool {
 	if (board[0] == 2) {
 		if (2 == board[1] && 2 == board[2])
 			return true;
@@ -84,7 +84,7 @@ auto TicTacToeRules::opponent_has_won(const Board& board) -> bool {
 }
 // NOLINTEND(*-magic-numbers)
 
-auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::string {
+auto Rules::to_string(const Board& board, bool line_break) -> std::string {
 	int empty_spaces = 0;
 	for (auto const& entry : board) {
 		if (entry == 0)
@@ -116,19 +116,19 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 	return result;
 }
 
-auto TicTacToeGraphContainer::to_string(Graph::state state) -> std::string {
-	return TicTacToeRules::to_string(TicTacToeRules::decode(state), false);
+auto Container::to_string(Graph::state state) -> std::string {
+	return Rules::to_string(Rules::decode(state), false);
 }
 
-auto TicTacToeGraphContainer::to_string(Graph::state state, Graph::action action) -> std::string {
+auto Container::to_string(Graph::state state, Graph::action action) -> std::string {
 	return fmt::format("action-{} at: {})", action, to_string(state));
 }
 
-auto TicTacToeGraphContainer::to_string_formatted(Graph::state state) -> std::string {
-	return TicTacToeRules::to_string(TicTacToeRules::decode(state), true);
+auto Container::to_string_formatted(Graph::state state) -> std::string {
+	return Rules::to_string(Rules::decode(state), true);
 }
 
-auto TicTacToeGraphContainer::to_string_formatted(Graph::state state, Graph::action action) -> std::string {
+auto Container::to_string_formatted(Graph::state state, Graph::action action) -> std::string {
 	return fmt::format("action-{} at::\n{})", action, to_string(state));
 }
 

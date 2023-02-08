@@ -36,7 +36,7 @@ TEST_CASE("ExampleGraph tests", "[graph]") {
 		{8, {{{1.0, 9}}}},
 		{9, TERMINAL},
 	};
-	sag::example::ExampleRulesEngine const rules(graph_structure);
-	sag::example::ExampleGraph graph(rules);
-	test_base_operations<sag::example::State, sag::example::Action>(graph, rules);
+	sag::example::Rules const rules(graph_structure);
+	sag::example::Container graph(rules);
+	test_base_operations<sag::example::Graph::state, sag::example::Graph::action>(graph, rules);
 }

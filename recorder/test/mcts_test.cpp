@@ -12,7 +12,7 @@ using namespace sag::example;
 namespace {
 
 /// Advanded example graph with (true) action values at root '1' are: 1/3 and 1/2
-auto create_wide_graph_rules() -> ExampleRulesEngine {
+auto create_wide_graph_rules() -> Rules {
 	std::vector<sag::example::ActionEdges> const TERMINAL = {};
 	sag::example::GraphStructure const graph_structure = {
 		{1,
@@ -51,11 +51,11 @@ auto create_wide_graph_rules() -> ExampleRulesEngine {
 		{21, TERMINAL},
 	};
 
-	return ExampleRulesEngine(graph_structure);
+	return Rules(graph_structure);
 }
 
 /// Simple example graph with (true) action values at root '1' are: 1/3 and -1/4
-auto create_small_graph_rules() -> ExampleRulesEngine {
+auto create_small_graph_rules() -> Rules {
 	std::vector<ActionEdges> const TERMINAL = {};
 	GraphStructure const graph_structure = {
 		{1,
@@ -72,18 +72,18 @@ auto create_small_graph_rules() -> ExampleRulesEngine {
 		{8, {{{1.0, 9}}}},
 		{9, TERMINAL},
 	};
-	return ExampleRulesEngine(graph_structure);
+	return Rules(graph_structure);
 }
 
 /// Check that base MCTS finds the correct action values at root
 auto test_small_graph(bool uniform_action_sampling) -> void {
-	ExampleRulesEngine const rules = create_small_graph_rules();
-	ExampleGraph graph(rules);
-	sag::mcts::Statistics<State> stats;
+	Rules const rules = create_small_graph_rules();
+	Container graph(rules);
+	sag::mcts::Statistics<Graph::state> stats;
 
 	// choose a low exploration, since there is not much to explore
-	sag::mcts::BaseMCTS<State, Action> mcts_algo(uniform_action_sampling, sag::NonNegative(0.1F));
-	State const root = graph.roots()[0];
+	sag::mcts::BaseMCTS<Graph::state, Graph::action> mcts_algo(uniform_action_sampling, sag::NonNegative(0.1F));
+	Graph::state const root = graph.roots()[0];
 
 	// Test BaseMCTS finds the correct action values at root
 	CHECK(stats.size() == 0);
@@ -91,7 +91,7 @@ auto test_small_graph(bool uniform_action_sampling) -> void {
 		mcts_algo.descend(root, stats, graph, rules);
 	}
 	REQUIRE(stats.size() > 0);
-	auto result = sag::mcts::action_estimates_at<State, Action>(root, graph, stats);
+	auto result = sag::mcts::action_estimates_at<Graph::state, Graph::action>(root, graph, stats);
 	REQUIRE(result.size() == 2);
 	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.001));
 	CHECK_THAT(result[1], Catch::Matchers::WithinAbs(-0.25, 0.03));
@@ -108,12 +108,12 @@ TEST_CASE("BaseMCTS test (random action sampling)", "[mcts]") {
 
 TEST_CASE("BaseMCTS test (wide graph)", "[mcts]") {
 	// Check that base MCTS finds the correct action values at root
-	ExampleRulesEngine const rules = create_wide_graph_rules();
-	ExampleGraph graph(rules);
-	sag::mcts::Statistics<State> stats;
-	sag::mcts::BaseMCTS<State, Action> mcts_default{};
-	sag::mcts::BaseMCTS<State, Action> mcts_low_exploration{false, sag::NonNegative(0.1F)};
-	State const root = graph.roots()[0];
+	Rules const rules = create_wide_graph_rules();
+	Container graph(rules);
+	sag::mcts::Statistics<Graph::state> stats;
+	sag::mcts::BaseMCTS<Graph::state, Graph::action> mcts_default{};
+	sag::mcts::BaseMCTS<Graph::state, Graph::action> mcts_low_exploration{false, sag::NonNegative(0.1F)};
+	Graph::state const root = graph.roots()[0];
 
 	CHECK(stats.size() == 0);
 	for (size_t i = 0; i < 1'000; i++) {
@@ -123,7 +123,7 @@ TEST_CASE("BaseMCTS test (wide graph)", "[mcts]") {
 		mcts_low_exploration.descend(root, stats, graph, rules);
 	}
 	REQUIRE(stats.size() > 0);
-	auto result = sag::mcts::action_estimates_at<State, Action>(root, graph, stats);
+	auto result = sag::mcts::action_estimates_at<Graph::state, Graph::action>(root, graph, stats);
 	REQUIRE(result.size() == 2);
 	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.1));
 	CHECK_THAT(result[1], !Catch::Matchers::WithinAbs(0.5, 0.05));
@@ -132,14 +132,14 @@ TEST_CASE("BaseMCTS test (wide graph)", "[mcts]") {
 	for (size_t i = 0; i < 10'000; i++) {
 		mcts_low_exploration.descend(root, stats, graph, rules);
 	}
-	result = sag::mcts::action_estimates_at<State, Action>(root, graph, stats);
+	result = sag::mcts::action_estimates_at<Graph::state, Graph::action>(root, graph, stats);
 	REQUIRE(result.size() == 2);
 	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.05));
 	CHECK_THAT(result[1], Catch::Matchers::WithinAbs(0.5, 0.05));
 }
 
 TEST_CASE("MCTS update test", "[mcts]") {
-	sag::mcts::Statistics<State> stats;
+	sag::mcts::Statistics<Graph::state> stats;
 	stats.initialize(1, sag::Score(0.1F));
 	stats.initialize(2, sag::Score(0.2F));
 	stats.initialize(3, sag::Score(0.3F));
@@ -158,7 +158,7 @@ TEST_CASE("MCTS update test", "[mcts]") {
 	};
 
 	check_initial_state();
-	sag::mcts::Path<State> path;
+	sag::mcts::Path<Graph::state> path;
 	path.terminal = false;
 
 	// updating with empty pathshould not change the stats
@@ -185,7 +185,7 @@ TEST_CASE("MCTS update test", "[mcts]") {
 	CHECK(stats.at(3).N == 0);
 
 	// update once more, now with a path of 2-to-3
-	sag::mcts::Path<State> second_path;
+	sag::mcts::Path<Graph::state> second_path;
 	second_path.values = {2, 3};
 	sag::mcts::update(second_path, stats);
 
