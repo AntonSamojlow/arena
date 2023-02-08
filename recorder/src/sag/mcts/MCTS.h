@@ -5,7 +5,7 @@
 #include <iterator>
 #include <random>
 
-#include "MCTSConcepts.h"
+#include "StatsContainer.h"
 #include "sag/GraphConcepts.h"
 #include "sag/GraphOperations.h"
 

@@ -4,7 +4,6 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "sag/ExampleGraph.h"
-#include "sag/mcts/MCTSConcepts.h"
 #include "sag/mcts/StatsContainer.h"
 
 using namespace sag::example;
