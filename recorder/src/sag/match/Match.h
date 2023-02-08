@@ -32,7 +32,7 @@ class Play {
 	std::pair<typename G::state, typename G::action> data_;
 };
 
-// static_assert(std::regular<Play<sag::tic_tac_toe::Graph>>);
+static_assert(std::regular<Play<sag::tic_tac_toe::Graph>>);
 
 /// Collection of data that represents a match
 template <Graph G>
@@ -45,7 +45,7 @@ struct Match {
 	friend auto operator<=>(const Match&, const Match&) = default;
 };
 
-// static_assert(std::regular<Match<sag::tic_tac_toe::Graph>>);
+static_assert(std::regular<Match<sag::tic_tac_toe::Graph>>);
 
 class MatchRecorder {
  public:
