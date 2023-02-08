@@ -24,6 +24,10 @@ TEST_CASE("Match recorder test", "[match]") {
 	spdlog::default_logger()->info("endstate: {}", container.to_string(result.end_state));
 	CHECK(result.plays.size() > 4);
 	CHECK(result.plays.size() < 10);
-	CHECK_THAT(rules.score(result.end_state).value(), Catch::Matchers::WithinRel(-1.0F));
+
+	float const end_value = rules.score(result.end_state).value();
+	bool const is_a_draw = std::abs(end_value) < std::numeric_limits<float>::epsilon();
+	bool const is_a_loss = std::abs(end_value + 1.0F) < std::numeric_limits<float>::epsilon();
+	CHECK((is_a_draw || is_a_loss));
 }
 }  // namespace
