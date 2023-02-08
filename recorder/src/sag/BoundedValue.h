@@ -20,7 +20,7 @@ struct Boundedvalue {
 	[[nodiscard]] auto value() const -> T { return value_; }
 
 #pragma GCC diagnostic push
-// reason: https://github.com/llvm/llvm-project/issues/55919
+// reason: https://github.com/llvm/llvm-project/issues/43670
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 

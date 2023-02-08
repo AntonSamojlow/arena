@@ -22,14 +22,15 @@ class RandomPlayer {
 	RandomPlayer() {
 		std::random_device rd;
 		rng_ = std::mt19937(rd());
-	};
+	}
 
 	std::string id;
 	std::string name;
 
-	auto play(G::state state, G::container& graph, G::rules const&) -> G::action {
+	auto play(typename G::state state, typename G::container& graph, typename G::rules const&) -> typename G::action {
 		std::vector<typename G::action> const actions = graph.actions_at(state);
-		size_t random_index = static_cast<size_t>(std::floor(unit_distribution_(rng_) * actions.size()));
+		size_t random_index =
+			static_cast<size_t>(std::floor(unit_distribution_(rng_) * static_cast<float>(actions.size())));
 		return actions[random_index];
 	}
 

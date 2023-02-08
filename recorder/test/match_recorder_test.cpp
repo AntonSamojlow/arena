@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "sag/TicTacToe.h"
 #include "sag/match/Match.h"
@@ -23,6 +24,6 @@ TEST_CASE("Match recorder test", "[match]") {
 	spdlog::default_logger()->info("endstate: {}", container.to_string(result.end_state));
 	CHECK(result.plays.size() > 4);
 	CHECK(result.plays.size() < 10);
-	CHECK(rules.score(result.end_state).value() == -1.0F);
+	CHECK_THAT(rules.score(result.end_state).value(), Catch::Matchers::WithinRel(-1.0F));
 }
 }  // namespace

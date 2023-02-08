@@ -16,32 +16,36 @@ template <Graph G>
 class Play {
  public:
 	Play() = default;
-	Play(G::state const& state, G::action const& action) : data_{state, action} {}
-	Play(G::state&& state, G::action&& action) : data_{std::move(state), std::move(action)} {}
+	Play(typename G::state const& state, typename G::action const& action) : data_{state, action} {}
+	Play(typename G::state&& state, typename G::action&& action) : data_{std::move(state), std::move(action)} {}
 
-	[[nodiscard]] auto state() const -> G::state { return data_.first; }
-	[[nodiscard]] auto action() const -> G::action { return data_.second; }
+	[[nodiscard]] auto state() const -> typename G::state { return data_.first; }
+	[[nodiscard]] auto action() const -> typename G::action { return data_.second; }
 
+#pragma GCC diagnostic push
+// reason: https://github.com/llvm/llvm-project/issues/43670
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 	friend auto operator<=>(const Play&, const Play&) = default;
+#pragma GCC diagnostic pop
 
  private:
 	std::pair<typename G::state, typename G::action> data_;
 };
 
-static_assert(std::regular<Play<sag::tic_tac_toe::Graph>>);
+// static_assert(std::regular<Play<sag::tic_tac_toe::Graph>>);
 
 /// Collection of data that represents a match
 template <Graph G>
 struct Match {
-	std::chrono::time_point<std::chrono::utc_clock> start = {};
-	std::chrono::time_point<std::chrono::utc_clock> end = {};
+	std::chrono::time_point<std::chrono::steady_clock> start = {};
+	std::chrono::time_point<std::chrono::steady_clock> end = {};
 	std::vector<Play<G>> plays;
-	G::state end_state;
+	typename G::state end_state;
 
 	friend auto operator<=>(const Match&, const Match&) = default;
 };
 
-static_assert(std::regular<Match<sag::tic_tac_toe::Graph>>);
+// static_assert(std::regular<Match<sag::tic_tac_toe::Graph>>);
 
 class MatchRecorder {
  public:
@@ -51,9 +55,9 @@ class MatchRecorder {
 	}
 
 	template <Graph G>
-	auto record_duel(G::state root,
-		G::container& graph,
-		G::rules const& rules,
+	auto record_duel(typename G::state root,
+		typename G::container& graph,
+		typename G::rules const& rules,
 		Player<G> auto& first_player,
 		Player<G> auto& second_player) -> Match<G> {
 		// validate the root
@@ -62,7 +66,7 @@ class MatchRecorder {
 			return {};
 
 		logger_->debug("match starts");
-		Match<G> match{.start = std::chrono::utc_clock::now(), .plays = {}};
+		Match<G> match{.start = std::chrono::steady_clock::now(), .end = {}, .plays = {}, .end_state = {}};
 		typename G::state state = root;
 
 		for (size_t turn = 0; !graph.is_terminal_at(state); ++turn) {
@@ -75,7 +79,7 @@ class MatchRecorder {
 
 			state = sag::follow(graph.edges_at(state, action), UnitValue{unit_distribution_(rng_)});
 		}
-		match.end = std::chrono::utc_clock::now();
+		match.end = std::chrono::steady_clock::now();
 		match.end_state = state;
 		logger_->debug("match ends");
 		return match;

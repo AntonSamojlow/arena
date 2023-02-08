@@ -134,7 +134,7 @@ concept VertexPrinter = Vertices<S, A> && requires(N const const_stringifier, S 
 	{ const_stringifier.to_string(state, action) } -> std::same_as<std::string>;
 };
 
-/// Collection of required types for a state action graph
+/// Collection of types for a specific state action graph
 template <typename G>
 concept Graph = 
 	sag::GraphContainer<typename G::container, typename G::state, typename G::action> &&
