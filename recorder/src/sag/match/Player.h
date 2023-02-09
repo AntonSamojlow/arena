@@ -28,10 +28,10 @@ class RandomPlayer {
 	std::string id;
 	std::string name;
 
-	auto play(typename G::state state, typename G::container& graph, typename G::rules const& /*unused*/) -> typename G::action {
+	auto play(typename G::state state, typename G::container& graph, typename G::rules const& /*unused*/) ->
+		typename G::action {
 		std::vector<typename G::action> const actions = graph.actions_at(state);
-		auto random_index =
-			static_cast<size_t>(std::floor(unit_distribution_(rng_) * static_cast<float>(actions.size())));
+		auto random_index = static_cast<size_t>(std::floor(unit_distribution_(rng_) * static_cast<float>(actions.size())));
 		return actions[random_index];
 	}
 
