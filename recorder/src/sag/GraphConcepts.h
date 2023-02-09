@@ -22,13 +22,13 @@ namespace sag {
 // --------------------------------------------------------------------------------------------------------------------
 
 template <typename T>
-concept Hashable = requires(T a) {
-	{ std::hash<T>{}(a) } -> std::convertible_to<std::size_t>;
+concept Hashable = requires(T type) {
+	{ std::hash<T>{}(type) } -> std::convertible_to<std::size_t>;
 };
 
 template <typename T>
-concept Equatable = requires(T a) {
-	{ std::equal_to<T>{}(a, a) } -> std::convertible_to<bool>;
+concept Equatable = requires(T type) {
+	{ std::equal_to<T>{}(type, type) } -> std::convertible_to<bool>;
 };
 
 /// Types satisfying this concept may be used as keys in std::unordered_map.
@@ -46,7 +46,7 @@ template <typename StateId, typename ActionId>
 /// The types used to identify states and actions of a state-action graph.
 /// REQUIREMENT:
 /// - a state id is globally unique for each state
-/// - an action id may not be unique for each action, 
+/// - an action id may not be unique for each action,
 /// it is only required to be unique among the actions of each individual state
 concept Vertices = Identifier<StateId> && Identifier<ActionId>;
 
@@ -136,7 +136,7 @@ concept VertexPrinter = Vertices<S, A> && requires(N const const_stringifier, S 
 
 /// Collection of types for a specific state action graph
 template <typename G>
-concept Graph = 
+concept Graph =
 	sag::GraphContainer<typename G::container, typename G::state, typename G::action> &&
 	sag::RulesEngine<typename G::rules, typename G::state, typename G::action> &&
 	sag::VertexPrinter<typename G::printer, typename G::state, typename G::action>;

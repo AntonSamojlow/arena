@@ -50,8 +50,8 @@ static_assert(std::regular<Match<sag::tic_tac_toe::Graph>>);
 class MatchRecorder {
  public:
 	MatchRecorder() {
-		std::random_device rd;
-		rng_ = std::mt19937(rd());
+		std::random_device rand;
+		rng_ = std::mt19937(rand());
 	}
 
 	template <Graph G>

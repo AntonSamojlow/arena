@@ -3,6 +3,7 @@
 #include <random>
 
 #include "sag/GraphConcepts.h"
+#include "sag/TicTacToe.h"
 
 namespace sag::match {
 
@@ -20,16 +21,16 @@ template <Graph G>
 class RandomPlayer {
  public:
 	RandomPlayer() {
-		std::random_device rd;
-		rng_ = std::mt19937(rd());
+		std::random_device rand;
+		rng_ = std::mt19937(rand());
 	}
 
 	std::string id;
 	std::string name;
 
-	auto play(typename G::state state, typename G::container& graph, typename G::rules const&) -> typename G::action {
+	auto play(typename G::state state, typename G::container& graph, typename G::rules const& /*unused*/) -> typename G::action {
 		std::vector<typename G::action> const actions = graph.actions_at(state);
-		size_t random_index =
+		auto random_index =
 			static_cast<size_t>(std::floor(unit_distribution_(rng_) * static_cast<float>(actions.size())));
 		return actions[random_index];
 	}
