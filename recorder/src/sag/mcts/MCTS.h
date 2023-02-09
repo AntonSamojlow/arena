@@ -6,6 +6,7 @@
 #include <random>
 
 #include "StatsContainer.h"
+#include "sag/ExampleGraph.h"
 #include "sag/GraphConcepts.h"
 #include "sag/GraphOperations.h"
 
@@ -21,13 +22,14 @@ struct Path {
 // --------------------------------------------------------------------------------------------------------------------
 
 /// compute stats for each action: average over its resulting state values
-template <typename S, typename A>
-std::vector<float> action_estimates_at(
-	S state, sag::GraphContainer<S, A> auto const& graph, StatsContainer<S> auto const& stats) {
+template <Graph G>
+auto action_estimates_at(
+	typename G::state state, typename G::container const& graph, StatsContainer<typename G::state> auto const& stats)
+	-> std::vector<float> {
 	std::vector<float> action_estimates;
-	for (A action : graph.actions_at(state)) {
+	for (typename G::action action : graph.actions_at(state)) {
 		float action_value = 0.0;
-		for (sag::ActionEdge<S> edge : graph.edges_at(state, action))
+		for (auto edge : graph.edges_at(state, action))
 			action_value += edge.weight().value() * stats.at(edge.state()).Q;
 		action_estimates.push_back(action_value);
 	}
@@ -38,44 +40,41 @@ std::vector<float> action_estimates_at(
 //			the core MCTS routine: selection - expansion - update
 // --------------------------------------------------------------------------------------------------------------------
 
-template <typename S, typename A>
-	requires sag::Vertices<S, A>
-auto mcts_run(S state,
-	StatsContainer<S> auto& stats,
-	sag::GraphContainer<S, A> auto& graph,
-	sag::RulesEngine<S, A> auto const& rules,
+template <Graph G>
+auto mcts_run(typename G::state state,
+	StatsContainer<typename G::state> auto& stats,
+	typename G::container& graph,
+	typename G::rules const& rules,
 	bool sample_actions_uniformly,
-	std::function<float(S, A)> upper_confidence_bound,
+	std::function<float(typename G::state, typename G::action)> upper_confidence_bound,
 	std::function<UnitValue(void)> random_source,
-	std::function<Score(S)> initial_value_estimate) -> Path<S> {
+	std::function<Score(typename G::state)> initial_value_estimate) -> Path<typename G::state> {
 	// ensure start state is listed
 	if (!stats.has(state))
 		stats.initialize(state, rules.score(state));
 	// run one standard mcts pass
-	Path<S> const path =
-		select<S, A>(state, stats, graph, sample_actions_uniformly, upper_confidence_bound, random_source);
-	expand<S, A>(path, stats, graph, rules, initial_value_estimate);
-	update<S>(path, stats);
+	auto const path = select<G>(state, stats, graph, sample_actions_uniformly, upper_confidence_bound, random_source);
+	expand<G>(path, stats, graph, rules, initial_value_estimate);
+	update<typename G::state>(path, stats);
 	return path;
 }
 
-template <typename S, typename A>
-	requires sag::Vertices<S, A>
-auto select(S state,
-	StatsContainer<S> auto& stats,
-	sag::GraphContainer<S, A> auto& graph,
+template <Graph G>
+auto select(typename G::state state,
+	StatsContainer<typename G::state> auto& stats,
+	typename G::container& graph,
 	bool sample_actions_uniformly,
-	std::function<float(S, A)> upper_confidence_bound,
-	std::function<UnitValue(void)> random_source) -> Path<S> {
-	Path<S> path{false, {state}};
+	std::function<float(typename G::state, typename G::action)> upper_confidence_bound,
+	std::function<UnitValue(void)> random_source) -> Path<typename G::action> {
+	Path<typename G::state> path{false, {state}};
 	while (!graph.is_terminal_at(state)) {
-		const std::vector<A> actions = graph.actions_at(state);
+		auto const actions = graph.actions_at(state);
 
 		// check upper_confidence_bound requirement
-		auto requirement_failed = [&](A action) {
+		auto requirement_failed = [&](typename G::action action) {
 			if (!graph.is_expanded_at(state, action))
 				return true;
-			return std::ranges::any_of(graph.edges_at(state, action), [&](ActionEdge<S> edge) {
+			return std::ranges::any_of(graph.edges_at(state, action), [&](ActionEdge<typename G::state> edge) {
 				return !stats.has(edge.state());
 			});
 		};
@@ -85,18 +84,19 @@ auto select(S state,
 		// cache upper_confidence_bound values to avoid concurrencey issues
 		// (another thread might update stats while this one executes std::min_element)
 		std::vector<double> ucb_values;
-		std::ranges::transform(actions, std::back_inserter(ucb_values), [&](A action) {
+		std::ranges::transform(actions, std::back_inserter(ucb_values), [&](auto action) {
 			return upper_confidence_bound(state, action);
 		});
 		size_t min_index = static_cast<size_t>(std::distance(ucb_values.begin(), std::ranges::min_element(ucb_values)));
 
 		if (sample_actions_uniformly) {
 			auto edges = graph.edges_at(state, actions[min_index]);
-			state = std::ranges::min_element(edges, [&](const ActionEdge<S>& left, const ActionEdge<S>& right) {
-				return stats.at(left.state()).N < stats.at(right.state()).N;
-			})->state();
+			state = std::ranges::min_element(
+				edges, [&](const ActionEdge<typename G::state>& left, const ActionEdge<typename G::state>& right) {
+					return stats.at(left.state()).N < stats.at(right.state()).N;
+				})->state();
 		} else {
-			state = sag::follow<S>(graph.edges_at(state, actions[min_index]), random_source());
+			state = sag::follow<typename G::state>(graph.edges_at(state, actions[min_index]), random_source());
 		}
 		path.values.push_back(state);
 	}
@@ -105,14 +105,13 @@ auto select(S state,
 	return path;
 }
 
-template <typename S, typename A>
-	requires sag::Vertices<S, A>
-void expand(Path<S> const& path,
-	StatsContainer<S> auto& stats,
-	sag::GraphContainer<S, A> auto& graph,
-	sag::RulesEngine<S, A> auto const& rules,
-	std::function<Score(S)> initial_value_estimate) {
-	S end_state = path.values.back();
+template <Graph G>
+void expand(Path<typename G::state> const& path,
+	StatsContainer<typename G::state> auto& stats,
+	typename G::container& graph,
+	typename G::rules const& rules,
+	std::function<Score(typename G::state)> initial_value_estimate) {
+	typename G::state end_state = path.values.back();
 
 	if (path.terminal) {
 		if (!stats.has(end_state))
@@ -121,7 +120,7 @@ void expand(Path<S> const& path,
 	}
 
 	// if path is not terminal, then the U-bound requirement failed
-	for (A action : graph.actions_at(end_state)) {
+	for (auto action : graph.actions_at(end_state)) {
 		if (!graph.is_expanded_at(end_state, action))
 			sag::expand(graph, rules, end_state, action);
 
@@ -150,14 +149,15 @@ auto update(Path<S> const& path, StatsContainer<S> auto& stats) -> void {
 //			standard ingredients: default upper confidence bound and random rollout
 // --------------------------------------------------------------------------------------------------------------------
 
-template <typename S, typename A>
-	requires sag::Vertices<S, A>
-[[nodiscard]] auto upper_confidence_bound(
-	S state, A action, sag::GraphContainer<S, A> auto& graph, StatsContainer<S> auto& stats, NonNegative explore_constant)
-	-> float {
+template <Graph G>
+[[nodiscard]] auto upper_confidence_bound(typename G::state state,
+	typename G::action action,
+	typename G::container& graph,
+	StatsContainer<typename G::state> auto& stats,
+	NonNegative explore_constant) -> float {
 	float value_estimate = 0.0;
 	int action_visits = 0;
-	for (ActionEdge egde : graph.edges_at(state, action)) {
+	for (auto egde : graph.edges_at(state, action)) {
 		value_estimate += (egde.weight().value() * stats.at(egde.state()).Q);
 		action_visits += stats.at(egde.state()).N;
 	}
@@ -166,18 +166,17 @@ template <typename S, typename A>
 				 explore_constant.value() * static_cast<float>(std::sqrt(stats.at(state).N / (1 + action_visits)));
 }
 
-template <typename S, typename A>
-	requires sag::Vertices<S, A>
-auto random_rollout(S state,
-	sag::GraphContainer<S, A> auto& graph,
-	sag::RulesEngine<S, A> auto const& rules,
+template <Graph G>
+auto random_rollout(typename G::state state,
+	typename G::container& graph,
+	typename G::rules const& rules,
 	std::function<UnitValue(void)> random_source) -> Score {
 	int rollout_length = 0;
 	while (!graph.is_terminal_at(state)) {
 		// pick a random action, expand and follow
-		std::vector<A> actions = graph.actions_at(state);
+		auto actions = graph.actions_at(state);
 		size_t index = static_cast<size_t>(std::floor(static_cast<float>(actions.size()) * random_source().value()));
-		A action = actions[index];
+		typename G::action action = actions[index];
 		if (!graph.is_expanded_at(state, action)) {
 			sag::expand(graph, rules, state, action);
 		}
@@ -192,8 +191,7 @@ auto random_rollout(S state,
 //			Base MCTS implementation
 // --------------------------------------------------------------------------------------------------------------------
 
-template <typename S, typename A>
-	requires sag::Vertices<S, A>
+template <Graph G>
 class BaseMCTS {
  public:
 	BaseMCTS() {
@@ -206,23 +204,24 @@ class BaseMCTS {
 		explore_constant_ = explore_constant;
 	}
 
-	auto descend(S state,
-		StatsContainer<S> auto& stats,
-		sag::GraphContainer<S, A> auto& graph,
-		sag::RulesEngine<S, A> auto const& rules) -> void {
+	auto descend(typename G::state state,
+		StatsContainer<typename G::state> auto& stats,
+		typename G::container& graph,
+		typename G::rules const& rules) -> void {
 		std::function<UnitValue(void)> random_source = [this]() -> UnitValue {
 			return UnitValue(std::move(unit_distribution_(rng_)));
 		};
 
-		std::function<float(S, A)> U_bound_lambda = [&](S s, A a) -> float {
-			return upper_confidence_bound<S, A>(s, a, graph, stats, explore_constant_);
+		std::function<float(typename G::state, typename G::action)> U_bound_lambda = [&](typename G::state s,
+																																									 typename G::action a) -> float {
+			return upper_confidence_bound<G>(s, a, graph, stats, explore_constant_);
 		};
 
-		std::function<Score(S)> initial_value_estimate = [&](S s) -> Score {
-			return random_rollout<S, A>(s, graph, rules, random_source);
+		std::function<Score(typename G::state)> initial_value_estimate = [&](typename G::state s) -> Score {
+			return random_rollout<G>(s, graph, rules, random_source);
 		};
 
-		mcts_run<S, A>(
+		mcts_run<G>(
 			state, stats, graph, rules, sample_actions_uniformly_, U_bound_lambda, random_source, initial_value_estimate);
 	}
 
@@ -233,6 +232,6 @@ class BaseMCTS {
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 };
 
-static_assert(std::semiregular<BaseMCTS<int, int>>);
+static_assert(std::semiregular<BaseMCTS<sag::example::Graph>>);
 
 }  // namespace sag::mcts
