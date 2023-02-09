@@ -127,8 +127,8 @@ TEST_CASE("BaseMCTS test (wide graph)", "[mcts]") {
 	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.1));
 	CHECK_THAT(result[1], !Catch::Matchers::WithinAbs(0.5, 0.05));
 
-	// run one more round to improve both estimates
-	for (size_t i = 0; i < 10'000; i++) {
+	// run some more rounds to improve both estimates
+	for (size_t i = 0; i < 20'000; i++) {
 		mcts_low_exploration.descend(root, stats, graph, rules);
 	}
 	result = sag::mcts::action_estimates_at<Graph>(root, graph, stats);
