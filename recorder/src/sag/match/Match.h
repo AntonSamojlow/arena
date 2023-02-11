@@ -12,15 +12,16 @@
 namespace sag::match {
 
 /// Wrapper around std::pair, representing a state and a correspnding play
-template <Graph G>
+template <typename S, typename A>
+	requires Vertices<S, A>
 class Play {
  public:
 	Play() = default;
-	Play(typename G::state const& state, typename G::action const& action) : data_{state, action} {}
-	Play(typename G::state&& state, typename G::action&& action) : data_{std::move(state), std::move(action)} {}
+	Play(S const& state, A const& action) : data_{state, action} {}
+	Play(S&& state, A&& action) : data_{std::move(state), std::move(action)} {}
 
-	[[nodiscard]] auto state() const -> typename G::state { return data_.first; }
-	[[nodiscard]] auto action() const -> typename G::action { return data_.second; }
+	[[nodiscard]] auto state() const -> S { return data_.first; }
+	[[nodiscard]] auto action() const -> A { return data_.second; }
 
 #pragma GCC diagnostic push
 // reason: https://github.com/llvm/llvm-project/issues/43670
@@ -29,23 +30,26 @@ class Play {
 #pragma GCC diagnostic pop
 
  private:
-	std::pair<typename G::state, typename G::action> data_;
+	std::pair<S, A> data_;
 };
 
-static_assert(std::regular<Play<sag::tic_tac_toe::Graph>>);
+static_assert(std::regular<Play<int, int>>);
+static_assert(std::regular<Play<int, float>>);
 
 /// Collection of data that represents a match
-template <Graph G>
+template <typename S, typename A>
+	requires Vertices<S, A>
 struct Match {
 	std::chrono::time_point<std::chrono::steady_clock> start = {};
 	std::chrono::time_point<std::chrono::steady_clock> end = {};
-	std::vector<Play<G>> plays;
-	typename G::state end_state;
+	std::vector<Play<S, A>> plays;
+	S end_state;
 
 	friend auto operator<=>(const Match&, const Match&) = default;
 };
 
-static_assert(std::regular<Match<sag::tic_tac_toe::Graph>>);
+static_assert(std::regular<Match<int, int>>);
+static_assert(std::regular<Match<int, float>>);
 
 class MatchRecorder {
  public:
@@ -59,14 +63,15 @@ class MatchRecorder {
 		typename G::container& graph,
 		typename G::rules const& rules,
 		Player<G> auto& first_player,
-		Player<G> auto& second_player) -> Match<G> {
+		Player<G> auto& second_player) -> Match<typename G::state, typename G::action> {
 		// validate the root
 		auto roots = graph.roots();
 		if (std::ranges::find(roots, root) == roots.end())
 			return {};
 
 		logger_->debug("match starts");
-		Match<G> match{.start = std::chrono::steady_clock::now(), .end = {}, .plays = {}, .end_state = {}};
+		Match<typename G::state, typename G::action> match{
+			.start = std::chrono::steady_clock::now(), .end = {}, .plays = {}, .end_state = {}};
 		typename G::state state = root;
 
 		for (size_t turn = 0; !graph.is_terminal_at(state); ++turn) {
@@ -94,7 +99,7 @@ class MatchRecorder {
 static_assert(std::semiregular<MatchRecorder>);
 
 template <Graph G>
-auto score(Match<G> const& record, typename G::rules const& rules) -> sag::Score {
+auto score(Match<typename G::state, typename G::action> const& record, typename G::rules const& rules) -> sag::Score {
 	if (record.plays.empty())
 		return Score{0};
 	return rules.score(record.plays.back());

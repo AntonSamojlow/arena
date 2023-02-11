@@ -7,7 +7,8 @@
       "version>=": "3.1.0"
     },
     "spdlog",
-    "fmt"
+    "fmt",
+    "tl-expected"
   ],
   "builtin-baseline": "6f7ffeb18f99796233b958aaaf14ec7bd4fb64b2"
 }
