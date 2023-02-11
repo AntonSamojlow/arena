@@ -200,7 +200,10 @@ class BaseMCTS {
 	}
 
 	BaseMCTS(bool sample_actions_uniformly, NonNegative explore_constant)
-			: BaseMCTS(), sample_actions_uniformly_(sample_actions_uniformly), explore_constant_(explore_constant) {}
+			: sample_actions_uniformly_(sample_actions_uniformly), explore_constant_(explore_constant) {
+		std::random_device rand;
+		rng_ = std::mt19937(rand());
+	}
 
 	auto descend(typename G::state state,
 		StatsContainer<typename G::state> auto& stats,
