@@ -65,7 +65,7 @@ auto select(typename G::state state,
 	typename G::container& graph,
 	bool sample_actions_uniformly,
 	std::function<float(typename G::state, typename G::action)> upper_confidence_bound,
-	std::function<UnitValue(void)> random_source) -> Path<typename G::action> {
+	std::function<UnitValue(void)>& random_source) -> Path<typename G::action> {
 	Path<typename G::state> path{false, {state}};
 	while (!graph.is_terminal_at(state)) {
 		auto const actions = graph.actions_at(state);
@@ -170,7 +170,7 @@ template <Graph G>
 auto random_rollout(typename G::state state,
 	typename G::container& graph,
 	typename G::rules const& rules,
-	std::function<UnitValue(void)> random_source) -> Score {
+	std::function<UnitValue(void)>& random_source) -> Score {
 	int rollout_length = 0;
 	while (!graph.is_terminal_at(state)) {
 		// pick a random action, expand and follow
@@ -184,7 +184,7 @@ auto random_rollout(typename G::state state,
 		rollout_length++;
 	}
 	float value = (1 - 2 * static_cast<float>(rollout_length % 2)) * rules.score(state).value();
-	return Score(std::move(value));
+	return Score(value);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -195,30 +195,28 @@ template <Graph G>
 class BaseMCTS {
  public:
 	BaseMCTS() {
-		std::random_device rd;
-		rng_ = std::mt19937(rd());
+		std::random_device rand;
+		rng_ = std::mt19937(rand());
 	}
 
-	BaseMCTS(bool sample_actions_uniformly, NonNegative explore_constant) : BaseMCTS() {
-		sample_actions_uniformly_ = sample_actions_uniformly;
-		explore_constant_ = explore_constant;
-	}
+	BaseMCTS(bool sample_actions_uniformly, NonNegative explore_constant)
+			: BaseMCTS(), sample_actions_uniformly_(sample_actions_uniformly), explore_constant_(explore_constant) {}
 
 	auto descend(typename G::state state,
 		StatsContainer<typename G::state> auto& stats,
 		typename G::container& graph,
 		typename G::rules const& rules) -> void {
 		std::function<UnitValue(void)> random_source = [this]() -> UnitValue {
-			return UnitValue(std::move(unit_distribution_(rng_)));
+			return UnitValue(unit_distribution_(rng_));
 		};
 
-		std::function<float(typename G::state, typename G::action)> U_bound_lambda = [&](typename G::state s,
-																																									 typename G::action a) -> float {
-			return upper_confidence_bound<G>(s, a, graph, stats, explore_constant_);
+		std::function<float(typename G::state, typename G::action)> U_bound_lambda = [&](typename G::state target_state,
+																																									 typename G::action action) -> float {
+			return upper_confidence_bound<G>(target_state, action, graph, stats, explore_constant_);
 		};
 
-		std::function<Score(typename G::state)> initial_value_estimate = [&](typename G::state s) -> Score {
-			return random_rollout<G>(s, graph, rules, random_source);
+		std::function<Score(typename G::state)> initial_value_estimate = [&](typename G::state start_state) -> Score {
+			return random_rollout<G>(start_state, graph, rules, random_source);
 		};
 
 		mcts_run<G>(
