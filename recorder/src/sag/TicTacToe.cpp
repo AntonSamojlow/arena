@@ -5,52 +5,52 @@
 #include <vector>
 
 namespace sag::tic_tac_toe {
-auto TicTacToeRules::list_actions(StateId state) -> std::vector<ActionId> {
+auto Rules::list_actions(Graph::state state) -> std::vector<Graph::action> {
 	Board const board = decode(state);
 
 	// skip if opponent has won
 	if (opponent_has_won(board))
 		return {};
 
-	std::vector<ActionId> actions;
+	std::vector<Graph::action> actions;
 
 	for (size_t i = 0; i < BoardSize; i++) {
 		if (board[i] == 0)
-			actions.emplace_back(static_cast<ActionId>(i));
+			actions.emplace_back(static_cast<Graph::action>(i));
 	}
 	return actions;
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-auto TicTacToeRules::list_edges(StateId state, ActionId action) -> std::vector<ActionEdge<StateId>> {
+auto Rules::list_edges(Graph::state state, Graph::action action) -> std::vector<ActionEdge<Graph::state>> {
 	Board board = decode(state);
 	++board[static_cast<size_t>(action)];
-	return {ActionEdge<StateId>(1.0, encode(invert(board)))};
+	return {ActionEdge<Graph::state>(1.0, encode(invert(board)))};
 }
 
-auto TicTacToeRules::score(StateId state) -> Score {
+auto Rules::score(Graph::state state) -> Score {
 	return opponent_has_won(decode(state)) ? Score(-1.0F) : Score(0.0F);
 }
 
-auto TicTacToeRules::encode(const Board& board) -> StateId {
-	StateId value = 0;
+auto Rules::encode(const Board& board) -> Graph::state {
+	Graph::state value = 0;
 
 	for (size_t i = 0; i < BoardSize; i++) {
-		value += static_cast<StateId>(board[i] * static_cast<StateId>(std::pow(3, i)));
+		value += static_cast<Graph::state>(board[i] * static_cast<Graph::state>(std::pow(3, i)));
 	}
 	return value;
 }
 
-auto TicTacToeRules::decode(StateId state_id) -> Board {
+auto Rules::decode(Graph::state state_id) -> Board {
 	Board board{};
 	for (size_t i = BoardSize; i > 0; i--) {
 		board[i - 1] = static_cast<unsigned char>(state_id / std::pow(3, i - 1));
-		state_id -= static_cast<StateId>(board[i - 1] * std::pow(3, i - 1));
+		state_id -= static_cast<Graph::state>(board[i - 1] * std::pow(3, i - 1));
 	}
 	return board;
 }
 
-auto TicTacToeRules::invert(Board board) -> Board {
+auto Rules::invert(Board board) -> Board {
 	for (size_t i = 0; i < BoardSize; i++) {
 		if (board[i] > 0)
 			board[i] = 1 + (board[i] % 2);
@@ -59,7 +59,7 @@ auto TicTacToeRules::invert(Board board) -> Board {
 }
 
 // NOLINTBEGIN(*-magic-numbers)
-auto TicTacToeRules::opponent_has_won(const Board& board) -> bool {
+auto Rules::opponent_has_won(const Board& board) -> bool {
 	if (board[0] == 2) {
 		if (2 == board[1] && 2 == board[2])
 			return true;
@@ -84,7 +84,7 @@ auto TicTacToeRules::opponent_has_won(const Board& board) -> bool {
 }
 // NOLINTEND(*-magic-numbers)
 
-auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::string {
+auto Rules::to_string(const Board& board, bool line_break) -> std::string {
 	int empty_spaces = 0;
 	for (auto const& entry : board) {
 		if (entry == 0)
@@ -93,7 +93,7 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 	bool const starting_player_turn = empty_spaces % 2 == 0;
 
 	// the display symbol is fixed
-	auto display_symbol = [&starting_player_turn](unsigned char board_value) {
+	auto display_symbol = [&starting_player_turn](unsigned short board_value) {
 		if (board_value == 1)
 			return starting_player_turn ? 'o' : 'x';
 		if (board_value == 2)
@@ -104,7 +104,7 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 	std::string result;
 	for (size_t i = 0; i < 3; i++) {
 		for (size_t j = 0; j < 3; j++) {
-			unsigned char const value = board[i * 3 + j];
+			unsigned short const value = board[i * 3 + j];
 			result.push_back('|');
 			result.push_back(display_symbol(value));
 		}
@@ -116,20 +116,20 @@ auto TicTacToeRules::to_string(const Board& board, bool line_break) -> std::stri
 	return result;
 }
 
-auto TicTacToeGraph::stringify(StateId state) -> std::string {
-	return TicTacToeRules::to_string(TicTacToeRules::decode(state), false);
+auto Container::to_string(Graph::state state) -> std::string {
+	return Rules::to_string(Rules::decode(state), false);
 }
 
-auto TicTacToeGraph::stringify(StateId state, ActionId action) -> std::string {
-	return fmt::format("action-{} at: {})", action, stringify(state));
+auto Container::to_string(Graph::state state, Graph::action action) -> std::string {
+	return fmt::format("action-{} at: {})", action, to_string(state));
 }
 
-auto TicTacToeGraph::stringify_formatted(StateId state) -> std::string {
-	return TicTacToeRules::to_string(TicTacToeRules::decode(state), true);
+auto Container::to_string_formatted(Graph::state state) -> std::string {
+	return Rules::to_string(Rules::decode(state), true);
 }
 
-auto TicTacToeGraph::stringify_formatted(StateId state, ActionId action) -> std::string {
-	return fmt::format("action-{} at::\n{})", action, stringify(state));
+auto Container::to_string_formatted(Graph::state state, Graph::action action) -> std::string {
+	return fmt::format("action-{} at::\n{})", action, to_string(state));
 }
 
 }  // namespace sag::tic_tac_toe

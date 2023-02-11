@@ -22,13 +22,13 @@ namespace sag {
 // --------------------------------------------------------------------------------------------------------------------
 
 template <typename T>
-concept Hashable = requires(T a) {
-	{ std::hash<T>{}(a) } -> std::convertible_to<std::size_t>;
+concept Hashable = requires(T type) {
+	{ std::hash<T>{}(type) } -> std::convertible_to<std::size_t>;
 };
 
 template <typename T>
-concept Equatable = requires(T a) {
-	{ std::equal_to<T>{}(a, a) } -> std::convertible_to<bool>;
+concept Equatable = requires(T type) {
+	{ std::equal_to<T>{}(type, type) } -> std::convertible_to<bool>;
 };
 
 /// Types satisfying this concept may be used as keys in std::unordered_map.
@@ -46,7 +46,7 @@ template <typename StateId, typename ActionId>
 /// The types used to identify states and actions of a state-action graph.
 /// REQUIREMENT:
 /// - a state id is globally unique for each state
-/// - an action id may not be unique for each action, 
+/// - an action id may not be unique for each action,
 /// it is only required to be unique among the actions of each individual state
 concept Vertices = Identifier<StateId> && Identifier<ActionId>;
 
@@ -77,7 +77,7 @@ static_assert(std::regular<ActionEdge<std::string>>);
 
 template <typename G, typename S, typename A>
 /// Container for a state-action graph.
-/// The base modifiying operation an *expansion* of a state-action which adds
+/// The base modifiying operation is an *expansion* of a state-action which adds
 /// all leaving (weighted) edges with their destination states, including their non-expanded actions.
 /// REQUIREMENTS:
 /// - 'is_expanded_at' is true iff the container knows the leaving edges of the state-action (this pair 'is expanded').
@@ -120,7 +120,7 @@ concept RulesEngine = Vertices<S, A> && requires(R const const_rules_engine, S s
 };
 
 template <typename G, typename S, typename A>
-/// A graph countainer that has a count of the states, actions and (action) edges
+/// A graph container that has a count of the states, actions and (action) edges
 /// it *currently* holds (not the total count of all possible entities).
 concept CountingGraphContainer = GraphContainer<G, S, A> && requires(G const const_graph, S state, A action) {
 	{ const_graph.action_count() } -> std::same_as<size_t>;
@@ -129,9 +129,16 @@ concept CountingGraphContainer = GraphContainer<G, S, A> && requires(G const con
 };
 
 template <typename N, typename S, typename A>
-concept VertexStringifier = Vertices<S, A> && requires(N const const_stringifier, S state, A action) {
-	{ const_stringifier.stringify(state) } -> std::same_as<std::string>;
-	{ const_stringifier.stringify(state, action) } -> std::same_as<std::string>;
+concept VertexPrinter = Vertices<S, A> && requires(N const const_stringifier, S state, A action) {
+	{ const_stringifier.to_string(state) } -> std::same_as<std::string>;
+	{ const_stringifier.to_string(state, action) } -> std::same_as<std::string>;
 };
+
+/// Collection of types for a specific state action graph
+template <typename G>
+concept Graph =
+	sag::GraphContainer<typename G::container, typename G::state, typename G::action> &&
+	sag::RulesEngine<typename G::rules, typename G::state, typename G::action> &&
+	sag::VertexPrinter<typename G::printer, typename G::state, typename G::action>;
 
 }  // namespace sag

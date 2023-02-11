@@ -5,7 +5,7 @@
 namespace sag::example {
 
 namespace {
-void validate_child(State child, std::vector<State> const& valid_states) {
+void validate_child(Graph::state child, std::vector<Graph::state> const& valid_states) {
 	{
 		if (std::find(valid_states.begin(), valid_states.end(), child) == valid_states.end())
 			throw std::invalid_argument("inconsistent initial structure (child node missing in keys)");
@@ -13,20 +13,20 @@ void validate_child(State child, std::vector<State> const& valid_states) {
 }
 }  // namespace
 
-ExampleRulesEngine::ExampleRulesEngine(const GraphStructure& graph_structure) : graph_structure_(graph_structure) {
+Rules::Rules(const GraphStructure& graph_structure) : graph_structure_(graph_structure) {
 	// collect all keys
 	// if we had ranges, then we could have used `auto keys = graph_structure | std::views::keys;` instead:
-	std::vector<State> keys;
+	std::vector<Graph::state> keys;
 	keys.reserve(graph_structure.size());
 	for (auto const& [state, actions] : graph_structure)
 		keys.push_back(state);
 
-	std::set<State> children;
+	std::set<Graph::state> children;
 	// find all children and validate they are defined as key
 	for (auto const& [state, actions] : graph_structure) {
 		for (const ActionEdges& action_edges : actions) {
-			for (const ActionEdge<State>& edge : action_edges) {
-				State const child = edge.state();
+			for (const ActionEdge<Graph::state>& edge : action_edges) {
+				Graph::state const child = edge.state();
 				validate_child(child, keys);
 				children.insert(child);
 			}
@@ -40,29 +40,29 @@ ExampleRulesEngine::ExampleRulesEngine(const GraphStructure& graph_structure) : 
 	}
 }
 
-auto ExampleRulesEngine::list_actions(State state) const -> std::vector<Action> {
+auto Rules::list_actions(Graph::state state) const -> std::vector<Graph::action> {
 	size_t const action_count = graph_structure_.at(state).size();
-	std::vector<Action> result;
+	std::vector<Graph::action> result;
 	result.reserve(action_count);
 	for (size_t i = 0; i < action_count; i++) {
-		result.push_back(static_cast<Action>(i));
+		result.push_back(static_cast<Graph::action>(i));
 	}
 	return result;
 }
 
-auto ExampleRulesEngine::list_edges(State state, Action action) const -> ActionEdges {
+auto Rules::list_edges(Graph::state state, Graph::action action) const -> ActionEdges {
 	return graph_structure_.at(state)[static_cast<size_t>(action)];
 }
 
-auto ExampleRulesEngine::score(State state) const -> Score {
+auto Rules::score(Graph::state state) const -> Score {
 	return graph_structure_.at(state).empty() ? Score(-1.0F) : Score(0.0F);
 }
 
-auto ExampleGraph::stringify(State state) -> std::string {
+auto Container::to_string(Graph::state state) -> std::string {
 	return std::to_string(state);
 }
 
-auto ExampleGraph::stringify(State state, Action action) -> std::string {
+auto Container::to_string(Graph::state state, Graph::action action) -> std::string {
 	return fmt::format("action-{} at state '{}'", action, state);
 }
 
