@@ -15,18 +15,18 @@ template <typename S, typename A>
 class MemoryStorage {
 	struct Entry {
 		Entry() = default;
-		Entry(Match<S, A> const& match_value, std::string const& json_data_value)
-				: match(match_value), json_data(json_data_value) {}
-		Entry(Match<S, A>&& match_value, std::string&& json_data_value)
-				: match{std::move(match_value)}, json_data{std::move(json_data_value)} {}
+		Entry(Match<S, A> const& match_value, std::string_view extra_data_view)
+				: match(match_value), extra_data(extra_data_view) {}
+		Entry(Match<S, A>&& match_value, std::string_view extra_data_view)
+				: match{std::move(match_value)}, extra_data{extra_data_view} {}
 
 		Match<S, A> match;
-		std::string json_data;
+		std::string extra_data;
 	};
 
  public:
-	auto add(Match<S, A> match, std::string json_data) -> tl::expected<void, Failure> {
-		data_.emplace_back(match, json_data);
+	auto add(Match<S, A> match, std::string_view extra_data) -> tl::expected<void, Failure> {
+		data_.emplace_back(match, extra_data);
 		return {};
 	}
 

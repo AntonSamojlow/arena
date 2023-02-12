@@ -14,8 +14,8 @@ namespace sag::match {
 
 template <typename S, typename State, typename Action>
 concept Storage = sag::Vertices<State, Action>
-	&& requires (S storage, Match<State, Action> match, std::string json_data){
-	{ storage.add(match, json_data) } -> std::same_as<tl::expected<void, Failure>>;
+	&& requires (S storage, Match<State, Action> match, std::string_view extra_data){
+	{ storage.add(match, extra_data) } -> std::same_as<tl::expected<void, Failure>>;
 };
 
 // clang-format on

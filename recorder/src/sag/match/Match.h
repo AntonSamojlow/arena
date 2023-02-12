@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <random>
+#include <string>
 #include <vector>
 
 #include "Player.h"
@@ -43,6 +44,7 @@ struct Match {
 	std::chrono::time_point<std::chrono::steady_clock> start = {};
 	std::chrono::time_point<std::chrono::steady_clock> end = {};
 	std::vector<Play<S, A>> plays;
+	std::vector<std::string> player_ids;
 	S end_state;
 
 	friend auto operator<=>(const Match&, const Match&) = default;
