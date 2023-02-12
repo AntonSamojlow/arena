@@ -15,8 +15,8 @@ TEST_CASE("Match recorder test", "[match]") {
 	Graph::container container;
 	Graph::rules const rules;
 
-	sag::match::RandomPlayer<Graph> player_one;
-	sag::match::RandomPlayer<Graph> player_two;
+	sag::match::RandomPlayer<Graph> player_one{};
+	sag::match::RandomPlayer<Graph> player_two{};
 
 	sag::match::MatchRecorder recorder{};
 

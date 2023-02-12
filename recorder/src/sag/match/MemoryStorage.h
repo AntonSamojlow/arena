@@ -1,10 +1,5 @@
 #pragma once
 
-#include <vcruntime.h>
-
-#include <tl/expected.hpp>
-#include <vector>
-
 #include "Storage.h"
 #include "sag/Failure.h"
 #include "sag/GraphConcepts.h"
@@ -13,15 +8,16 @@ namespace sag::match {
 template <typename S, typename A>
 	requires sag::Vertices<S, A>
 class MemoryStorage {
+	/// Simple type stored on the heap (within a vector)
 	struct Entry {
+		Match<S, A> match;
+		std::string extra_data;
+
 		Entry() = default;
 		Entry(Match<S, A> const& match_value, std::string_view extra_data_view)
 				: match(match_value), extra_data(extra_data_view) {}
 		Entry(Match<S, A>&& match_value, std::string_view extra_data_view)
 				: match{std::move(match_value)}, extra_data{extra_data_view} {}
-
-		Match<S, A> match;
-		std::string extra_data;
 	};
 
  public:

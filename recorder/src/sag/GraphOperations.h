@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "BoundedValue.h"
 #include "GraphConcepts.h"
 

@@ -2,7 +2,6 @@
 
 #include <fmt/format.h>
 
-#include <concepts>
 #include <random>
 
 #include "sag/ExampleGraph.h"
