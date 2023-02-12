@@ -42,7 +42,7 @@ class Rules {
 
 static_assert(RulesEngine<Rules, Graph::state, Graph::action>);
 
-/// An example graph container (default graph container backed by an example ruels engine)
+/// An example graph container (default graph container, backed by an example rules engine)
 class Container : public sag::DefaultGraphContainer_v1<Graph::state, Graph::action> {
 	using sag::DefaultGraphContainer_v1<Graph::state, Graph::action>::DefaultGraphContainer_v1;
 

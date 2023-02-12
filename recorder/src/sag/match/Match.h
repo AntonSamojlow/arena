@@ -77,7 +77,7 @@ class MatchRecorder {
 		for (size_t turn = 0; !graph.is_terminal_at(state); ++turn) {
 			logger_->debug("turn {}", turn);
 			typename G::action action =
-				turn % 2 == 0 ? first_player.play(state, graph, rules) : second_player.play(state, graph, rules);
+				turn % 2 == 0 ? first_player.choose_play(state, graph, rules) : second_player.choose_play(state, graph, rules);
 			match.plays.emplace_back(state, action);
 			if (!graph.is_expanded_at(state, action))
 				sag::expand(graph, rules, state, action);
