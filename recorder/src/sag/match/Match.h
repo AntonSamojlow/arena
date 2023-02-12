@@ -41,10 +41,10 @@ static_assert(std::regular<Play<int, float>>);
 template <typename S, typename A>
 	requires Vertices<S, A>
 struct Match {
+	std::vector<std::string> player_ids;
 	std::chrono::time_point<std::chrono::steady_clock> start = {};
 	std::chrono::time_point<std::chrono::steady_clock> end = {};
 	std::vector<Play<S, A>> plays;
-	std::vector<std::string> player_ids;
 	S end_state;
 
 	friend auto operator<=>(const Match&, const Match&) = default;
@@ -72,8 +72,11 @@ class MatchRecorder {
 			return {};
 
 		logger_->debug("match starts");
-		Match<typename G::state, typename G::action> match{
-			.start = std::chrono::steady_clock::now(), .end = {}, .plays = {}, .end_state = {}};
+		Match<typename G::state, typename G::action> match{.player_ids = {first_player.id(), second_player.id()},
+			.start = std::chrono::steady_clock::now(),
+			.end = {},
+			.plays = {},
+			.end_state = {}};
 		typename G::state state = root;
 
 		for (size_t turn = 0; !graph.is_terminal_at(state); ++turn) {

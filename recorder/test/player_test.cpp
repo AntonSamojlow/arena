@@ -9,15 +9,21 @@ using namespace sag::example;
 namespace {
 
 TEST_CASE("Random player test", "[player]") {
-	sag::match::RandomPlayer<Graph> player_one;
-	sag::match::RandomPlayer<Graph> player_two;
+	sag::match::RandomPlayer<Graph> player_one{};
+	sag::match::RandomPlayer<Graph> player_two{};
 
-	SECTION("comparison check") {
+	SECTION("check equality of default constructed") {
 		CHECK(player_one == player_two);
 		CHECK((player_one != player_two) == false);
 	}
 
-	SECTION("random play check") {
+	SECTION("check equality of copied value") {
+		sag::match::RandomPlayer<Graph> copy = player_one;
+		CHECK(player_one == copy);
+		CHECK((player_one != copy) == false);
+	}
+
+	SECTION("check random play") {
 		std::vector<ActionEdges> const TERMINAL = {};
 		GraphStructure const graph_structure = {
 			{1,
