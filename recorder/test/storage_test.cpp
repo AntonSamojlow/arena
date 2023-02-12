@@ -3,8 +3,8 @@
 
 #include "sag/TicTacToe.h"
 #include "sag/match/Match.h"
-#include "sag/match/MemoryStorage.h"
 #include "sag/match/Player.h"
+#include "sag/storage/MemoryMatchStorage.h"
 
 using namespace sag::tic_tac_toe;
 namespace {
@@ -20,7 +20,7 @@ TEST_CASE("MemoryStorage test", "[storage]") {
 
 	auto result = recorder.record_duel<Graph>(root, container, rules, player_one, player_two);
 
-	sag::match::MemoryStorage<Graph::state, Graph::action> storage;
+	sag::storage::MemoryMatchStorage<Graph::state, Graph::action> storage;
 	CHECK(storage.size() == 0);
 	storage.add(result, "{}");
 	CHECK(storage.size() == 1);

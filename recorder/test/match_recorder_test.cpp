@@ -4,8 +4,8 @@
 
 #include "sag/TicTacToe.h"
 #include "sag/match/Match.h"
-#include "sag/match/MemoryStorage.h"
 #include "sag/match/Player.h"
+#include "sag/storage/MemoryMatchStorage.h"
 
 using namespace sag::tic_tac_toe;
 using namespace std::chrono;
