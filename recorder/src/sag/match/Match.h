@@ -12,7 +12,6 @@ namespace sag::match {
 
 /// Wrapper around std::pair, representing a state and a correspnding play
 template <typename S, typename A>
-	requires Vertices<S, A>
 class Play {
  public:
 	Play() = default;
