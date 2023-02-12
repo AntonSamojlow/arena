@@ -8,6 +8,10 @@ namespace sag::match {
 template <typename S, typename A>
 	requires sag::Vertices<S, A>
 class PostgresStorage {
+	// function suggestions:
+	// initialize_with_config
+	// load_existing_config
+
  public:
 	auto add(Match<S, A> match, std::string_view extra_data) -> tl::expected<void, Failure> { return {}; }
 };
