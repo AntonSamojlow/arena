@@ -2,7 +2,8 @@
 
 # external dependencies
 find_package(spdlog REQUIRED)
-set(DEPENDENCIES spdlog::spdlog)
+find_package(unofficial-sqlite3 CONFIG REQUIRED)
+set(DEPENDENCIES spdlog::spdlog unofficial::sqlite3::sqlite3)
 
 # source files
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
