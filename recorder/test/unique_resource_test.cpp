@@ -14,13 +14,13 @@ TEST_CASE("UniqueResourceTest", "[unique_resource]") {
 
 	struct Deleter {
 		WasteBin* bin = nullptr;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-member-function"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-member-function"
 		auto operator()(TestClass test_class) const {
 			test_class.alive = false;
 			bin->increment();
 		}
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
 	};
 
 	WasteBin waste_bin;
