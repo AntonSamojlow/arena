@@ -14,19 +14,22 @@ TEST_CASE("UniqueResourceTest", "[unique_resource]") {
 
 	struct Deleter {
 		WasteBin* bin = nullptr;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-member-function"
 		auto operator()(TestClass test_class) const {
 			test_class.alive = false;
 			bin->increment();
 		}
+#pragma clang diagnostic pop
 	};
 
 	WasteBin waste_bin;
-	Deleter del{&waste_bin};
+	Deleter const del{&waste_bin};
 	{
 		tools::unique_resource<TestClass, Deleter> resource{TestClass(), del};
 		CHECK(resource.get().alive);
 
-		TestClass dead_class = {false};
+		TestClass const dead_class = {false};
 		CHECK(!dead_class.alive);
 
 		// verify a value reset triggers a delete

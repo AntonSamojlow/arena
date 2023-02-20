@@ -22,7 +22,7 @@ class unique_resource {
 	// constructors
 	unique_resource()
 		requires std::is_default_constructible_v<R> && std::is_default_constructible_v<D>
-			: resource_({}), deleter_({}), execute_on_reset_(false){};
+			: resource_({}), deleter_({}), execute_on_reset_(false){}
 
 	template <class RR, class DD>
 		requires std::is_constructible_v<R1, RR> && std::is_constructible_v<D, DD> &&
