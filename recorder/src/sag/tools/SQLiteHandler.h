@@ -25,9 +25,9 @@ class SQLiteHandler {
 	auto execute(std::string_view statement) -> bool;
 
  private:
-
 	unique_resource<sqlite3*, db_deleter> db_handle_ = {nullptr, db_deleter{}};
-	unique_resource<char*, msg_buffer_deleter> error_buffer_ = {nullptr, msg_buffer_deleter{}};;
+	unique_resource<char*, msg_buffer_deleter> error_buffer_ = {nullptr, msg_buffer_deleter{}};
+	;
 	std::shared_ptr<spdlog::logger> logger_ = spdlog::default_logger();
 };
 

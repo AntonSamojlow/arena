@@ -3,7 +3,6 @@
 
 #include "sag/tools/SQLiteHandler.h"
 
-
 TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 	std::string test_db_file = "test.db";
 
@@ -12,7 +11,9 @@ TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 
 	{
 		tools::SQLiteHandler handler{test_db_file};
-		std::string create_command = "create table tbl1(one text, two int);insert into tbl1 values('hello!',10);insert into tbl1 values('goodbye', 20);";
+		std::string create_command =
+			"create table tbl1(one text, two int);insert into tbl1 values('hello!',10);insert into tbl1 values('goodbye', "
+			"20);";
 		std::string read_command = "select * from tbl1;";
 		handler.execute(create_command);
 		handler.execute(read_command);
@@ -21,5 +22,4 @@ TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 
 	std::filesystem::remove(test_db_file);
 	CHECK(!std::filesystem::exists(test_db_file));
-
 }

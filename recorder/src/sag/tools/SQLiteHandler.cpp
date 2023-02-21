@@ -1,4 +1,5 @@
 #include "SQLiteHandler.h"
+
 #include <spdlog/logger.h>
 
 #include <array>
@@ -17,7 +18,7 @@ auto logging_callback(void* logger_ptr, int argc, char** argv, char** azColName)
 	logger->info("");
 	return 0;
 }
-}
+}  // namespace
 
 namespace tools {
 
@@ -38,6 +39,5 @@ auto SQLiteHandler::execute(std::string_view statement) -> bool {
 	}
 	return true;
 }
-
 
 }  // namespace tools
