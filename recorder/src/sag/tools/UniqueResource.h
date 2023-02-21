@@ -103,6 +103,7 @@ class unique_resource {
 			}
 		}
 		execute_on_reset_ = std::exchange(rhs.execute_on_reset_, false);
+		return *this;
 	}
 
 	// other member functions
