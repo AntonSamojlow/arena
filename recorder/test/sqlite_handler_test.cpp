@@ -17,6 +17,9 @@ TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 		std::string read_command = "select * from tbl1;";
 		handler.execute(create_command);
 		handler.execute(read_command);
+		auto result = handler.execute_2(read_command);
+		CHECK(result.size() == 3);
+		CHECK(result[0].size() == 2);
 	}
 	CHECK(std::filesystem::exists(test_db_file));
 

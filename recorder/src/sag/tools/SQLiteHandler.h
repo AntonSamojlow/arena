@@ -6,6 +6,7 @@
 #include <concepts>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 #include "UniqueResource.h"
 
@@ -23,6 +24,7 @@ class SQLiteHandler {
 	explicit SQLiteHandler(std::string_view file_path);
 
 	auto execute(std::string_view statement) -> bool;
+	auto execute_2(std::string_view statement) -> std::vector<std::vector<std::string>>;
 
  private:
 	unique_resource<sqlite3*, db_deleter> db_handle_ = {nullptr, db_deleter{}};
