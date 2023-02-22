@@ -11,6 +11,8 @@
 
 #include "tools/SQLiteHandler.h"
 
+
+// NOLINTBEGIN
 namespace {
 
 /// callback that both reads rows and logs
@@ -18,14 +20,14 @@ auto read_rows_callback(void* input_ptr, int argc, char** argv, char** azColName
 	tools::ExecuteResult& result = *static_cast<tools::ExecuteResult*>(input_ptr);
 
 	if (result.header.empty()) {
-		result.header.reserve(argc);
+		result.header.reserve(static_cast<size_t>(argc));
 		for (int i = 0; i < argc; i++) {
 			result.header.emplace_back(azColName[i]);
 		}
 	}
 
 	std::vector<std::string> row;
-	row.reserve(argc);
+	row.reserve(static_cast<size_t>(argc));
 	for (int i = 0; i < argc; i++) {
 		row.emplace_back(argv[i]);
 	}
@@ -77,5 +79,7 @@ auto SQLiteHandler::execute(std::string_view statement) -> ExecuteResult {
 	logger_->debug("... read {} rows of {} columns", result.rows.size(), result.header.size());
 	return result;
 }
+
+// NOLINTEND
 
 }  // namespace tools

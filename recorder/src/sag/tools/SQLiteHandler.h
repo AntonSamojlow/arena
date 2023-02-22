@@ -18,7 +18,7 @@ struct ExecuteResult {
 
 class SQLiteHandler {
 	struct db_deleter {
-		auto operator()(sqlite3* db_handle) -> void { sqlite3_close_v2(db_handle); };
+		auto operator()(sqlite3* db_handle) -> void { sqlite3_close_v2(db_handle); }
 	};
 
  public:

@@ -8,10 +8,10 @@
 #include "sag/tools/SQLiteHandler.h"
 
 TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
-	std::string test_db_file = "test.db";
-	std::string insert_command = "insert into tbl1 values('hello!',10);insert into tbl1 values('goodbye', 20);";
-	std::string create_command = "create table tbl1(one text, two int);" + insert_command;
-	std::string read_command = "select * from tbl1;";
+	std::string const test_db_file = "test.db";
+	std::string const insert_command = "insert into tbl1 values('hello!',10);insert into tbl1 values('goodbye', 20);";
+	std::string const create_command = "create table tbl1(one text, two int);" + insert_command;
+	std::string const read_command = "select * from tbl1;";
 
 	spdlog::default_logger()->set_level(spdlog::level::debug);
 
