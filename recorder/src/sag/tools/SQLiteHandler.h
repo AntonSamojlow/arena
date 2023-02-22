@@ -3,33 +3,33 @@
 #include <spdlog/spdlog.h>
 #include <sqlite3.h>
 
-#include <concepts>
 #include <memory>
 #include <string_view>
 #include <vector>
 
-#include "UniqueResource.h"
-
 namespace tools {
+
+struct ExecuteResult {
+	std::vector<std::string> header;
+	std::vector<std::vector<std::string>> rows;
+	int result_code;
+	std::string error;
+};
 
 class SQLiteHandler {
 	struct db_deleter {
-		auto operator()(sqlite3* db_handle) -> void { sqlite3_close(db_handle); };
-	};
-	struct msg_buffer_deleter {
-		auto operator()(char* zErrMsg) -> void { sqlite3_free(zErrMsg); };
+		auto operator()(sqlite3* db_handle) -> void { sqlite3_close_v2(db_handle); };
 	};
 
  public:
-	explicit SQLiteHandler(std::string_view file_path);
+	explicit SQLiteHandler(std::string_view file_path, bool open_read_only);
+	SQLiteHandler(std::string_view file_path, bool open_read_only, std::shared_ptr<spdlog::logger> logger);
 
-	auto execute(std::string_view statement) -> bool;
-	auto execute_2(std::string_view statement) -> std::vector<std::vector<std::string>>;
+	auto execute(std::string_view statement) -> ExecuteResult;
 
  private:
-	unique_resource<sqlite3*, db_deleter> db_handle_ = {nullptr, db_deleter{}};
-	unique_resource<char*, msg_buffer_deleter> error_buffer_ = {nullptr, msg_buffer_deleter{}};
-	;
+	auto initialize(std::string_view file_path, bool open_read_only) -> void;
+	std::unique_ptr<sqlite3, db_deleter> db_handle_;
 	std::shared_ptr<spdlog::logger> logger_ = spdlog::default_logger();
 };
 

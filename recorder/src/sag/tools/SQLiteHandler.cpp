@@ -1,33 +1,27 @@
 #include "SQLiteHandler.h"
 
+#include <fmt/core.h>
 #include <spdlog/logger.h>
+#include <sqlite3.h>
 
-#include <array>
 #include <exception>
+#include <memory>
 #include <string>
-#include <vector>
+#include <utility>
 
 #include "tools/SQLiteHandler.h"
 
 namespace {
-auto logging_callback(void* logger_ptr, int argc, char** argv, char** azColName) -> int {
-	auto* logger = static_cast<spdlog::logger*>(logger_ptr);
-	for (int i = 0; i < argc; i++) {
-		logger->info("{} = {}", azColName[i], argv[i] ? argv[i] : "NULL");
-	}
-	logger->info("");
-	return 0;
-}
 
-auto read_rows_callback(void* vector_ptr, int argc, char** argv, char** azColName) -> int {
-	auto result = static_cast<std::vector<std::vector<std::string>>*>(vector_ptr);
-	if (result->empty()) {
-		std::vector<std::string> header;
-		header.reserve(argc);
+/// callback that both reads rows and logs
+auto read_rows_callback(void* input_ptr, int argc, char** argv, char** azColName) -> int {
+	tools::ExecuteResult& result = *static_cast<tools::ExecuteResult*>(input_ptr);
+
+	if (result.header.empty()) {
+		result.header.reserve(argc);
 		for (int i = 0; i < argc; i++) {
-			header.emplace_back(azColName[i]);
+			result.header.emplace_back(azColName[i]);
 		}
-		result->push_back(header);
 	}
 
 	std::vector<std::string> row;
@@ -35,7 +29,7 @@ auto read_rows_callback(void* vector_ptr, int argc, char** argv, char** azColNam
 	for (int i = 0; i < argc; i++) {
 		row.emplace_back(argv[i]);
 	}
-	result->push_back(row);
+	result.rows.push_back(row);
 	return 0;
 }
 
@@ -43,31 +37,44 @@ auto read_rows_callback(void* vector_ptr, int argc, char** argv, char** azColNam
 
 namespace tools {
 
-SQLiteHandler::SQLiteHandler(std::string_view file_path) {
+SQLiteHandler::SQLiteHandler(std::string_view file_path, bool open_read_only) {
+	initialize(file_path, open_read_only);
+}
+
+SQLiteHandler::SQLiteHandler(std::string_view file_path, bool open_read_only, std::shared_ptr<spdlog::logger> logger)
+		: logger_(std::move(logger)) {
+	initialize(file_path, open_read_only);
+}
+
+auto SQLiteHandler::initialize(std::string_view file_path, bool open_read_only) -> void {
+	// initialize a new sqlite3 object (managed by sqlite)
 	sqlite3* db_instance = nullptr;
-	auto result = sqlite3_open_v2(file_path.data(), &db_instance, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
-	db_handle_ = {db_instance, db_deleter{}};
-	if (result != SQLITE_OK)
-		throw std::exception("Failed to open database");
-	logger_->info("opened database '{}'", file_path);
+	auto result = sqlite3_open_v2(file_path.data(),
+		&db_instance,
+		open_read_only ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+		nullptr);
+	db_handle_.reset(db_instance);
+
+	if (result != SQLITE_OK) {
+		std::string error_msg = fmt::format("Failed to open database: '{}'", sqlite3_errstr(result));
+		logger_->error(error_msg);
+		throw std::exception(error_msg.c_str());
+	}
+
+	logger_->info("opened ({}) database '{}'", file_path, open_read_only ? "read-only" : "read-write");
 }
 
-auto SQLiteHandler::execute(std::string_view statement) -> bool {
-	char* errmsg = &*error_buffer_;
-	if (SQLITE_OK != sqlite3_exec(db_handle_.get(), statement.data(), logging_callback, logger_.get(), &errmsg)) {
-		logger_->error(errmsg);
-		return false;
-	}
-	return true;
-}
+auto SQLiteHandler::execute(std::string_view statement) -> ExecuteResult {
+	logger_->debug("executing '{}' ...", statement);
 
-auto SQLiteHandler::execute_2(std::string_view statement) -> std::vector<std::vector<std::string>> {
-	std::vector<std::vector<std::string>> result;
-	char* errmsg = &*error_buffer_;
-	if (SQLITE_OK != sqlite3_exec(db_handle_.get(), statement.data(), read_rows_callback, &result, &errmsg)) {
-		logger_->error(errmsg);
-		return {};
+	ExecuteResult result;
+	result.result_code = sqlite3_exec(db_handle_.get(), statement.data(), read_rows_callback, &result, nullptr);
+	if (SQLITE_OK != result.result_code) {
+		result.error = fmt::format("{}: {}", sqlite3_errstr(result.result_code), sqlite3_errmsg(db_handle_.get()));
+		logger_->error(result.error);
 	}
+
+	logger_->debug("... read {} rows of {} columns", result.rows.size(), result.header.size());
 	return result;
 }
 
