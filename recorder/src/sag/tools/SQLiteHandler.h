@@ -18,14 +18,14 @@ struct ExecuteResult {
 
 class SQLiteHandler {
 	struct db_deleter {
-		auto operator()(sqlite3* db_handle) -> void { sqlite3_close_v2(db_handle); }
+		auto operator()(sqlite3* db_handle) const -> void { sqlite3_close_v2(db_handle); }
 	};
 
  public:
 	explicit SQLiteHandler(std::string_view file_path, bool open_read_only);
 	SQLiteHandler(std::string_view file_path, bool open_read_only, std::shared_ptr<spdlog::logger> logger);
 
-	auto execute(std::string_view statement) -> ExecuteResult;
+	auto execute(std::string_view statement) const -> ExecuteResult; //NOLINT(modernize-use-nodiscard)
 
  private:
 	auto initialize(std::string_view file_path, bool open_read_only) -> void;

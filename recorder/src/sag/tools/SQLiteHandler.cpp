@@ -64,7 +64,7 @@ auto SQLiteHandler::initialize(std::string_view file_path, bool open_read_only) 
 	logger_->info("opened ({}) database '{}'", file_path, open_read_only ? "read-only" : "read-write");
 }
 
-auto SQLiteHandler::execute(std::string_view statement) -> ExecuteResult {
+auto SQLiteHandler::execute(std::string_view statement) const -> ExecuteResult {
 	logger_->debug("executing '{}' ...", statement);
 
 	ExecuteResult result;
