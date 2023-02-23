@@ -22,25 +22,31 @@ TEST_CASE("Match recorder test", "[match]") {
 
 	auto root = container.roots()[0];
 	auto const time_pre_record = steady_clock::now();
-	auto result = recorder.record_duel<Graph>(root, container, rules, player_one, player_two);
+	auto match = recorder.record_duel<Graph>(root, container, rules, player_one, player_two);
 	auto const time_post_record = steady_clock::now();
 
-	CHECK(time_pre_record < result.start);
-	CHECK(result.start < result.end);
-	CHECK(result.end < time_post_record);
+	CHECK(time_pre_record < match.start);
+	CHECK(match.start < match.end);
+	CHECK(match.end < time_post_record);
 
-	CHECK(result.player_ids[0] == player_one.id());
-	CHECK(result.player_ids[1] == player_two.id());
+	CHECK(match.player_ids[0] == player_one.id());
+	CHECK(match.player_ids[1] == player_two.id());
 
-	for (auto play : result.plays)
+	for (auto play : match.plays)
 		spdlog::default_logger()->info("state {}", container.to_string(play.state()));
-	spdlog::default_logger()->info("endstate: {}", container.to_string(result.end_state));
-	CHECK(result.plays.size() > 4);
-	CHECK(result.plays.size() < 10);
+	spdlog::default_logger()->info("endstate: {}", container.to_string(match.end_state));
+	CHECK(match.plays.size() > 4);
+	CHECK(match.plays.size() < 10);
 
-	float const end_value = rules.score(result.end_state).value();
+	float const end_value = rules.score(match.end_state).value();
 	bool const is_a_draw = std::abs(end_value) < std::numeric_limits<float>::epsilon();
 	bool const is_a_loss = std::abs(end_value + 1.0F) < std::numeric_limits<float>::epsilon();
 	CHECK((is_a_draw || is_a_loss));
+
+
+	sag::storage::MemoryMatchStorage<typename Graph::state, typename Graph::action> storage{};
+	CHECK(storage.size() == 0);
+	storage.add(match, "some_extra_data");
+	CHECK(storage.size() == 1);
 }
 }  // namespace

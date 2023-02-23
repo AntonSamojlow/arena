@@ -5,7 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 
-#include "sag/tools/SQLiteHandler.h"
+#include "sag/storage/SQLiteConnection.h"
 
 TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 	std::string const test_db_file = "test.db";
@@ -18,44 +18,46 @@ TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 	std::filesystem::remove(test_db_file);
 	{
 		// open in read-write mode also creates the database
-		CHECK(!std::filesystem::exists(test_db_file));
-		tools::SQLiteHandler handler{test_db_file, false};
+		REQUIRE(!std::filesystem::exists(test_db_file));
+		tools::SQLiteConnection handler{test_db_file, false};
 
 		// create a table
 		auto create_result = handler.execute(create_command);
-		CHECK(create_result.result_code == SQLITE_OK);
-		CHECK(create_result.header.empty());
-		CHECK(create_result.rows.empty());
+		REQUIRE(create_result.has_value());
+		CHECK(create_result->header.empty());
+		CHECK(create_result->rows.empty());
 
 		// creating same table again must fail
 		auto second_create_result = handler.execute(create_command);
-		CHECK(second_create_result.result_code != SQLITE_OK);
+		REQUIRE(!second_create_result.has_value());
+		CHECK(second_create_result.error().code == SQLITE_ERROR);
 
 		// read from the table
 		auto read_result = handler.execute(read_command);
-		CHECK(read_result.result_code == SQLITE_OK);
-		CHECK(read_result.header.size() == 2);
-		CHECK(read_result.rows.size() == 2);
+		REQUIRE(create_result.has_value());
+		CHECK(read_result->header.size() == 2);
+		CHECK(read_result->rows.size() == 2);
 	}
 
 	{
 		// file exists: opening read-only succeeds
 		CHECK(std::filesystem::exists(test_db_file));
-		tools::SQLiteHandler handler{test_db_file, true};
+		tools::SQLiteConnection handler{test_db_file, true};
 
 		// read from the table
 		auto read_result = handler.execute(read_command);
-		CHECK(read_result.result_code == SQLITE_OK);
-		CHECK(read_result.header.size() == 2);
-		CHECK(read_result.rows.size() == 2);
+		REQUIRE(read_result.has_value());
+		CHECK(read_result->header.size() == 2);
+		CHECK(read_result->rows.size() == 2);
 		auto insert_result = handler.execute(insert_command);
-		CHECK(insert_result.result_code != SQLITE_OK);
+		REQUIRE(!insert_result.has_value());
+		CHECK(insert_result.error().code == SQLITE_READONLY);
 	}
 
-	CHECK(std::filesystem::exists(test_db_file));
+	REQUIRE(std::filesystem::exists(test_db_file));
 	std::filesystem::remove(test_db_file);
 
 	// file missing: opening read-only fails
 	CHECK(!std::filesystem::exists(test_db_file));
-	CHECK_THROWS(tools::SQLiteHandler{test_db_file, true});
+	CHECK_THROWS(tools::SQLiteConnection{test_db_file, true});
 }

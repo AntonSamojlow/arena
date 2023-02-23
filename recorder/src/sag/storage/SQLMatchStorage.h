@@ -8,8 +8,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "Failure.h"
-#include "match/Match.h"
+#include "sag/match/Match.h"
+#include "sag/Failure.h"
 
 namespace sag::storage {
 
@@ -31,10 +31,15 @@ struct NumericSqlValue {
 	[[nodiscard]] auto sql_insert_text() const -> std::string { return std::to_string(value); }
 };
 
-template <typename H>
-concept SQLHandler = requires(H const c_handler) {
-											 { c_handler.open() } -> std::same_as<tl::expected<void, Failure>>;
-										 };
+struct SQLResult {
+	std::vector<std::string> header;
+	std::vector<std::vector<std::string>> rows;
+};
+
+template <typename Connection>
+concept SQLConnection = requires(Connection const c_connection) {
+													{ c_connection.execute() } -> std::same_as<tl::expected<SQLResult, Failure>>;
+												};
 
 template <SqlInsertable S, SqlInsertable A>
 struct Match {
@@ -46,4 +51,13 @@ struct Match {
 	NumericSqlValue<float> end_score{0.0};
 };
 
-}  // namespace sag::storage
+
+template <typename S, typename A>
+	requires sag::Vertices<S, A>
+class SQLMatchStorage {
+
+ public:
+	auto add(match::Match<S, A> match, std::string_view extra_data) -> tl::expected<void, Failure>;
+}
+
+}// namespace sag::storage

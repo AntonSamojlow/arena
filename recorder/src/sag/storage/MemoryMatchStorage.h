@@ -5,6 +5,7 @@
 #include "sag/match/Storage.h"
 
 namespace sag::storage {
+
 template <typename S, typename A>
 	requires sag::Vertices<S, A>
 class MemoryMatchStorage {
