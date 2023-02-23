@@ -25,7 +25,7 @@ class SQLiteHandler {
 	explicit SQLiteHandler(std::string_view file_path, bool open_read_only);
 	SQLiteHandler(std::string_view file_path, bool open_read_only, std::shared_ptr<spdlog::logger> logger);
 
-	auto execute(std::string_view statement) const -> ExecuteResult; //NOLINT(modernize-use-nodiscard)
+	auto execute(std::string_view statement) const -> ExecuteResult;  // NOLINT(modernize-use-nodiscard)
 
  private:
 	auto initialize(std::string_view file_path, bool open_read_only) -> void;
