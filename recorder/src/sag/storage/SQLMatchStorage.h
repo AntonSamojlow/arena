@@ -1,15 +1,20 @@
 #pragma once
 
+#include <fmt/core.h>
+
 #include <chrono>
 #include <concepts>
 #include <cstdint>
+#include <memory>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <tl/expected.hpp>
 #include <type_traits>
 #include <utility>
 
-#include "sag/match/Match.h"
 #include "sag/Failure.h"
+#include "sag/match/Match.h"
 
 namespace sag::storage {
 
@@ -37,8 +42,8 @@ struct SQLResult {
 };
 
 template <typename Connection>
-concept SQLConnection = requires(Connection const c_connection) {
-													{ c_connection.execute() } -> std::same_as<tl::expected<SQLResult, Failure>>;
+concept SQLConnection = requires(Connection const c_connection, std::string_view statement) {
+													{ c_connection.execute(statement) } -> std::same_as<tl::expected<SQLResult, Failure>>;
 												};
 
 template <SqlInsertable S, SqlInsertable A>
@@ -52,12 +57,53 @@ struct Match {
 };
 
 
-template <typename S, typename A>
+template <SqlInsertable S, SqlInsertable A, SQLConnection C>
 	requires sag::Vertices<S, A>
 class SQLMatchStorage {
-
  public:
-	auto add(match::Match<S, A> match, std::string_view extra_data) -> tl::expected<void, Failure>;
-}
+	explicit SQLMatchStorage(std::unique_ptr<C>&& connection) : connection_(std::move(connection)) {
+		auto result = initialize_tables();
+		if (!result.has_value())
+			throw std::runtime_error(result.error().reason);
+	}
 
-}// namespace sag::storage
+	auto add(Match<S, A> match, std::string_view extra_data) const -> tl::expected<void, Failure> {
+		std::string command =
+			fmt::format("INSERT INTO matches (score, starttime, endtime, extra_data) VALUES ({}, {}, {}, {}) RETURNING id",
+				match.end_score.sql_insert_text(),
+				match.start_epoch.sql_insert_text(),
+				match.end_epoch.sql_insert_text(),
+				"'NO_EXTRA_DATA'");
+			connection_->execute() [TODOOOO]
+
+
+	}
+
+ private:
+	std::string state_db_type = "integer";
+	std::string action_db_type = "integer";
+	std::unique_ptr<C> connection_;
+	[[nodiscard]] auto initialize_tables() const -> tl::expected<void, Failure> {
+		std::string const create_matches =
+			"CREATE TABLE matches(id integer, score real, starttime integer, endtime integer, extra_data text,"
+			"PRIMARY KEY(id));";
+
+		std::string const create_records = fmt::format(
+			"CREATE TABLE records(match_id integer, turn_nr integer, state {}, action {},"
+			"PRIMARY KEY(match_id, turn_nr), FOREIGN KEY(match_id) REFERENCES matches(id));",
+			state_db_type,
+			action_db_type);
+
+		auto result = connection_->execute(create_matches);
+		if (!result.has_value())
+			return tl::unexpected<Failure>{result.error()};
+
+		result = connection_->execute(create_records);
+		if (!result.has_value())
+			return tl::unexpected<Failure>{result.error()};
+
+		return {};
+	}
+};
+
+}  // namespace sag::storage

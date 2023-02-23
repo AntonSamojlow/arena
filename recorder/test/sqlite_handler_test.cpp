@@ -4,7 +4,9 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
+#include <memory>
 
+#include "sag/storage/SQLMatchStorage.h"
 #include "sag/storage/SQLiteConnection.h"
 
 TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
@@ -60,4 +62,8 @@ TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 	// file missing: opening read-only fails
 	CHECK(!std::filesystem::exists(test_db_file));
 	CHECK_THROWS(tools::SQLiteConnection{test_db_file, true});
+
+	auto connection = std::make_unique<tools::SQLiteConnection>(test_db_file, false);
+	sag::storage::SQLMatchStorage<int, int, tools::SQLiteConnection> sql_storage {std::move(connection)};
+	std::filesystem::remove(test_db_file);
 }

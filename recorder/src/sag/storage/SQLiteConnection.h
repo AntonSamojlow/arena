@@ -33,4 +33,6 @@ class SQLiteConnection {
 	std::shared_ptr<spdlog::logger> logger_ = spdlog::default_logger();
 };
 
+static_assert(sag::storage::SQLConnection<SQLiteConnection>);
+
 }  // namespace tools
