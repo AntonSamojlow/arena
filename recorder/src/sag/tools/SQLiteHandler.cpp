@@ -58,7 +58,7 @@ auto SQLiteHandler::initialize(std::string_view file_path, bool open_read_only) 
 	if (result != SQLITE_OK) {
 		std::string const error_msg = fmt::format("Failed to open database: '{}'", sqlite3_errstr(result));
 		logger_->error(error_msg);
-		throw std::exception(error_msg.c_str());
+		throw std::runtime_error(error_msg);
 	}
 
 	logger_->info("opened ({}) database '{}'", file_path, open_read_only ? "read-only" : "read-write");
