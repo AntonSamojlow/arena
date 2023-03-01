@@ -43,7 +43,6 @@ TEST_CASE("Match recorder test", "[match]") {
 	bool const is_a_loss = std::abs(end_value + 1.0F) < std::numeric_limits<float>::epsilon();
 	CHECK((is_a_draw || is_a_loss));
 
-
 	sag::storage::MemoryMatchStorage<typename Graph::state, typename Graph::action> storage{};
 	CHECK(storage.size() == 0);
 	storage.add(match, "some_extra_data");

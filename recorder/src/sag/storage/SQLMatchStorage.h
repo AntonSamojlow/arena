@@ -56,7 +56,6 @@ struct Match {
 	NumericSqlValue<float> end_score{0.0};
 };
 
-
 template <SqlInsertable S, SqlInsertable A, SQLConnection C>
 	requires sag::Vertices<S, A>
 class SQLMatchStorage {
@@ -74,9 +73,7 @@ class SQLMatchStorage {
 				match.start_epoch.sql_insert_text(),
 				match.end_epoch.sql_insert_text(),
 				"'NO_EXTRA_DATA'");
-			connection_->execute() [TODOOOO]
-
-
+		connection_->execute();
 	}
 
  private:
