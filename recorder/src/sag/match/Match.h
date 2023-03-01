@@ -43,6 +43,7 @@ struct Match {
 	std::chrono::time_point<std::chrono::steady_clock> end = {};
 	std::vector<Play<S, A>> plays;
 	S end_state;
+	Score end_score;
 
 	friend auto operator<=>(const Match&, const Match&) = default;
 };
@@ -88,6 +89,7 @@ class MatchRecorder {
 		}
 		match.end = std::chrono::steady_clock::now();
 		match.end_state = state;
+		match.end_score = rules.score(state);
 		logger_->debug("match ends");
 		return match;
 	}
