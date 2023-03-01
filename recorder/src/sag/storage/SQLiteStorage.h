@@ -15,6 +15,7 @@
 
 #include "sag/Failure.h"
 #include "sag/match/Match.h"
+#include "sag/tools/SQLiteConnection.h"
 
 namespace sag::storage {
 
@@ -36,15 +37,6 @@ struct NumericSqlValue {
 	[[nodiscard]] auto sql_insert_text() const -> std::string { return std::to_string(value); }
 };
 
-struct SQLResult {
-	std::vector<std::string> header;
-	std::vector<std::vector<std::string>> rows;
-};
-
-template <typename Connection>
-concept SQLConnection = requires(Connection const c_connection, std::string_view statement) {
-													{ c_connection.execute(statement) } -> std::same_as<tl::expected<SQLResult, Failure>>;
-												};
 
 template <SqlInsertable S, SqlInsertable A>
 struct Match {
@@ -56,11 +48,11 @@ struct Match {
 	NumericSqlValue<float> end_score{0.0};
 };
 
-template <SqlInsertable S, SqlInsertable A, SQLConnection C>
+template <SqlInsertable S, SqlInsertable A>
 	requires sag::Vertices<S, A>
-class SQLMatchStorage {
+class SQLiteStorage {
  public:
-	explicit SQLMatchStorage(std::unique_ptr<C>&& connection) : connection_(std::move(connection)) {
+	explicit SQLiteStorage(std::unique_ptr<tools::SQLiteConnection>&& connection) : connection_(std::move(connection)) {
 		auto result = initialize_tables();
 		if (!result.has_value())
 			throw std::runtime_error(result.error().reason);
@@ -79,7 +71,7 @@ class SQLMatchStorage {
  private:
 	std::string state_db_type = "integer";
 	std::string action_db_type = "integer";
-	std::unique_ptr<C> connection_;
+	std::unique_ptr<tools::SQLiteConnection> connection_;
 	[[nodiscard]] auto initialize_tables() const -> tl::expected<void, Failure> {
 		std::string const create_matches =
 			"CREATE TABLE matches(id integer, score real, starttime integer, endtime integer, extra_data text,"

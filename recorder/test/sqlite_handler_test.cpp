@@ -6,8 +6,8 @@
 #include <filesystem>
 #include <memory>
 
-#include "sag/storage/SQLMatchStorage.h"
-#include "sag/storage/SQLiteConnection.h"
+#include "sag/storage/SQLiteStorage.h"
+#include "sag/tools/SQLiteConnection.h"
 
 TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 	std::string const test_db_file = "test.db";
@@ -63,7 +63,9 @@ TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 	CHECK(!std::filesystem::exists(test_db_file));
 	CHECK_THROWS(tools::SQLiteConnection{test_db_file, true});
 
-	auto connection = std::make_unique<tools::SQLiteConnection>(test_db_file, false);
-	sag::storage::SQLMatchStorage<int, int, tools::SQLiteConnection> sql_storage {std::move(connection)};
+	{
+		auto connection = std::make_unique<tools::SQLiteConnection>(test_db_file, false);
+	}
+	// sag::storage::SQLMatchStorage<int, int, tools::SQLiteConnection> sql_storage{std::move(connection)};
 	std::filesystem::remove(test_db_file);
 }

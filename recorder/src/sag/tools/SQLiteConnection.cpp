@@ -11,13 +11,12 @@
 #include <utility>
 
 #include "Failure.h"
-#include "storage/SQLMatchStorage.h"
 
 namespace {
 
 /// callback that both reads rows and logs
 auto read_rows_callback(void* input_ptr, int argc, char** argv, char** azColName) -> int {  // NOLINT (sqlite has C-API)
-	sag::storage::SQLResult& result = *static_cast<sag::storage::SQLResult*>(input_ptr);
+	tools::SQLResult& result = *static_cast<tools::SQLResult*>(input_ptr);
 
 	if (result.header.empty()) {
 		result.header.reserve(static_cast<size_t>(argc));
@@ -67,10 +66,10 @@ auto SQLiteConnection::initialize(std::string_view file_path, bool open_read_onl
 	logger_->info("opened ({}) database '{}'", file_path, open_read_only ? "read-only" : "read-write");
 }
 
-auto SQLiteConnection::execute(std::string_view statement) const -> tl::expected<sag::storage::SQLResult, Failure> {
+auto SQLiteConnection::execute(std::string_view statement) const -> tl::expected<SQLResult, Failure> {
 	logger_->debug("executing '{}' ...", statement);
 
-	sag::storage::SQLResult result;
+	SQLResult result;
 	int result_code = sqlite3_exec(connection_.get(), statement.data(), read_rows_callback, &result, nullptr);
 	if (SQLITE_OK == result_code) {
 		logger_->debug("... read {} rows of {} columns", result.rows.size(), result.header.size());
