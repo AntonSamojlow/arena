@@ -3,8 +3,8 @@
 #include <tl/expected.hpp>
 
 #include "Match.h"
-#include "sag/Failure.h"
 #include "sag/GraphConcepts.h"
+#include "tools/Failure.h"
 
 namespace sag::match {
 

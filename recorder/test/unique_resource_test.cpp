@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "sag/tools/UniqueResource.h"
+#include "tools/UniqueResource.h"
 
 TEST_CASE("UniqueResourceTest", "[unique_resource]") {
 	struct WasteBin {

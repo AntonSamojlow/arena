@@ -3,7 +3,10 @@
 # TODO: Implement other static analysis, like msvc (only for msvc) and cppcheck (requires tool installed)
 
 # Enable static analysis with clang-tidy
-macro(enable_clang_tidy)
+macro(enable_clang_tidy_globally)
+
+  message(TRACE "macro 'enable_clang_tidy_globally'")
+
   find_program(CLANGTIDY clang-tidy)
   if(NOT CLANGTIDY)
     message(FATAL_ERROR "clang-tidy requested but executable not found. Consider disabling static analysis.")
@@ -64,8 +67,8 @@ macro(enable_clang_tidy)
 endmacro()
 
 # Disable clang-tidy for target
-function(disable_clang_tidy_for target_name)
-  message(DEBUG "[${target_name}] - disable_clang_tidy_for")
+function(disable_clang_tidy target_name)
+  message(TRACE "[${target_name}] - function 'disable_clang_tidy'")
 
   find_program(CLANGTIDY clang-tidy)
   if(NOT CLANGTIDY)

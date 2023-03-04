@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "sag/storage/SQLiteStorage.h"
-#include "sag/tools/SQLiteConnection.h"
+#include "tools/SQLiteConnection.h"
 
 TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 	std::string const test_db_file = "test.db";

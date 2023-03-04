@@ -44,7 +44,7 @@ set(GCC_AND_CLANG_DEFAULT_WARNINGS
   -Wall # standard
   -Wextra # reasonable and standard
   -Wshadow # warn the user if a variable declaration shadows one from a parent context
-  -Wnon-virtual-dtor # warn the user if a class with virtual functions has a non-virtual destructor. 
+  -Wnon-virtual-dtor # warn the user if a class with virtual functions has a non-virtual destructor.
   -Wpedantic # warn if non-standard C++ is used
 
   -Wold-style-cast # warn for c-style casts
@@ -88,11 +88,10 @@ function(set_specific_warnings
   MSVC_WARNINGS
   CLANG_WARNINGS
   GCC_WARNINGS)
-
-  message(DEBUG "[${target_name}] - set_specific_warnings")
+  message(TRACE "[${target_name}] - function 'set_specific_warnings'")
 
   if("${MSVC_WARNINGS}" STREQUAL "")
-    message(SEND_ERROR "[${target_name}] No warnings specified for MSVC") 
+    message(SEND_ERROR "[${target_name}] No warnings specified for MSVC")
   endif()
 
   if("${CLANG_WARNINGS}" STREQUAL "")
@@ -104,7 +103,7 @@ function(set_specific_warnings
   endif()
 
   if(WARNINGS_AS_ERRORS)
-    message(DEBUG "[${target_name}] warnings are treated as errors")
+    message(STATUS "[${target_name}] warnings are treated as errors")
     list(APPEND CLANG_WARNINGS -Werror)
     list(APPEND GCC_WARNINGS -Werror)
     list(APPEND MSVC_WARNINGS /WX)
@@ -127,11 +126,11 @@ endfunction()
 
 function(set_default_warnings
   target_name)
-  message(DEBUG "[${target_name}] - set_default_warnings")
+  message(TRACE "[${target_name}] - function 'set_default_warnings'")
   set_specific_warnings(
     ${target_name}
-    "${WARNINGS_AS_ERRORS}" 
+    "${WARNINGS_AS_ERRORS}"
     "${MSVC_DEFAULT_WARNINGS}"
-    "${CLANG_DEFAULT_WARNINGS}" 
+    "${CLANG_DEFAULT_WARNINGS}"
     "${GCC_DEFAULT_WARNINGS}")
 endfunction()

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "sag/Failure.h"
 #include "sag/GraphConcepts.h"
 #include "sag/match/Storage.h"
+#include "tools/Failure.h"
 
 namespace sag::storage {
 

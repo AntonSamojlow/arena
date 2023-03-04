@@ -2,8 +2,8 @@ include_guard()
 
 # Enable coverage reporting for gcc/clang
 function(enable_coverage target_name)
-  message(DEBUG "[${target_name}] - enable_coverage")
-  
+  message(TRACE "[${target_name}] - function 'enable_coverage'")
+
   if(NOT ENABLE_COVERAGE)
     message(STATUS "[${target_name}] no coverage enabled")
   else()

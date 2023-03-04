@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "sag/BoundedValue.h"
+#include "tools/BoundedValue.h"
 
 TEST_CASE("UnitValue test", "[bounded_value]") {
 	sag::UnitValue const default_value(0.0F);

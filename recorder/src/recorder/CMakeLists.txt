@@ -1,26 +1,26 @@
-# cmake file for src/recorder
+# CMake project file
+set(TARGET_NAME recorder)
 
-# external dependencies
+# prepare external dependencies
 find_package(spdlog REQUIRED)
+find_package(fmt REQUIRED)
 find_package(unofficial-sqlite3 CONFIG REQUIRED)
-set(DEPENDENCIES spdlog::spdlog unofficial::sqlite3::sqlite3)
+set(DEPENDENCIES spdlog::spdlog fmt::fmt unofficial::sqlite3::sqlite3)
 
 # source files
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
 set(SOURCES ${SOURCES})
 
-# build target recorder (executable)
-add_executable(recorder ${SOURCES})
-target_link_libraries(recorder PRIVATE ${DEPENDENCIES})
+# build target
+add_executable(${TARGET_NAME} ${SOURCES})
+target_link_libraries(${TARGET_NAME} PUBLIC ${DEPENDENCIES})
+set_target_properties(${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
-set_default_warnings(recorder)
+# log include directories
+get_property(include_dirs TARGET ${TARGET_NAME} PROPERTY INCLUDE_DIRECTORIES)
+message(STATUS "[${TARGET_NAME}] include directories:'${include_dirs}'")
 
-enable_sanitizers(recorder
-  "${ENABLE_SANITIZER_ADDRESS}"
-  "${ENABLE_SANITIZER_LEAK}"
-  "${ENABLE_SANITIZER_UNDEFINED_BEHAVIOR}"
-  "${ENABLE_SANITIZER_THREAD}"
-  "${ENABLE_SANITIZER_MEMORY}")
-
-enable_coverage(recorder)
-
+# run desired cmake helper scripts
+set_default_warnings(${TARGET_NAME})
+enable_configured_sanitizers(${TARGET_NAME})
+enable_coverage(${TARGET_NAME})

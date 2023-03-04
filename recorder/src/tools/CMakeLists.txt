@@ -1,5 +1,5 @@
 # CMake project file
-set(TARGET_NAME sag)
+set(TARGET_NAME tools)
 
 # prepare external dependencies
 find_package(spdlog REQUIRED)

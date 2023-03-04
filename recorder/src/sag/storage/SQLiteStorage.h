@@ -15,9 +15,9 @@
 #include <type_traits>
 #include <utility>
 
-#include "sag/Failure.h"
 #include "sag/match/Match.h"
-#include "sag/tools/SQLiteConnection.h"
+#include "tools/Failure.h"
+#include "tools/SQLiteConnection.h"
 
 namespace sag::storage {
 
