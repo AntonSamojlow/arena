@@ -72,12 +72,13 @@ static_assert(SqlTypeConverter<TimeConverter<std::chrono::steady_clock>>);
 
 template <SqlTypeConverter SqlState, SqlTypeConverter SqlAction>
 // requires sag::Vertices<typename SqlState::original, typename SqlAction::original>
-class SQLiteStorage {
+class SQLiteMatchStorage {
 	using S = typename SqlState::original;
 	using A = typename SqlAction::original;
 
  public:
-	explicit SQLiteStorage(std::unique_ptr<tools::SQLiteConnection>&& connection) : connection_(std::move(connection)) {
+	explicit SQLiteMatchStorage(std::unique_ptr<tools::SQLiteConnection>&& connection)
+			: connection_(std::move(connection)) {
 		auto result = initialize_tables();
 		if (!result.has_value())
 			throw std::runtime_error(result.error().reason);
@@ -106,7 +107,7 @@ class SQLiteStorage {
 		// replace last comma by a semicolon
 		command[command.size() - 1] = ';';
 		result = connection_->execute(command);
-		if (result.has_value())
+		if (!result.has_value())
 			return tl::unexpected<Failure>(result.error());
 
 		return {};
