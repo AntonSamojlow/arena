@@ -2,7 +2,7 @@
 
 #include "tools/BoundedValue.h"
 
-TEST_CASE("UnitValue test", "[bounded_value]") {
+TEST_CASE("UnitValue test", "[tools]") {
 	sag::UnitValue const default_value(0.0F);
 	sag::UnitValue const zero(0.0F);
 	sag::UnitValue const half(0.5F);

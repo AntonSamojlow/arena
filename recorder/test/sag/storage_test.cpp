@@ -9,7 +9,7 @@
 using namespace sag::tic_tac_toe;
 namespace {
 
-TEST_CASE("MemoryStorage test", "[storage]") {
+TEST_CASE("MemoryStorage test", "[sag, storage]") {
 	Graph::container container;
 	Graph::rules const rules;
 

@@ -2,7 +2,7 @@
 
 #include "tools/UniqueResource.h"
 
-TEST_CASE("UniqueResourceTest", "[unique_resource]") {
+TEST_CASE("UniqueResourceTest", "[tools]") {
 	struct WasteBin {
 		int count = 0;
 		auto increment() -> void { count++; }

@@ -1,15 +1,12 @@
-#include <spdlog/common.h>
-#include <spdlog/spdlog.h>
 #include <sqlite3.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 #include <memory>
 
-#include "sag/storage/SQLiteStorage.h"
 #include "tools/SQLiteConnection.h"
 
-TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
+TEST_CASE("SQLiteHandlerTest", "[tools]") {
 	std::string const test_db_file = "test.db";
 	std::string const insert_command = "insert into tbl1 values('hello!',10);insert into tbl1 values('goodbye', 20);";
 	std::string const create_command = "create table tbl1(one text, two int);" + insert_command;
@@ -21,7 +18,7 @@ TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 	{
 		// open in read-write mode also creates the database
 		REQUIRE(!std::filesystem::exists(test_db_file));
-		tools::SQLiteConnection handler{test_db_file, false};
+		tools::SQLiteConnection const handler{test_db_file, false};
 
 		// create a table
 		auto create_result = handler.execute(create_command);
@@ -38,7 +35,12 @@ TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 		auto read_result = handler.execute(read_command);
 		REQUIRE(create_result.has_value());
 		CHECK(read_result->header.size() == 2);
-		CHECK(read_result->rows.size() == 2);
+		auto const& rows = read_result->rows;
+		REQUIRE(rows.size() == 2);
+		CHECK(rows[0][0] == "hello!");
+		CHECK(rows[0][1] == "10");
+		CHECK(rows[1][0] == "goodbye");
+		CHECK(rows[1][1] == "20");
 	}
 
 	{
@@ -64,6 +66,5 @@ TEST_CASE("SQLiteHandlerTest", "[sqlite_handler]") {
 	CHECK_THROWS(tools::SQLiteConnection{test_db_file, true});
 
 	{ auto connection = std::make_unique<tools::SQLiteConnection>(test_db_file, false); }
-	// sag::storage::SQLMatchStorage<int, int, tools::SQLiteConnection> sql_storage{std::move(connection)};
 	std::filesystem::remove(test_db_file);
 }

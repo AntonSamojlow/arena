@@ -77,7 +77,7 @@ auto create_small_graph_rules() -> Rules {
 
 }  // namespace
 
-TEST_CASE("BaseMCTS test (small graph)", "[mcts]") {
+TEST_CASE("BaseMCTS test (small graph)", "[sag, mcts]") {
 	Rules const rules = create_small_graph_rules();
 	Container graph(rules);
 	sag::mcts::Statistics<Graph::state> stats;
@@ -116,7 +116,7 @@ TEST_CASE("BaseMCTS test (small graph)", "[mcts]") {
 	}
 }
 
-TEST_CASE("BaseMCTS test (wide graph)", "[mcts]") {
+TEST_CASE("BaseMCTS test (wide graph)", "[sag, mcts]") {
 	// Check that base MCTS finds the correct action values at root
 	Rules const rules = create_wide_graph_rules();
 	Container graph(rules);

@@ -11,7 +11,7 @@ using namespace sag::tic_tac_toe;
 using namespace std::chrono;
 namespace {
 
-TEST_CASE("Match recorder test", "[match]") {
+TEST_CASE("Match recorder test", "[sag, match]") {
 	Graph::container container;
 	Graph::rules const rules;
 

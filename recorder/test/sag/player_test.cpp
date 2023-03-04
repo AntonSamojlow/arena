@@ -8,7 +8,7 @@
 using namespace sag::example;
 namespace {
 
-TEST_CASE("Random player test", "[player]") {
+TEST_CASE("Random player test", "[sag, match]") {
 	sag::match::RandomPlayer<Graph> player_one{};
 	sag::match::RandomPlayer<Graph> player_two{};
 

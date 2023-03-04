@@ -70,7 +70,7 @@ auto SQLiteConnection::execute(std::string_view statement) const -> tl::expected
 	logger_->debug("executing '{}' ...", statement);
 
 	SQLResult result;
-	int result_code = sqlite3_exec(connection_.get(), statement.data(), read_rows_callback, &result, nullptr);
+	int const result_code = sqlite3_exec(connection_.get(), statement.data(), read_rows_callback, &result, nullptr);
 	if (SQLITE_OK == result_code) {
 		logger_->debug("... read {} rows of {} columns", result.rows.size(), result.header.size());
 		return result;
