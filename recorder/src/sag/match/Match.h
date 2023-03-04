@@ -74,7 +74,8 @@ class MatchRecorder {
 			.start = std::chrono::steady_clock::now(),
 			.end = {},
 			.plays = {},
-			.end_state = {}};
+			.end_state = {},
+			.end_score = Score(0)};
 		typename G::state state = root;
 
 		for (size_t turn = 0; !graph.is_terminal_at(state); ++turn) {
