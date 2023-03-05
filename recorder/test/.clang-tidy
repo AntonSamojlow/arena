@@ -1,5 +1,7 @@
 ---
-Checks : "-*magic-numbers"
+Checks: " -*magic-numbers,
+          -cppcoreguidelines-owning-memory
+"
 InheritParentConfig : true
 CheckOptions:
   - key:    readability-function-cognitive-complexity.IgnoreMacros

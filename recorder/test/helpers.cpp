@@ -1,9 +1,9 @@
 #include "helpers.h"
 
-#include <stdio.h>
-
 #include <filesystem>
 #include <stdexcept>
+
+#define _CRT_SECURE_NO_WARNINGS
 
 namespace test {
 
@@ -17,8 +17,8 @@ auto unique_file_path(bool create_file) -> TempFilePath {
 	tempfile.reset(new_file);
 
 	if (create_file) {
-		FILE* file_handle;
-		if (0 != ::fopen_s(&file_handle, new_file.c_str(), "w+")) {
+		FILE* file_handle = std::fopen(new_file.c_str(), "w+");
+		if (nullptr != file_handle) {
 			throw std::runtime_error("failed to open (create) file: " + new_file);
 		}
 		if (0 != std::fclose(file_handle)) {
