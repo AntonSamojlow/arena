@@ -35,9 +35,10 @@ TEMPLATE_PRODUCT_TEST_CASE("SQLiteMatchStorage test",
 		(IntegerConverter<int>, FloatingPointConverter<double>),
 		(IntegerConverter<int>, TextConverter))) {
 	auto match = create_match<typename TestType::first_type::original, typename TestType::second_type::original>();
-	test::TempFilePath db_file = test::unique_file_path(false);
+	test::TempFilePath const db_file = test::unique_file_path(false);
 	auto connection = std::make_unique<tools::SQLiteConnection>(db_file.get(), false);
-	SQLiteMatchStorage<typename TestType::first_type, typename TestType::second_type> storage(std::move(connection));
+	SQLiteMatchStorage<typename TestType::first_type, typename TestType::second_type> const storage(
+		std::move(connection));
 	auto result = storage.add(match, "{\"extra_data\": true}");
 	CHECK(result.has_value());
 }

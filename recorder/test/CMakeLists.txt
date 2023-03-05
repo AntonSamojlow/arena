@@ -21,7 +21,7 @@ get_property(include_dirs TARGET ${TARGET_NAME} PROPERTY INCLUDE_DIRECTORIES)
 message(STATUS "[${TARGET_NAME}] include directories:'${include_dirs}'")
 
 # run desired cmake helper scripts
-set_default_warnings(${TARGET_NAME})
+set_test_warnings(${TARGET_NAME})
 enable_configured_sanitizers(${TARGET_NAME})
 enable_coverage(${TARGET_NAME})
 

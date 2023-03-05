@@ -16,7 +16,7 @@ TEST_CASE("SQLiteConnectionTest", "[tools]") {
 	spdlog::default_logger()->set_level(spdlog::level::debug);
 
 	{
-		test::TempFilePath file_path = test::unique_file_path(false);
+		test::TempFilePath const file_path = test::unique_file_path(false);
 		// open in read-write mode also creates the database
 		REQUIRE(!std::filesystem::exists(file_path.get()));
 		tools::SQLiteConnection const handler{file_path.get(), false};
@@ -46,9 +46,9 @@ TEST_CASE("SQLiteConnectionTest", "[tools]") {
 
 	{
 		// file exists: opening read-only succeeds
-		test::TempFilePath file_path = test::unique_file_path(true);
+		test::TempFilePath const file_path = test::unique_file_path(true);
 		CHECK(std::filesystem::exists(file_path.get()));
-		tools::SQLiteConnection handler{file_path.get(), true};
+		tools::SQLiteConnection const handler{file_path.get(), true};
 
 		// creating table fails
 		auto create_result = handler.execute(create_command);
@@ -58,7 +58,7 @@ TEST_CASE("SQLiteConnectionTest", "[tools]") {
 
 	{
 		// file missing: opening read-only fails
-		test::TempFilePath file_path = test::unique_file_path(false);
+		test::TempFilePath const file_path = test::unique_file_path(false);
 		CHECK(!std::filesystem::exists(file_path.get()));
 		CHECK_THROWS(tools::SQLiteConnection{file_path.get(), true});
 	}

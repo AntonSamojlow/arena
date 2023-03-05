@@ -124,6 +124,7 @@ function(set_specific_warnings
   target_compile_options(${target_name} PRIVATE ${ENABLED_WARNINGS})
 endfunction()
 
+# function to set the default warnings
 function(set_default_warnings
   target_name)
   message(TRACE "[${target_name}] - function 'set_default_warnings'")
@@ -133,4 +134,24 @@ function(set_default_warnings
     "${MSVC_DEFAULT_WARNINGS}"
     "${CLANG_DEFAULT_WARNINGS}"
     "${GCC_DEFAULT_WARNINGS}")
+endfunction()
+
+# function to set default warnings - excluding warnings that conflict with the test framework
+function(set_test_warnings
+  target_name)
+  message(TRACE "[${target_name}] - function 'set_test_warnings'")
+
+  set(CLANG_TEST_WARNINGS ${CLANG_DEFAULT_WARNINGS})
+  set(MSVC_TEST_WARNINGS ${MSVC_DEFAULT_WARNINGS})
+  set(GCC_TEST_WARNINGS ${GCC_DEFAULT_WARNINGS})
+  if(MSVC)
+    list(APPEND CLANG_TEST_WARNINGS -Wno-disabled-macro-expansion)
+  endif()
+
+  set_specific_warnings(
+    ${target_name}
+    "${WARNINGS_AS_ERRORS}"
+    "${MSVC_TEST_WARNINGS}"
+    "${CLANG_TEST_WARNINGS}"
+    "${GCC_TEST_WARNINGS}")
 endfunction()
