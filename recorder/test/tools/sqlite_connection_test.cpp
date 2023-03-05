@@ -1,3 +1,4 @@
+#include <spdlog/common.h>
 #include <sqlite3.h>
 
 #include <catch2/catch_test_macros.hpp>
@@ -13,13 +14,14 @@ TEST_CASE("SQLiteConnectionTest", "[tools]") {
 	std::string const create_command = "create table tbl1(one text, two int);" + insert_command;
 	std::string const read_command = "select * from tbl1;";
 
-	spdlog::default_logger()->set_level(spdlog::level::debug);
+	auto logger = spdlog::default_logger();
+	logger->set_level(spdlog::level::debug);
 
 	{
 		test::TempFilePath const file_path = test::unique_file_path(false);
 		// open in read-write mode also creates the database
 		REQUIRE(!std::filesystem::exists(file_path.get()));
-		tools::SQLiteConnection const handler{file_path.get(), false};
+		tools::SQLiteConnection const handler{file_path.get(), false, logger};
 
 		// create a table
 		auto create_result = handler.execute(create_command);
