@@ -1,9 +1,7 @@
 #pragma once
 
-#include <vector>
-
-#include "BoundedValue.h"
 #include "GraphConcepts.h"
+#include "tools/BoundedValue.h"
 
 namespace sag {
 

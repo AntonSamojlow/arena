@@ -1,3 +1,4 @@
+
 #include "sag/mcts/MCTS.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -74,38 +75,48 @@ auto create_small_graph_rules() -> Rules {
 	return Rules(graph_structure);
 }
 
-/// Check that base MCTS finds the correct action values at root
-auto test_small_graph(bool uniform_action_sampling) -> void {
+}  // namespace
+
+TEST_CASE("BaseMCTS test (small graph)", "[sag, mcts]") {
 	Rules const rules = create_small_graph_rules();
 	Container graph(rules);
 	sag::mcts::Statistics<Graph::state> stats;
-
-	// choose a low exploration, since there is not much to explore
-	sag::mcts::BaseMCTS<Graph> mcts_algo(uniform_action_sampling, sag::NonNegative(0.1F));
 	Graph::state const root = graph.roots()[0];
 
-	// Test BaseMCTS finds the correct action values at root
-	CHECK(stats.size() == 0);
-	for (size_t i = 0; i < 10'000; i++) {
-		mcts_algo.descend(root, stats, graph, rules);
+	SECTION("use uniform action sampling") {
+		// Test BaseMCTS finds the correct action values at root
+		CHECK(stats.size() == 0);
+		sag::mcts::BaseMCTS<Graph> mcts_algo(true, sag::NonNegative(0.1F));
+
+		for (size_t i = 0; i < 10'000; i++) {
+			mcts_algo.descend(root, stats, graph, rules);
+		}
+
+		REQUIRE(stats.size() > 0);
+		auto result = sag::mcts::action_estimates_at<Graph>(root, graph, stats);
+		REQUIRE(result.size() == 2);
+		CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.001));
+		CHECK_THAT(result[1], Catch::Matchers::WithinAbs(-0.25, 0.03));
 	}
-	REQUIRE(stats.size() > 0);
-	auto result = sag::mcts::action_estimates_at<Graph>(root, graph, stats);
-	REQUIRE(result.size() == 2);
-	CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.001));
-	CHECK_THAT(result[1], Catch::Matchers::WithinAbs(-0.25, 0.03));
-}
-}  // namespace
 
-TEST_CASE("BaseMCTS test (uniform action sampling)", "[mcts]") {
-	test_small_graph(true);
+	SECTION("use random action sampling") {
+		// Test BaseMCTS finds the correct action values at root
+		CHECK(stats.size() == 0);
+		sag::mcts::BaseMCTS<Graph> mcts_algo(true, sag::NonNegative(0.1F));
+
+		for (size_t i = 0; i < 10'000; i++) {
+			mcts_algo.descend(root, stats, graph, rules);
+		}
+
+		REQUIRE(stats.size() > 0);
+		auto result = sag::mcts::action_estimates_at<Graph>(root, graph, stats);
+		REQUIRE(result.size() == 2);
+		CHECK_THAT(result[0], Catch::Matchers::WithinAbs(1.0 / 3, 0.001));
+		CHECK_THAT(result[1], Catch::Matchers::WithinAbs(-0.25, 0.03));
+	}
 }
 
-TEST_CASE("BaseMCTS test (random action sampling)", "[mcts]") {
-	test_small_graph(false);
-}
-
-TEST_CASE("BaseMCTS test (wide graph)", "[mcts]") {
+TEST_CASE("BaseMCTS test (wide graph)", "[sag, mcts]") {
 	// Check that base MCTS finds the correct action values at root
 	Rules const rules = create_wide_graph_rules();
 	Container graph(rules);

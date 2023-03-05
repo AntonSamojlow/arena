@@ -4,7 +4,7 @@ project ("recorder"
   VERSION 0.0.1
   DESCRIPTION ""
   HOMEPAGE_URL "https://github.com/AntonSamojlow/arena/recorder"
-  LANGUAGES CXX C
+  LANGUAGES CXX
 )
 
 # set global c++ standard to c++20
@@ -23,16 +23,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/Sanitizers.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/StaticAnalysis.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/Warnings.cmake")
 
-# allows test and other libs to reference src folder directly 
+# allows test and other libs to reference src folder directly
 # (else all cross-project includes must start with 'src/' or '../')
 include_directories(src)
 
 if(ENABLE_CLANG_TIDY)
-  enable_clang_tidy()
+  enable_clang_tidy_globally()
 endif()
 
 # include sub-projects
 add_subdirectory (src/recorder)
+add_subdirectory (src/tools)
 add_subdirectory (src/sag)
 
 # set up testing

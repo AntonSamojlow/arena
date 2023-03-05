@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "BoundedValue.h"
+#include "tools/BoundedValue.h"
 
 // disable until clang-format 16 with 'RequiresExpressionIndentation : OuterScope' is available
 // clang-format off

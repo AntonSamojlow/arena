@@ -3,7 +3,7 @@
 #include "sag/ExampleGraph.h"
 #include "sag/TicTacToe.h"
 
-TEST_CASE("TicTacToe graph tests", "[graph, tictactoe]") {
+TEST_CASE("TicTacToe graph tests", "[sag]") {
 	sag::tic_tac_toe::Graph::container graph;
 	sag::tic_tac_toe::Graph::rules const rules;
 	test_base_operations<sag::tic_tac_toe::Graph::state, sag::tic_tac_toe::Graph::action>(graph, rules);
