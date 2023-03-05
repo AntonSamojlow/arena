@@ -17,7 +17,6 @@ TEST_CASE("Match recorder test", "[sag, match]") {
 
 	sag::match::RandomPlayer<Graph> player_one{};
 	sag::match::RandomPlayer<Graph> player_two{};
-
 	sag::match::MatchRecorder recorder{};
 
 	auto root = container.roots()[0];

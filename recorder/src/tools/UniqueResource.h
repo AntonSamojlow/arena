@@ -57,13 +57,13 @@ class unique_resource {
 	unique_resource(unique_resource&& rhs) noexcept(
 		std::is_nothrow_move_constructible_v<R1>&& std::is_nothrow_move_constructible_v<D>) {
 		// If initialization of resource throws an exception, rhs is left owning the resource and will free it in due time:
-		if constexpr (std::is_nothrow_move_constructible_v<R1>(rhs.resource_)) {
+		if constexpr (std::is_nothrow_move_constructible_v<R1>) {
 			resource_ = std::move(rhs.resource_);
 		} else {
 			resource_ = rhs.resource_;
 		}
 		try {
-			if constexpr (std::is_nothrow_move_constructible_v<D>(rhs.resource_)) {
+			if constexpr (std::is_nothrow_move_constructible_v<D>) {
 				deleter_ = std::move(rhs.deleter_);
 			} else {
 				deleter_ = rhs.deleter_;
