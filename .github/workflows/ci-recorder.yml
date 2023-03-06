@@ -33,10 +33,6 @@ jobs:
           - clang-debug
           - clang-release-tidy
 
-        # used to compose a 'vcpkg-triplet-like' label for the cache key (see below)
-        platform:
-          - x64
-
         include:
           - os: ubuntu-latest
             configure-preset: gcc-debug-coverage
@@ -56,12 +52,6 @@ jobs:
             configure-preset: x64-clang-cl-release-tidy
 
     env:
-      # Indicates the location of the vcpkg as a Git submodule of the project repository.
-      VCPKG_ROOT: ${{ github.workspace }}/recorder/vcpkg
-      # Tells vcpkg where binary packages are stored.
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/recorder/vcpkg/bincache
-      # optional:
-      DEBUG: false
       GCC_VERSION: 12
       CLANG_VERSION: 15
 
@@ -72,9 +62,13 @@ jobs:
           fetch-depth: 0 # vcpkg submodule uses ''baseline', which requires full git history
           ref: ${{ github.event.workflow_run.head_branch }}
 
-      - name: "Create directory '${{ env.VCPKG_DEFAULT_BINARY_CACHE }}'"
-        run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
-        shell: bash
+      - name: Cmake build and test
+        uses: "./.github/prepare-cmake-vcpkg"
+        with:
+          os: windows
+          platform: x64
+          vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg
+          vcpkg_root-wrapper: ${{ github.workspace }}/recorder/vcpkg/bincache
 
       - name: install gcc
         if: ${{ env.GCC_VERSION > 0 && contains(matrix.configure-preset, 'gcc') }}
@@ -103,28 +97,6 @@ jobs:
             if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
             sudo ln -s /usr/bin/${f}-${{ env.CLANG_VERSION }} /usr/bin/${f}
           done
-
-      # Setup the build machine with the most recent versions of CMake and Ninja. Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
-      - uses: lukka/get-cmake@latest
-
-      # Restore both vcpkg and its artifacts from the GitHub cache service.
-      - name: Restore vcpkg and its artifacts.
-        uses: actions/cache@v3
-        with:
-          # The first path is the location of vcpkg: it contains the vcpkg executable and data files, as long as the
-          # built package archives (aka binary cache) which are located by VCPKG_DEFAULT_BINARY_CACHE env var.
-          # The other paths starting with '!' are exclusions: they contain termporary files generated during the build of the installed packages.
-          path: |
-            ${{ env.VCPKG_ROOT }}
-            !${{ env.VCPKG_ROOT }}/buildtrees
-            !${{ env.VCPKG_ROOT }}/packages
-            !${{ env.VCPKG_ROOT }}/downloads
-            !${{ env.VCPKG_ROOT }}/installed
-          # The key is composed in a way that it gets properly invalidated: this must happen whenever vcpkg's Git commit id changes, or the list of packages changes. In this case a cache miss must happen and a new entry with a new key with be pushed to GitHub the cache service.
-          # The key includes: hash of the vcpkg.json file, the hash of the vcpkg Git commit id, and the used vcpkg's triplet. The vcpkg's commit id would suffice, but computing an hash out it does not harm.
-          # Note: given a key, the cache content is immutable. If a cache entry has been created improperly, in order the recreate the right content the key must be changed as well, and it must be brand new (i.e. not existing already).
-          key: |
-            ${{ hashFiles( 'vcpkg.json' ) }}-${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}-${{ matrix.os }}-${{ matrix.platform }}
 
       # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly.
       # As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
@@ -155,16 +127,6 @@ jobs:
         if: ${{ matrix.coverage }}
         run: |
           gcovr --sonarqube > coverage.xml
-
-      # - name: Coverage report debug info
-      #   if: ${{ matrix.coverage && env.DEBUG }}
-      #   run: |
-      #     Write-Host "listing .gcno and .gcda files:"
-      #     Get-ChildItem -Path .\ -Filter *.gcno -Recurse -File -Name
-      #     Get-ChildItem -Path .\ -Filter *.gcda -Recurse -File -Name
-      #     Write-Host "Content of 'coverage.xml':"
-      #     Get-Content coverage.xml
-
 
       - name: Run sonar-scanner
         if: ${{ matrix.sonar-wrapper != '' }}
