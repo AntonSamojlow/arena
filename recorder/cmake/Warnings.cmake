@@ -76,7 +76,7 @@ endif()
 set(GCC_DEFAULT_WARNINGS
   ${GCC_AND_CLANG_DEFAULT_WARNINGS}
   # DISABLED:
-  -Wno-error=null-dereference # too many false positives (flagging effectively dead branches)
+  -Wno-null-dereference # too many false positives (flagging effectively dead branches)
 
   -Wmisleading-indentation # warn if indentation implies blocks where blocks do not exist
   -Wduplicated-cond # warn if if / else chain has duplicated conditions
