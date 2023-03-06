@@ -70,6 +70,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0 # vcpkg submodule uses ''baseline', which requires full git history
+          ref: ${{ github.event.workflow_run.head_branch }}
 
       - name: "Create directory '${{ env.VCPKG_DEFAULT_BINARY_CACHE }}'"
         run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
@@ -144,34 +145,11 @@ jobs:
         if: ${{ matrix.sonar-wrapper != '' }}
         uses: SonarSource/sonarcloud-github-c-cpp@v1
 
-      - name: Cmake Configure ${{ matrix.configure-preset }}
-        working-directory: recorder
-        run: |
-          cmake --preset ${{ matrix.configure-preset }}
-
-      - name: Cmake Build
-        if: ${{ matrix.build-preset == '' }}
-        working-directory: recorder #required for matrix.sonar-wrapper values to work
-        run: |
-          ${{ matrix.sonar-wrapper }} cmake --build ./build/${{ matrix.configure-preset }}
-
-      - name: Cmake Build (preset ${{ matrix.build-preset }})
-        if: ${{ matrix.build-preset != '' }}
-        working-directory: recorder #required for matrix.sonar-wrapper values to work
-        run: |
-          ${{ matrix.sonar-wrapper }} cmake --build --preset ${{ matrix.build-preset }}
-
-      - name: Run CTest ${{ matrix.configure-preset }}
-        if: ${{ matrix.test-preset == '' }}
-        working-directory: recorder/build/${{ matrix.configure-preset }}
-        run: |
-          ctest --verbose
-
-      - name: Run CTest (preset ${{ matrix.test-preset }})
-        if: ${{ matrix.test-preset != '' }}
-        working-directory: recorder
-        run: |
-          ctest --preset ${{ matrix.test-preset }}
+      - name: Cmake build and test
+        uses: "./.github/cmake-build-test"
+        with:
+          preset: ${{ matrix.configure-preset }}
+          sonar-wrapper: ${{ matrix.sonar-wrapper }}
 
       - name: Collect coverage into one XML report
         if: ${{ matrix.coverage }}

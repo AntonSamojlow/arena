@@ -1,0 +1,30 @@
+name: cmake-build-test
+description: Runs cmake configure, build and test
+
+inputs:
+  preset:
+    description: cmake configure-preset to use
+    required: true
+  sonar-wrapper:
+    description: optional sonar-wrapper for publishing test results
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cmake Configure ${{ inputs.preset }}
+      working-directory: recorder
+      run: |
+        cmake --preset ${{ inputs.preset }}
+
+    - name: Cmake Build
+      if: ${{ matrix.build-preset == '' }}
+      working-directory: recorder #required for sonar-wrapper values to work correctly
+      run: |
+        ${{ inputs.sonar-wrapper }} cmake --build ./build/${{ inputs.preset }}
+
+    - name: CTest
+      working-directory: recorder/build/${{ inputs.preset }}
+      run: |
+        ctest --verbose
