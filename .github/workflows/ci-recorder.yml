@@ -62,7 +62,7 @@ jobs:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/recorder/vcpkg/bincache
       # optional:
       DEBUG: false
-      GCC_VERSION: 12.2
+      GCC_VERSION: 12
       CLANG_VERSION: 15
 
     steps:
