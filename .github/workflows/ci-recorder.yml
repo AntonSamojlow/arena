@@ -53,7 +53,7 @@ jobs:
             #sonar-args: >
             #  --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
           - os: windows-latest
-            configure-preset: x64-clang-cl-release
+            configure-preset: x64-clang-cl-release-tidy
 
     env:
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
