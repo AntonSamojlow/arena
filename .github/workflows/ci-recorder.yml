@@ -30,6 +30,7 @@ jobs:
 
         configure-preset:
           - gcc-release
+          - clang-debug
           - clang-release-tidy
 
         # used to compose a 'vcpkg-triplet-like' label for the cache key (see below)
@@ -45,12 +46,14 @@ jobs:
               --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
               --define sonar.coverageReportPaths=coverage.xml
           - os: windows-latest
-            configure-preset: msvc-release
+            configure-preset: x64-msvc-release
+          - os: windows-latest
+            configure-preset: x86-msvc-debug
             #sonar-wrapper: build-wrapper-win-x86-64 --out-dir ./build-wrapper-output
             #sonar-args: >
             #  --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
           - os: windows-latest
-            configure-preset: clang-cl-release
+            configure-preset: x64-clang-cl-release
 
     env:
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
@@ -59,8 +62,8 @@ jobs:
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/recorder/vcpkg/bincache
       # optional:
       DEBUG: false
-      INSTALL_GCC_VERSION: -1
-      INSTALL_CLANG_VERSION: -1
+      INSTALL_GCC_VERSION: 12.2
+      INSTALL_CLANG_VERSION: 15
 
     steps:
       - uses: actions/checkout@v3
@@ -175,14 +178,14 @@ jobs:
         run: |
           gcovr --sonarqube > coverage.xml
 
-      - name: Coverage report debug info
-        if: ${{ matrix.coverage && env.DEBUG }}
-        run: |
-          Write-Host "listing .gcno and .gcda files:"
-          Get-ChildItem -Path .\ -Filter *.gcno -Recurse -File -Name
-          Get-ChildItem -Path .\ -Filter *.gcda -Recurse -File -Name
-          Write-Host "Content of 'coverage.xml':"
-          Get-Content coverage.xml
+      # - name: Coverage report debug info
+      #   if: ${{ matrix.coverage && env.DEBUG }}
+      #   run: |
+      #     Write-Host "listing .gcno and .gcda files:"
+      #     Get-ChildItem -Path .\ -Filter *.gcno -Recurse -File -Name
+      #     Get-ChildItem -Path .\ -Filter *.gcda -Recurse -File -Name
+      #     Write-Host "Content of 'coverage.xml':"
+      #     Get-Content coverage.xml
 
 
       - name: Run sonar-scanner

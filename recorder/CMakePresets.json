@@ -24,7 +24,6 @@
 				"CMAKE_EXPORT_COMPILE_COMMANDS": true
 			}
 		},
-
 		{
 			"name": "windows",
 			"inherits": "base",
@@ -35,7 +34,6 @@
 				"rhs": "Windows"
 			}
 		},
-
 		{
 			"name": "unix-like",
 			"hidden": true,
@@ -51,16 +49,25 @@
 			"vendor": {
 				"microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
 					"sourceDir": "$env{HOME}/.vs/",
-					"copySourcesOptions": { "exclusionList": [ ".vs", ".git", ".cache", "out", "build", "predictor" ] }
+					"copySourcesOptions": {
+						"exclusionList": [
+							".vs",
+							".git",
+							".cache",
+							"out",
+							"build",
+							"predictor"
+						]
+					}
 				}
 			}
 		},
-
 		{
 			"name": "debug",
 			"hidden": true,
 			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Debug"
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_MESSAGE_LOG_LEVEL": "VERBOSE"
 			}
 		},
 		{
@@ -68,10 +75,10 @@
 			"hidden": true,
 			"cacheVariables": {
 				"CMAKE_BUILD_TYPE": "Release",
+				"CMAKE_MESSAGE_LOG_LEVEL": "STATUS",
 				"WARNINGS_AS_ERRORS": true
 			}
 		},
-
 		{
 			"name": "cmake-debug",
 			"hidden": true,
@@ -80,7 +87,6 @@
 				"find": true
 			}
 		},
-
 		{
 			"name": "asan",
 			"hidden": true,
@@ -89,7 +95,21 @@
 			}
 		},
 		{
-			"name": "clangtidy",
+			"name": "leaksan",
+			"hidden": true,
+			"cacheVariables": {
+				"ENABLE_SANITIZER_LEAK": true
+			}
+		},
+		{
+			"name": "memsan",
+			"hidden": true,
+			"cacheVariables": {
+				"ENABLE_SANITIZER_MEMORY": true
+			}
+		},
+		{
+			"name": "tidy",
 			"hidden": true,
 			"cacheVariables": {
 				"ENABLE_CLANG_TIDY": true
@@ -102,26 +122,17 @@
 				"ENABLE_COVERAGE": true
 			}
 		},
-
 		{
-			"name": "clang-cl",
-			"hidden": true,
-			"cacheVariables": {
-				"CMAKE_C_COMPILER": "clang-cl.exe",
-				"CMAKE_CXX_COMPILER": "clang-cl.exe"
-			},
-			"vendor": {
-				"microsoft.com/VisualStudioSettings/CMake/1.0": {
-					"intelliSenseMode": "windows-clang-x64"
-				}
-			}
-		},
-		{
-			"name": "msvc",
+			"name": "x64-msvc",
+			"inherits": "windows",
 			"hidden": true,
 			"cacheVariables": {
 				"CMAKE_C_COMPILER": "cl.exe",
 				"CMAKE_CXX_COMPILER": "cl.exe"
+			},
+			"architecture": {
+				"value": "x64",
+				"strategy": "external"
 			},
 			"vendor": {
 				"microsoft.com/VisualStudioSettings/CMake/1.0": {
@@ -130,7 +141,26 @@
 			}
 		},
 		{
+			"name": "x64-clang-cl",
+			"inherits": "windows",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "clang-cl.exe",
+				"CMAKE_CXX_COMPILER": "clang-cl.exe"
+			},
+			"architecture": {
+				"value": "x64",
+				"strategy": "external"
+			},
+			"vendor": {
+				"microsoft.com/VisualStudioSettings/CMake/1.0": {
+					"intelliSenseMode": "windows-clang-x64"
+				}
+			}
+		},
+		{
 			"name": "clang",
+			"inherits": "unix-like",
 			"hidden": true,
 			"cacheVariables": {
 				"CMAKE_C_COMPILER": "clang",
@@ -144,6 +174,7 @@
 		},
 		{
 			"name": "gcc",
+			"inherits": "unix-like",
 			"hidden": true,
 			"cacheVariables": {
 				"CMAKE_C_COMPILER": "gcc",
@@ -155,116 +186,112 @@
 				}
 			}
 		},
-
 		{
-			"name": "msvc-debug",
-			"displayName": "MSVC Debug",
-			"inherits": [ "windows", "msvc", "debug" ]
+			"name": "x64-msvc-debug",
+			"displayName": "x64 MSVC Debug",
+			"inherits": [
+				"x64-msvc",
+				"debug"
+			]
 		},
 		{
-			"name": "msvc-asan",
-			"displayName": "MSVC ASan",
-			"inherits": [ "windows", "msvc", "debug", "asan" ]
+			"name": "x64-msvc-release",
+			"displayName": "x64 MSVC Release",
+			"inherits": [
+				"x64-msvc",
+				"release"
+			]
 		},
 		{
-			"name": "msvc-release",
-			"displayName": "MSVC Release",
-			"inherits": [ "windows", "msvc", "release" ]
+			"name": "x64-clang-cl-debug",
+			"displayName": "x64 ClangCl Debug",
+			"inherits": [
+				"x64-clang-cl",
+				"debug"
+			]
 		},
 		{
-			"name": "clang-cl-debug",
-			"displayName": "ClangCl Debug",
-			"inherits": [ "windows", "clang-cl", "debug" ]
+			"name": "x64-clang-cl-release",
+			"displayName": "x64 ClangCl Release",
+			"inherits": [
+				"x64-clang-cl",
+				"release"
+			]
 		},
 		{
-			"name": "clang-cl-asan",
-			"displayName": "ClangCl ASan",
-			"inherits": [ "windows", "clang-cl", "release", "asan" ]
-		},
-
-
-		{
-			"name": "clang-cl-release",
-			"displayName": "ClangCl Release",
-			"inherits": [ "windows", "clang-cl", "release" ]
-		},
-		{
-			"name": "clang-cl-release-tidy",
-			"displayName": "ClangCl Release (with clang-tidy)",
-			"inherits": [ "windows", "clang-cl", "release", "clangtidy" ]
-		},
-		{
-			"name": "gcc-release",
-			"displayName": "Gcc Release",
-			"inherits": [ "unix-like", "gcc", "release" ]
-		},
-		{
-			"name": "gcc-debug",
-			"displayName": "Gcc Debug",
-			"inherits": [ "unix-like", "gcc", "debug" ]
-		},
-		{
-			"name": "gcc-debug-coverage",
-			"displayName": "Gcc Debug Coverage (with coverage)",
-			"inherits": [ "unix-like", "gcc", "debug", "coverage" ]
+			"name": "x64-clang-cl-release-tidy",
+			"displayName": "x64 ClangCl Release Tidy",
+			"inherits": [
+				"x64-clang-cl-release",
+				"tidy"
+			]
 		},
 		{
 			"name": "clang-debug",
 			"displayName": "Clang Debug",
-			"inherits": [ "unix-like", "clang", "debug" ]
+			"inherits": [
+				"clang",
+				"debug"
+			]
+		},
+		{
+			"name": "clang-debug-asan-leaksan",
+			"displayName": "Clang Debug A+LeakSan",
+			"inherits": [
+				"clang-debug",
+				"asan",
+				"leaksan"
+			]
+		},
+		{
+			"name": "clang-debug-memsan",
+			"displayName": "Clang Debug MemSan",
+			"inherits": [
+				"clang-debug",
+				"memsan"
+			]
 		},
 		{
 			"name": "clang-release",
 			"displayName": "Clang Release",
-			"inherits": [ "unix-like", "clang", "release" ]
+			"inherits": [
+				"clang",
+				"release"
+			]
 		},
 		{
 			"name": "clang-release-tidy",
-			"displayName": "Clang Release (with clang-tidy)",
-			"inherits": [ "unix-like", "clang", "release", "clangtidy" ]
+			"displayName": "Clang Release Tidy",
+			"inherits": [
+				"clang-release",
+				"tidy"
+			]
+		},
+		{
+			"name": "gcc-debug",
+			"displayName": "Gcc Debug",
+			"inherits": [
+				"gcc",
+				"debug"
+			]
+		},
+		{
+			"name": "gcc-debug-coverage",
+			"displayName": "Gcc Debug Coverage",
+			"inherits": [
+				"gcc-debug",
+				"coverage"
+			]
+		},
+		{
+			"name": "gcc-release",
+			"displayName": "Gcc Release",
+			"inherits": [
+				"gcc",
+				"release"
+			]
 		}
 	],
-
-	"buildPresets": [
-		{
-			"name": "msvc-debug-verbose",
-			"displayName": "verbose",
-			"configurePreset": "msvc-debug",
-			"verbose": true
-		},
-		{
-			"name": "clang-cl-debug-verbose",
-			"displayName": "verbose",
-			"configurePreset": "clang-cl-debug",
-			"verbose": true
-		},
-		{
-			"name": "clang-cl-release-tidy-verbose",
-			"displayName": "verbose",
-			"configurePreset": "clang-cl-release-tidy",
-			"verbose": true
-		}
-	],
-
-	"testPresets": [
-		{
-			"name": "debug-verbose",
-			"hidden": true,
-			"output": {
-				"outputOnFailure": true,
-				"debug": true,
-				"verbosity": "verbose"
-			}
-		},
-		{
-			"name": "msvc-debug-verbose",
-			"configurePreset": "msvc-debug",
-			"inherits": [ "debug-verbose" ]
-		},
-		{
-			"name": "clang-cl-debug-verbose",
-			"configurePreset": "clang-cl-debug",
-			"inherits": [ "debug-verbose" ]
-		}
-	]
+	"buildPresets": [],
+	"testPresets": []
 }
