@@ -133,10 +133,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
-        run: >
-          sonar-scanner
-          --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
-          --define sonar.coverageReportPaths=coverage.xml
+        run: sonar-scanner ${{ env.SONAR_ARGS }}
 
   formatting-check:
     name: Formatting Check
