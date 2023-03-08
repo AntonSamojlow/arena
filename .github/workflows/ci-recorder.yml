@@ -95,8 +95,8 @@ jobs:
         with:
           os: windows
           platform: x64
-          vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg
-          vcpkg_root-wrapper: ${{ github.workspace }}/recorder/vcpkg/bincache
+          vcpkg_root: ${{ github.workspace }}/recorder/vcpkg
+          vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg/bincache
 
       - name: Setup linux tools
         uses: "./.github/setup-linux-tools"
