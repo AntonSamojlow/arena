@@ -9,10 +9,10 @@ inputs:
     description: used as part of the cache key
     required: true
   vcpkg_default_cache:
-    description: cmake configure-preset to use
+    description: vcpkg default cache location
     required: true
   vcpkg_root:
-    description: optional sonar-wrapper for publishing test results
+    description: vcpkg root directory
     required: false
     default: ""
 

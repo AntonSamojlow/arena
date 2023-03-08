@@ -5,29 +5,32 @@ inputs:
   preset:
     description: cmake configure-preset to use
     required: true
-  sonar-wrapper:
-    description: optional sonar-wrapper for publishing test results
+  sonar:
+    description: whether to add the sonar build wrapper
     required: false
-    default: ""
+    default: "false"
 
 runs:
   using: "composite"
   steps:
     - name: Cmake Configure ${{ inputs.preset }}
-      shell: pwsh
       working-directory: recorder
-      run: |
-        cmake --preset ${{ inputs.preset }}
+      shell: pwsh
+      run: cmake --preset ${{ inputs.preset }}
 
     - name: Cmake Build
+      if: "!inputs.sonar "
+      working-directory: recorder/build/${{ inputs.preset }}
       shell: pwsh
-      if: ${{ matrix.build-preset == '' }}
+      run: cmake --build ./build/${{ inputs.preset }}
+
+    - name: Cmake Build (sonar wrapped)
+      shell: pwsh
       working-directory: recorder #required for sonar-wrapper values to work correctly
-      run: |
-        ${{ inputs.sonar-wrapper }} cmake --build ./build/${{ inputs.preset }}
+      if: inputs.sonar
+      run: ${{ env.SONAR_WRAPPER }}) cmake --build ./build/${{ inputs.preset }}
 
     - name: CTest
-      shell: pwsh
       working-directory: recorder/build/${{ inputs.preset }}
-      run: |
-        ctest --verbose
+      shell: pwsh
+      run: ctest --verbose
