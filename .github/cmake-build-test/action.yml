@@ -14,6 +14,7 @@ runs:
   using: "composite"
   steps:
     - run: echo "::group::Configure"
+      shell: pwsh
 
     - name: Cmake Configure ${{ inputs.preset }}
       working-directory: recorder
@@ -21,6 +22,7 @@ runs:
       run: cmake --preset ${{ inputs.preset }}
 
     - run: echo "::group::Build"
+      shell: pwsh
 
     - name: Cmake Build
       if: "!inputs.sonar"
@@ -35,6 +37,7 @@ runs:
       run: ${{ env.SONAR_WRAPPER }} cmake --build ./build/${{ inputs.preset }}
 
     - run: echo "::group::CTest"
+      shell: pwsh
 
     - name: CTest
       working-directory: recorder/build/${{ inputs.preset }}
