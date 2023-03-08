@@ -14,6 +14,10 @@ on:
     branches:
       - main
 
+env:
+  GCC_VERSION: 12
+  CLANG_VERSION: 15
+
 jobs:
   ci-windows:
     name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
@@ -75,10 +79,6 @@ jobs:
               --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
               --define sonar.coverageReportPaths=coverage.xml
 
-    env:
-      GCC_VERSION: 12
-      CLANG_VERSION: 15
-
     steps:
       - uses: actions/checkout@v3
         with:
@@ -124,7 +124,6 @@ jobs:
           --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
           --define sonar.coverageReportPaths=coverage.xml
 
-
   formatting-check:
     name: Formatting Check
     runs-on: ubuntu-latest
@@ -134,7 +133,7 @@ jobs:
       if: ${{ always() }}
       uses: jidicula/clang-format-action@v4.9.0
       with:
-        clang-format-version: '15'
+        clang-format-version: ${{ env.CLANG_VERSION}}
         check-path: 'recorder/src'
         # exclude: '(hello|world)' # Exclude file paths containing "hello" or "world"
         exclude-regex: ''
@@ -142,6 +141,6 @@ jobs:
       if: ${{ always() }}
       uses: jidicula/clang-format-action@v4.9.0
       with:
-        clang-format-version: '15'
+        clang-format-version: ${{ env.CLANG_VERSION}}
         check-path: 'recorder/test'
         exclude-regex: ''
