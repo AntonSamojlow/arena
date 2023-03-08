@@ -68,7 +68,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-
         cmake-preset:
           - gcc-release
           - gcc-debug-coverage
