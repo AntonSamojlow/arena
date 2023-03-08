@@ -15,6 +15,7 @@ on:
       - main
 
 env:
+  VS_VERSION: 2022
   CLANG_VERSION: 15
   GCC_VERSION: 12
 
@@ -47,8 +48,10 @@ jobs:
           vcpkg_root: ${{ github.workspace }}/recorder/vcpkg
           vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg/bincache
 
-      # Set VS Developer Command Prompt targeting x64
       - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          vsversion: ${{ env.VS_VERSION }}
+          arch: x64
 
       - name: Cmake build and test
         uses: "./.github/cmake-build-test"
