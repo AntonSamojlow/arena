@@ -14,13 +14,45 @@ on:
     branches:
       - main
 
-defaults:
-  run:
-    shell: pwsh
-
 jobs:
-  build-test-analyze:
-    name: ${{ matrix.os }} (${{ matrix.configure-preset }})
+  ci-windows:
+    name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+        cmake-preset:
+          - x64-msvc-release
+          - x64-msvc-debug
+          - x64-clang-cl-release-tidy
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0 # vcpkg submodule uses ''baseline', which requires full git history
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Prepare vcpkg, cmake and ninja
+        uses: "./.github/prepare-vcpkg-cmake"
+        with:
+          os: windows
+          platform: x64
+          vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg
+          vcpkg_root-wrapper: ${{ github.workspace }}/recorder/vcpkg/bincache
+
+      # Set VS Developer Command Prompt targeting x64
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Cmake build and test
+        uses: "./.github/cmake-build-test"
+        with:
+          preset: ${{ matrix.cmake-preset }}
+
+  ci-linux:
+    name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -28,28 +60,20 @@ jobs:
         os:
           - ubuntu-latest
 
-        configure-preset:
+        cmake-preset:
           - gcc-release
+          - gcc-debug-coverage
           - clang-debug
           - clang-release-tidy
 
         include:
           - os: ubuntu-latest
-            configure-preset: gcc-debug-coverage
+            cmake-preset: gcc-debug-coverage
             coverage: true
             sonar-wrapper: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
             sonar-args: >
               --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
               --define sonar.coverageReportPaths=coverage.xml
-          - os: windows-latest
-            configure-preset: x64-msvc-release
-          - os: windows-latest
-            configure-preset: x64-msvc-debug
-            #sonar-wrapper: build-wrapper-win-x86-64 --out-dir ./build-wrapper-output
-            #sonar-args: >
-            #  --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
-          - os: windows-latest
-            configure-preset: x64-clang-cl-release-tidy
 
     env:
       GCC_VERSION: 12
@@ -62,79 +86,43 @@ jobs:
           fetch-depth: 0 # vcpkg submodule uses ''baseline', which requires full git history
           ref: ${{ github.event.workflow_run.head_branch }}
 
-      - name: Cmake build and test
-        uses: "./.github/prepare-cmake-vcpkg"
+      - name: Prepare vcpkg, cmake and ninja
+        uses: "./.github/prepare-vcpkg-cmake"
         with:
           os: windows
           platform: x64
           vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg
           vcpkg_root-wrapper: ${{ github.workspace }}/recorder/vcpkg/bincache
 
-      - name: install gcc
-        if: ${{ env.GCC_VERSION > 0 && contains(matrix.configure-preset, 'gcc') }}
-        uses: egor-tensin/setup-gcc@v1
+      - name: Setup linux tools
+        uses: "./.github/setup-linux-tools"
         with:
-          version: ${{ env.GCC_VERSION }}
-          platform: x64
-
-      - name: install clang
-        if: ${{ env.CLANG_VERSION > 0 && contains(matrix.configure-preset, 'clang') }}
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: ${{ env.CLANG_VERSION }} # ignored on windows
-          platform: x64
-
-      - name: install clang-tidy
-        shell: bash
-        if: ${{ env.CLANG_VERSION > 0 && contains(matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-        run: sudo apt-get install -y clang-tidy-${{ env.CLANG_VERSION }}
-
-      - name: setup clang-tidy path
-        shell: bash
-        if: ${{ env.CLANG_VERSION > 0 && contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-        run: |
-          for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
-            if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
-            sudo ln -s /usr/bin/${f}-${{ env.CLANG_VERSION }} /usr/bin/${f}
-          done
-
-      # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly.
-      # As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
-      - uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Set up Python 3.8 for gcovr
-        uses: actions/setup-python@v4
-        if: ${{ matrix.coverage }}
-        with:
-          python-version: 3.8
-
-      - name: install gcovr 5.0
-        if: ${{ matrix.coverage }}
-        run: |
-          pip install gcovr==5.0
-
-      - name: Install sonar-scanner and build-wrapper
-        if: ${{ matrix.sonar-wrapper != '' }}
-        uses: SonarSource/sonarcloud-github-c-cpp@v1
+          clang-version: ${{ env.CLANG_VERSION }}
+          gcc-version: ${{ env.GCC_VERSION }}
+          gcov: ${{ matrix.coverage }}
+          sonar: ${{ matrix.sonar-wrapper != '' }}
 
       - name: Cmake build and test
         uses: "./.github/cmake-build-test"
         with:
-          preset: ${{ matrix.configure-preset }}
+          preset: ${{ matrix.cmake-preset }}
           sonar-wrapper: ${{ matrix.sonar-wrapper }}
 
       - name: Collect coverage into one XML report
         if: ${{ matrix.coverage }}
-        run: |
-          gcovr --sonarqube > coverage.xml
+        shell: pwsh
+        run: gcovr --sonarqube > coverage.xml
 
       - name: Run sonar-scanner
         if: ${{ matrix.sonar-wrapper != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner ${{ matrix.sonar-args }}
+        shell: pwsh
+        run: >
+          sonar-scanner
+          --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
+          --define sonar.coverageReportPaths=coverage.xml
 
 
   formatting-check:

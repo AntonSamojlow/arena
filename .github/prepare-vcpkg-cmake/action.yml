@@ -1,4 +1,4 @@
-name: cmake-build-test
+name: prepare-vcpkg-cmake
 description: Prepares the host for building with vcpkg and cmake (incl. ninja)
 
 inputs:
