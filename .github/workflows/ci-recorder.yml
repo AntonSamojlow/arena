@@ -101,8 +101,8 @@ jobs:
       - name: Setup linux tools
         uses: "./.github/setup-linux-tools"
         with:
-          clang: ${{ contains(matrix.preset, 'clang') }}
-          gcc: ${{ contains(matrix.preset, 'gcc') }}
+          clang: ${{ contains(matrix.cmake-preset, 'clang') }}
+          gcc: ${{ contains(matrix.cmake-preset, 'gcc') }}
           gcov: ${{ matrix.coverage }}
           sonar: ${{ matrix.sonar }}
 
