@@ -114,11 +114,13 @@ jobs:
 
       - name: Collect coverage into one XML report
         if: matrix.coverage
+        working-directory: recorder
         shell: pwsh
         run: gcovr --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
 
       - name: Coverage report debug info
         if: matrix.coverage
+        working-directory: recorder
         shell: pwsh
         run: |
           Write-Host "gcovr version: $(gcovr --version)"
