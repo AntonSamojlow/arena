@@ -74,10 +74,6 @@ jobs:
           gcov: ${{ matrix.coverage }}
           sonar: ${{ matrix.sonar }}
 
-      - name: Install sonar-scanner and build-wrapper
-        if: ${{ matrix.sonar-wrapper != '' }}
-        uses: SonarSource/sonarcloud-github-c-cpp@v1
-
       - name: Cmake Configure ${{ matrix.cmake-preset }}
         working-directory: recorder
         shell: pwsh
