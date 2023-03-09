@@ -28,8 +28,8 @@ jobs:
         --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
         --define sonar.coverageReportPaths=coverage.xml
       # TO BE REMOVED:
-      VCPKG_ROOT: ${{ github.workspace }}/recorder/vcpkg
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/recorder/vcpkg/bincache
+      INSTALL_GCC_VERSION: -1
+      INSTALL_CLANG_VERSION: -1
 
     runs-on: ${{ matrix.os }}
     strategy:
