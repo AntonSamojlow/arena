@@ -68,11 +68,11 @@ runs:
           Write-Error "g++ version does not match, found: $gcc_version"
         }
 
-    # - name: install gcovr
-    #   if: inputs.gcov == 'true'
-    #   shell: pwsh
-    #   run: sudo apt install gcovr
+    - name: install gcovr
+      if: inputs.gcov == 'true'
+      shell: pwsh
+      run: sudo apt install gcovr
 
-    # - name: Install sonar-scanner and build-wrapper
-    #   if: inputs.sonar == 'true'
-    #   uses: SonarSource/sonarcloud-github-c-cpp@v1
+    - name: Install sonar-scanner and build-wrapper
+      if: inputs.sonar == 'true'
+      uses: SonarSource/sonarcloud-github-c-cpp@v1
