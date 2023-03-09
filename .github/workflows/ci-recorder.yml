@@ -115,7 +115,7 @@ jobs:
       - name: Collect coverage into one XML report
         if: matrix.coverage
         shell: pwsh
-        run: gcovr --verbose --sonarqube --exclude-unreachable-branches > coverage.xml
+        run: gcovr --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
 
       - name: Coverage report debug info
         if: matrix.coverage
