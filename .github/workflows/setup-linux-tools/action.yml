@@ -1,0 +1,78 @@
+name: setup-linux-tools
+description: Setup of needed linux build tooling
+
+inputs:
+  clang:
+    description: whether to install clang compiler and tools
+    required: false
+  gcc:
+    description: version to be install gcc compiler
+    required: false
+  sonar:
+    description: whether to run sonar cloud analysis
+    required: false
+  gcov:
+    description: whether to collect coverage data via gcov
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: install gcc
+      if: inputs.gcc == 'true'
+      uses: egor-tensin/setup-gcc@v1
+      with:
+        version: ${{ env.GCC_VERSION }}
+        platform: x64
+
+    - name: install clang
+      if: inputs.clang == 'true'
+      uses: egor-tensin/setup-clang@v1
+      with:
+        version: ${{ env.CLANG_VERSION }} # ignored on windows
+        platform: x64
+
+    - name: install clang-tidy
+      shell: bash
+      if: inputs.clang == 'true'
+      run: sudo apt-get install -y clang-tidy-${{ env.CLANG_VERSION }}
+
+    - name: setup clang-tidy path
+      shell: bash
+      if: inputs.clang == 'true'
+      run: |
+        for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
+          if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
+          sudo ln -s /usr/bin/${f}-${{ env.CLANG_VERSION }} /usr/bin/${f}
+        done
+
+    - name: verify installed default clang version
+      shell: pwsh
+      if: inputs.clang == 'true'
+      run: |
+        $clang_version = clang++ --version
+        $clang_tidy_version = clang-tidy --version
+        if( -not ($clang_version -like  "*version ${{ env.CLANG_VERSION }}.*")){
+          Write-Error "clang++ version does not match, found: $clang_version"
+        }
+        if( -not ($clang_tidy_version -like  "*version ${{ env.CLANG_VERSION }}.*")){
+          Write-Error "clang-tidy version mismatch, found: $clang_tidy_version"
+        }
+
+    - name: verify installed default gcc version
+      shell: pwsh
+      if: inputs.gcc == 'true'
+      run: |
+        $gcc_version = g++ --version
+        if( -not ($gcc_version -like  "*${{ env.GCC_VERSION }}.*")){
+          Write-Error "g++ version does not match, found: $gcc_version"
+        }
+
+    - name: install gcovr
+      if: inputs.gcov == 'true'
+      shell: pwsh
+      run: sudo apt install gcovr
+
+    - name: Install sonar-scanner and build-wrapper
+      if: inputs.sonar == 'true'
+      uses: SonarSource/sonarcloud-github-c-cpp@v1
