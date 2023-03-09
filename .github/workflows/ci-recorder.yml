@@ -97,17 +97,10 @@ jobs:
             sudo ln -s /usr/bin/${f}-${{ env.DESIRED_CLANG_VERSION }} /usr/bin/${f}
           done
 
-      - name: Set up Python 3.8 for gcovr
-        uses: actions/setup-python@v4
-        if: ${{ matrix.coverage }}
-        with:
-          python-version: 3.8
-
-      - name: install gcovr 5.0
-        if: ${{ matrix.coverage }}
+      - name: install gcovr
+        if: matrix.coverage
         shell: pwsh
-        run: |
-          pip install gcovr==5.0
+        run: sudo apt install gcovr
 
       - name: Install sonar-scanner and build-wrapper
         if: ${{ matrix.sonar-wrapper != '' }}
