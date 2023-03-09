@@ -68,16 +68,10 @@ runs:
           Write-Error "g++ version does not match, found: $gcc_version"
         }
 
-    - name: Set up Python 3.8 for gcovr
-      uses: actions/setup-python@v4
-      if: inputs.gcov == 'true'
-      with:
-        python-version: 3.8
-
-    - name: install gcovr 5.0
+    - name: install gcovr
       if: inputs.gcov == 'true'
       shell: pwsh
-      run: pip install gcovr==5.0
+      run: sudo apt install gcovr
 
     - name: Install sonar-scanner and build-wrapper
       if: inputs.sonar == 'true'
