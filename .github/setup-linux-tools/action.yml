@@ -19,14 +19,14 @@ runs:
   using: "composite"
   steps:
     - name: install gcc
-      if: ${{ inputs.gcc }}
+      if: inputs.gcc == true
       uses: egor-tensin/setup-gcc@v1
       with:
         version: ${{ env.GCC_VERSION }}
         platform: x64
 
     - name: install clang
-      if: inputs.clang
+      if: inputs.clang == true
       uses: egor-tensin/setup-clang@v1
       with:
         version: ${{ env.CLANG_VERSION }} # ignored on windows
@@ -34,12 +34,12 @@ runs:
 
     - name: install clang-tidy
       shell: bash
-      if: inputs.clang
+      if: inputs.clang == true
       run: sudo apt-get install -y clang-tidy-${{ env.CLANG_VERSION }}
 
     - name: setup clang-tidy path
       shell: bash
-      if: inputs.clang
+      if: inputs.clang == true
       run: |
         for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
           if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
@@ -48,34 +48,34 @@ runs:
 
     - name: verify installed default clang version
       shell: pwsh
-      if: inputs.clang
+      if: inputs.clang == true
       run: |
         $clang_version = clang++ --version
         $clang_tidy_version = clang-tidy --version
-        if( -not ($clang_version -like  "*version ${{ env.GCC_VERSION }}.*")){
+        if( -not ($clang_version -like  "*version ${{ env.CLANG_VERSION }}.*")){
           Write-Error "clang++ version does not match, found: $clang_version"
         }
-        if( -not ($clang_tidy_version -like  "*version ${{ env.GCC_VERSION }}.*")){
+        if( -not ($clang_tidy_version -like  "*version ${{ env.CLANG_VERSION }}.*")){
           Write-Error "clang-tidy version mismatch, found: $clang_tidy_version"
         }
 
     - name: verify installed default gcc version
       shell: pwsh
-      if: inputs.gcc
+      if: inputs.gcc == true
       run: |
         $gcc_version = g++ --version
-        if( -not ($gcc_version -like  "*${{ env.CLANG_VERSION }}.*")){
+        if( -not ($gcc_version -like  "*${{ env.GCC_VERSION }}.*")){
           Write-Error "g++ version does not match, found: $gcc_version"
         }
 
     - name: Set up Python 3.8 for gcovr
       uses: actions/setup-python@v4
-      if: inputs.gcov
+      if: inputs.gcov == true
       with:
         python-version: 3.8
 
     - name: install gcovr 5.0
-      if: inputs.gcov
+      if: inputs.gcov == true
       shell: pwsh
       run: pip install gcovr==5.0
 
