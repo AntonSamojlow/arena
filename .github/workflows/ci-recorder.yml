@@ -14,9 +14,10 @@ on:
     branches:
       - main
 
-defaults:
-  run:
-    shell: pwsh
+env:
+  VS_VERSION: 2022
+  CLANG_VERSION: 15
+  GCC_VERSION: 12
 
 jobs:
   build-test-analyze:
@@ -122,6 +123,7 @@ jobs:
 
       - name: install gcovr 5.0
         if: ${{ matrix.coverage }}
+        shell: pwsh
         run: |
           pip install gcovr==5.0
 
@@ -131,39 +133,46 @@ jobs:
 
       - name: Cmake Configure ${{ matrix.configure-preset }}
         working-directory: recorder
+        shell: pwsh
         run: |
           cmake --preset ${{ matrix.configure-preset }}
 
       - name: Cmake Build
         if: ${{ matrix.build-preset == '' }}
         working-directory: recorder #required for matrix.sonar-wrapper values to work
+        shell: pwsh
         run: |
           ${{ matrix.sonar-wrapper }} cmake --build ./build/${{ matrix.configure-preset }}
 
       - name: Cmake Build (preset ${{ matrix.build-preset }})
         if: ${{ matrix.build-preset != '' }}
         working-directory: recorder #required for matrix.sonar-wrapper values to work
+        shell: pwsh
         run: |
           ${{ matrix.sonar-wrapper }} cmake --build --preset ${{ matrix.build-preset }}
 
       - name: Run CTest ${{ matrix.configure-preset }}
         if: ${{ matrix.test-preset == '' }}
         working-directory: recorder/build/${{ matrix.configure-preset }}
+        shell: pwsh
         run: |
           ctest --verbose
 
       - name: Run CTest (preset ${{ matrix.test-preset }})
         if: ${{ matrix.test-preset != '' }}
         working-directory: recorder
+        shell: pwsh
         run: |
           ctest --preset ${{ matrix.test-preset }}
 
       - name: Collect coverage into one XML report
         if: ${{ matrix.coverage }}
+        shell: pwsh
         run: gcovr --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
 
       - name: Coverage report debug info
         if: matrix.coverage
+        shell: pwsh
         run: |
           Write-Host "gcovr version: $(gcovr --version)"
           Write-Host "listing .gcno and .gcda files:"
@@ -177,5 +186,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: pwsh
         run: |
           sonar-scanner ${{ matrix.sonar-args }}
