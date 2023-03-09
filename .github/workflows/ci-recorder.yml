@@ -27,9 +27,6 @@ jobs:
       SONAR_ARGS: >
         --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
         --define sonar.coverageReportPaths=coverage.xml
-      # TO BE REMOVED:
-      VCPKG_ROOT: ${{ github.workspace }}/recorder/vcpkg
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/recorder/vcpkg/bincache
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -49,7 +46,10 @@ jobs:
           - os: ubuntu-latest
             cmake-preset: gcc-debug-coverage
             coverage: true
-            sonar: true
+            sonar-wrapper: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
+            sonar-args: >
+              --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
+              --define sonar.coverageReportPaths=coverage.xml
 
     steps:
       - uses: actions/checkout@v3
@@ -74,45 +74,16 @@ jobs:
           gcov: ${{ matrix.coverage }}
           sonar: ${{ matrix.sonar }}
 
-      - name: Cmake Configure ${{ matrix.cmake-preset }}
-        working-directory: recorder
-        shell: pwsh
-        run: |
-          cmake --preset ${{ matrix.cmake-preset }}
-
-      - name: Cmake Build
-        if: ${{ matrix.build-preset == '' }}
-        working-directory: recorder #required for matrix.sonar-wrapper values to work
-        shell: pwsh
-        run: |
-          ${{ matrix.sonar-wrapper }} cmake --build ./build/${{ matrix.cmake-preset }}
-
-      - name: Cmake Build (preset ${{ matrix.build-preset }})
-        if: ${{ matrix.build-preset != '' }}
-        working-directory: recorder #required for matrix.sonar-wrapper values to work
-        shell: pwsh
-        run: |
-          ${{ matrix.sonar-wrapper }} cmake --build --preset ${{ matrix.build-preset }}
-
-      - name: Run CTest ${{ matrix.cmake-preset }}
-        if: ${{ matrix.test-preset == '' }}
-        working-directory: recorder/build/${{ matrix.cmake-preset }}
-        shell: pwsh
-        run: |
-          ctest --verbose
-
-      - name: Run CTest (preset ${{ matrix.test-preset }})
-        if: ${{ matrix.test-preset != '' }}
-        working-directory: recorder
-        shell: pwsh
-        run: |
-          ctest --preset ${{ matrix.test-preset }}
+      - name: Cmake build and test
+        uses: "./.github/cmake-build-test"
+        with:
+          preset: ${{ matrix.cmake-preset }}
+          sonar: ${{ matrix.sonar }}
 
       - name: Collect coverage into one XML report
-        if: matrix.coverage
-        working-directory: recorder/build/${{ matrix.cmake-preset }}
+        if: ${{ matrix.coverage }}
         shell: pwsh
-        run: gcovr --verbose --sonarqube --exclude-unreachable-branches --output ${{ github.workspace }}/coverage.xml --root ${{ github.workspace }}
+        run: gcovr --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
 
       - name: Coverage report debug info
         if: matrix.coverage
@@ -126,9 +97,10 @@ jobs:
           Get-Content coverage.xml
 
       - name: Run sonar-scanner
-        if: matrix.sonar
+        if: ${{ matrix.sonar-wrapper != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
-        run: sonar-scanner ${{ env.SONAR_ARGS }}
+        run: |
+          sonar-scanner ${{ matrix.sonar-args }}
