@@ -74,39 +74,11 @@ jobs:
           gcov: ${{ matrix.coverage }}
           sonar: ${{ matrix.sonar }}
 
-      - name: Cmake Configure ${{ matrix.cmake-preset }}
-        working-directory: recorder
-        shell: pwsh
-        run: |
-          cmake --preset ${{ matrix.cmake-preset }}
-
-      - name: Cmake Build
-        if: ${{ matrix.build-preset == '' }}
-        working-directory: recorder #required for matrix.sonar-wrapper values to work
-        shell: pwsh
-        run: |
-          ${{ matrix.sonar-wrapper }} cmake --build ./build/${{ matrix.cmake-preset }}
-
-      - name: Cmake Build (preset ${{ matrix.build-preset }})
-        if: ${{ matrix.build-preset != '' }}
-        working-directory: recorder #required for matrix.sonar-wrapper values to work
-        shell: pwsh
-        run: |
-          ${{ matrix.sonar-wrapper }} cmake --build --preset ${{ matrix.build-preset }}
-
-      - name: Run CTest ${{ matrix.cmake-preset }}
-        if: ${{ matrix.test-preset == '' }}
-        working-directory: recorder/build/${{ matrix.cmake-preset }}
-        shell: pwsh
-        run: |
-          ctest --verbose
-
-      - name: Run CTest (preset ${{ matrix.test-preset }})
-        if: ${{ matrix.test-preset != '' }}
-        working-directory: recorder
-        shell: pwsh
-        run: |
-          ctest --preset ${{ matrix.test-preset }}
+      - name: Cmake build and test
+        uses: "./.github/cmake-build-test"
+        with:
+          preset: ${{ matrix.cmake-preset }}
+          sonar: ${{ matrix.sonar }}
 
       - name: Collect coverage into one XML report
         if: ${{ matrix.coverage }}
