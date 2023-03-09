@@ -46,6 +46,29 @@ runs:
           sudo ln -s /usr/bin/${f}-${{ env.CLANG_VERSION }} /usr/bin/${f}
         done
 
+    - name: verify installed default clang version
+      shell: pwsh
+      if: inputs.clang
+      run: |
+        $clang_version = clang++ --version
+        $clang_tidy_version = clang-tidy --version
+        if( -not ($clang_version -like  "*version ${{ env.GCC_VERSION }}.*")){
+          Write-Error "clang++ version does not match, found: $clang_version"
+        }
+        if( -not ($clang_tidy_version -like  "*version ${{ env.GCC_VERSION }}.*")){
+          Write-Error "clang-tidy version mismatch, found: $clang_tidy_version"
+        }
+
+    - name: verify installed default gcc version
+      shell: pwsh
+      if: inputs.gcc
+      run: |
+        $gcc_version = g++ --version
+        if( -not ($gcc_version -like  "*${{ env.CLANG_VERSION }}.*")){
+          Write-Error "g++ version does not match, found: $gcc_version"
+        }
+
+
     - name: Set up Python 3.8 for gcovr
       uses: actions/setup-python@v4
       if: inputs.gcov
