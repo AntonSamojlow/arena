@@ -114,13 +114,12 @@ jobs:
 
       - name: Collect coverage into one XML report
         if: matrix.coverage
-        working-directory: recorder
+        working-directory: recorder/build/${{ matrix.cmake-preset }}
         shell: pwsh
-        run: gcovr --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
+        run: gcovr --verbose --sonarqube --exclude-unreachable-branches --output ${{ github.workspace }}/coverage.xml --root ${{ github.workspace }}
 
       - name: Coverage report debug info
         if: matrix.coverage
-        working-directory: recorder
         shell: pwsh
         run: |
           Write-Host "gcovr version: $(gcovr --version)"
