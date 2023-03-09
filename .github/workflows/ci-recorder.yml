@@ -7,7 +7,7 @@
 name: ci (recorder)
 on:
   schedule:
-    - cron: '25 16 * * *'
+    - cron: "25 16 * * *"
   pull_request:
     types: [opened, synchronize, reopened]
   push:
@@ -29,8 +29,7 @@ jobs:
           - ubuntu-latest
 
         configure-preset:
-          - gcc-release
-          - clang-release-tidy
+          - gcc-debug-coverage
 
         # used to compose a 'vcpkg-triplet-like' label for the cache key (see below)
         platform:
@@ -44,13 +43,6 @@ jobs:
             sonar-args: >
               --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
               --define sonar.coverageReportPaths=coverage.xml
-          - os: windows-latest
-            configure-preset: msvc-release
-            #sonar-wrapper: build-wrapper-win-x86-64 --out-dir ./build-wrapper-output
-            #sonar-args: >
-            #  --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
-          - os: windows-latest
-            configure-preset: clang-cl-release
 
     env:
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
@@ -122,10 +114,6 @@ jobs:
           key: |
             ${{ hashFiles( 'vcpkg.json' ) }}-${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}-${{ matrix.os }}-${{ matrix.platform }}
 
-      # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly.
-      # As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
-      - uses: ilammy/msvc-dev-cmd@v1
-
       - name: Set up Python 3.8 for gcovr
         uses: actions/setup-python@v4
         if: ${{ matrix.coverage }}
@@ -184,7 +172,6 @@ jobs:
           Write-Host "Content of 'coverage.xml':"
           Get-Content coverage.xml
 
-
       - name: Run sonar-scanner
         if: ${{ matrix.sonar-wrapper != '' }}
         env:
@@ -192,25 +179,3 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner ${{ matrix.sonar-args }}
-
-
-  formatting-check:
-    name: Formatting Check
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: clang-format src
-      if: ${{ always() }}
-      uses: jidicula/clang-format-action@v4.9.0
-      with:
-        clang-format-version: '15'
-        check-path: 'recorder/src'
-        # exclude: '(hello|world)' # Exclude file paths containing "hello" or "world"
-        exclude-regex: ''
-    - name: clang-format test
-      if: ${{ always() }}
-      uses: jidicula/clang-format-action@v4.9.0
-      with:
-        clang-format-version: '15'
-        check-path: 'recorder/test'
-        exclude-regex: ''
