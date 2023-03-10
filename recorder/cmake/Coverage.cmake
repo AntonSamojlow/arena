@@ -17,7 +17,7 @@ function(enable_coverage target_name)
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
       message(STATUS "[${target_name}] coverage enabled")
-      target_compile_options(${target_name} PUBLIC "--coverage -fprofile-abs-path -O0 -g")
+      target_compile_options(${target_name} PUBLIC --coverage -fprofile-abs-path -O0 -g)
       target_link_libraries(${target_name} PUBLIC --coverage)
     else()
       message(SEND_ERROR "coverage enabled but compiler is '${CMAKE_CXX_COMPILER_ID}'")
