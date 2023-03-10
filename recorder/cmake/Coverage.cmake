@@ -4,7 +4,7 @@ include_guard()
 function(enable_coverage target_name)
   message(TRACE "[${target_name}] - function 'enable_coverage'")
 
-  if(NOT ENABLE_GCOV OR ENABLE_LLVMPROF)
+  if(NOT ENABLE_GCOV OR ENABLE_LLVMPROFILE)
     message(STATUS "[${target_name}] no coverage enabled")
 
   elseif(MSVC)
@@ -22,7 +22,7 @@ function(enable_coverage target_name)
       message(SEND_ERROR "gcov based coverage not available for compiler '${CMAKE_CXX_COMPILER_ID}'")
     endif()
 
-  elseif(ENABLE_LLVMPROF)
+  elseif(ENABLE_LLVMPROFILE)
     if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
         message(STATUS "[${target_name}] llvm profile based coverage enabled")
         target_compile_options(${target_name} PUBLIC -fprofile-instr-generate -fcoverage-mapping)

@@ -124,11 +124,11 @@
 			}
 		},
 		{
-			"name": "llvmprof",
+			"name": "llvmprofile",
 			"description": "whether to enable llvm profile based code coverage (use with clang)",
 			"hidden": true,
 			"cacheVariables": {
-				"ENABLE_LLVMPROF": true
+				"ENABLE_LLVMPROFILE": true
 			}
 		},
 		{
@@ -277,18 +277,26 @@
 		},
 		{
 			"name": "gcc-debug-gcov",
-			"displayName": "(Gcc  Coverage)",
+			"displayName": "(Gcc gcov-Coverage)",
 			"inherits": [
 				"gcc-debug",
 				"gcov"
 			]
 		},
 		{
+			"name": "clang-release-llvmprofile",
+			"displayName": "(Clang gcov-Coverage)",
+			"inherits": [
+				"clang-release",
+				"llvmprofile"
+			]
+		},
+		{
 			"name": "clang-debug-gcov",
-			"displayName": "(Clang Coverage)",
+			"displayName": "(Clang llvm-Coverage)",
 			"inherits": [
 				"clang-debug",
-				"gcov"
+				"llvmreport"
 			]
 		},
 		{

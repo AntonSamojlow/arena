@@ -71,13 +71,13 @@ jobs:
         os:
           - ubuntu-latest
         cmake-preset:
-          - gcc-debug-gcov
+          - gcc-debug
           - gcc-release
-          - clang-debug
+          - clang-debug-gcov
           - clang-release-tidy
         include:
           - os: ubuntu-latest
-            cmake-preset: gcc-debug-gcov
+            cmake-preset: clang-debug-gcov
             gcov: true
             sonar: true
 
