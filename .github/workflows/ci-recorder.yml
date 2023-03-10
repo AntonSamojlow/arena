@@ -76,13 +76,24 @@ jobs:
           preset: ${{ matrix.cmake-preset }}
           sonar: ${{ matrix.sonar }}
 
-      - name: Collect coverage into one XML report
+      - name: Run gcovr (collect gcov based coverage)
         if: matrix.gcov
         shell: pwsh
         run: |
           $exec = "gcov-${{ env.GCC_VERSION }}"
           if( ${{ contains(matrix.cmake-preset, 'clang') }} ) { $exec = "llvm-cov gcov" }
           gcovr --gcov-executable "$exec" --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
+
+      - name: Run llvm-cov (collect llvm profile based coverage)
+        if: matrix.llvmprof
+        shell: pwsh
+        run: | # remember to merge all test files if multiple test projects are run
+          $test_executable = "tests"
+          $test_location = "${{ github.workspace }}/recorder/build/${{ inputs.preset }}/test"
+          $result_file = $test_location/default.profraw
+          Write-Host "merging file $(Get-ChildItem $result_file)"
+          llvm-profdata merge -o merged.profdata $result_file
+          llvm-cov show --instr-profile merged.profdata "$test_location/$test_executable" > coverage.txt
 
       - name: Coverage report debug info
         if: matrix.gcov # && env.RUNNER_DEBUG
