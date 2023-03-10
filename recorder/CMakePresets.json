@@ -117,10 +117,18 @@
 		},
 		{
 			"name": "gcov",
-			"description": "whether to enable gcov based coverage (use with gcc or clang in Debug)",
+			"description": "whether to enable gcov based code coverage (use with gcc or clang in Debug)",
 			"hidden": true,
 			"cacheVariables": {
 				"ENABLE_GCOV": true
+			}
+		},
+		{
+			"name": "llvmprof",
+			"description": "whether to enable llvm profile based code coverage (use with clang)",
+			"hidden": true,
+			"cacheVariables": {
+				"ENABLE_LLVMPROF": true
 			}
 		},
 		{
