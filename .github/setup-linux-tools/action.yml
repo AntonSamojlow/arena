@@ -35,14 +35,14 @@ runs:
     # DEBUGGING
     - name: install clang
       if: inputs.clang == 'true'
-      working-directory: cd /usr/lib/llvm-15/lib/clang/15.0.6/lib/
+      working-directory: cd /usr/lib/llvm-15/lib/clang/15.0.7/lib/
       shell: pwsh
       run: ls
 
     # DEBUGGING
     - name: install clang
       if: inputs.clang == 'true'
-      working-directory: cd /usr/lib/llvm-15/lib/clang/15.0.6/lib/linux
+      working-directory: cd /usr/lib/llvm-15/lib/clang/15.0.7/lib/linux
       shell: pwsh
       run: ls
 
