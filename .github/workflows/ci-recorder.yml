@@ -77,7 +77,7 @@ jobs:
           - clang-release-tidy
         include:
           - os: ubuntu-latest
-            cmake-preset: clang-gcov
+            cmake-preset: clang-llvmprofile
             llvmprofile: true
             sonar: true
 
