@@ -143,7 +143,7 @@ jobs:
       - name: Collect coverage into one XML report
         if: ${{ matrix.coverage }}
         shell: pwsh
-        run: gcovr --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
+        run: gcovr --gcov-executable gcov-${{ env.INSTALL_GCC_VERSION }} --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
 
       - name: Coverage report debug info
         if: matrix.coverage
