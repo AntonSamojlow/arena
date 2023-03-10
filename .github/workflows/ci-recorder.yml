@@ -117,8 +117,9 @@ jobs:
         shell: pwsh
         run: |
           $flags = "--sonarqube --exclude-unreachable-branches"
-          if (${{ env.RUNNER_DEBUG }}) { $flags += " --verbose" }
-          if( ${{ contains(matrix.cmake-preset, 'clang') }} ) {
+          $debug = "${{ env.RUNNER_DEBUG }}"
+          if ($debug -ne "") { $flags += " --verbose" }
+          if (${{ contains(matrix.cmake-preset, 'clang') }}) {
             $flags += " --gcov-executable llvm-cov gcov"
           }
           else {
