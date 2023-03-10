@@ -59,12 +59,12 @@ jobs:
           preset: ${{ matrix.cmake-preset }}
 
   ci-linux:
+    name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
     env:
       SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
       SONAR_ARGS: >
         --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
         --define sonar.coverageReportPaths=coverage.xml
-    name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -72,16 +72,14 @@ jobs:
         os:
           - ubuntu-latest
         cmake-preset:
+          - gcc-debug-gcov
           - gcc-release
-          - gcc-debug-coverage
           - clang-debug
           - clang-release-tidy
-
         include:
           - os: ubuntu-latest
-            cmake-preset: gcc-debug-coverage
-            coverage: true
-            sonar: true
+            cmake-preset: gcc-debug-gcov
+            gcov: true
 
     steps:
       - uses: actions/checkout@v3
@@ -103,7 +101,7 @@ jobs:
         with:
           clang: ${{ contains(matrix.cmake-preset, 'clang') }}
           gcc: ${{ contains(matrix.cmake-preset, 'gcc') }}
-          gcov: ${{ matrix.coverage }}
+          gcov: ${{ matrix.gcov }}
           sonar: ${{ matrix.sonar }}
 
       - name: Cmake build and test
@@ -112,17 +110,30 @@ jobs:
           preset: ${{ matrix.cmake-preset }}
           sonar: ${{ matrix.sonar }}
 
-      - name: Collect coverage into one XML report
-        if: matrix.coverage
-        working-directory: recorder/build/${{ matrix.cmake-preset }}
-        shell: pwsh
-        run: gcovr --verbose --sonarqube --exclude-unreachable-branches --output ${{ github.workspace }}/coverage.xml --root ${{ github.workspace }}
-
-      - name: Coverage report debug info
-        if: matrix.coverage
+      - name: Run gcovr (collect gcov based coverage)
+        if: matrix.gcov
         shell: pwsh
         run: |
-          Write-Host "gcovr version: $(gcovr --version)"
+          $exec = "gcov-${{ env.GCC_VERSION }}"
+          if( ${{ contains(matrix.cmake-preset, 'clang') }} ) { $exec = "llvm-cov gcov" }
+          gcovr --gcov-executable "$exec" --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
+
+      - name: Run llvm-cov (collect llvm profile based coverage)
+        if: matrix.llvmprof
+        shell: pwsh
+        run:
+          | # remember to merge all test files if multiple test projects are run
+          $test_executable = "tests"
+          $test_location = "${{ github.workspace }}/recorder/build/${{ inputs.preset }}/test"
+          $result_file = $test_location/default.profraw
+          Write-Host "merging file $(Get-ChildItem $result_file)"
+          llvm-profdata merge -o merged.profdata $result_file
+          llvm-cov show --instr-profile merged.profdata "$test_location/$test_executable" > coverage.txt
+
+      - name: Coverage report debug info
+        if: matrix.gcov # && env.RUNNER_DEBUG
+        shell: pwsh
+        run: |
           Write-Host "listing .gcno and .gcda files:"
           Get-ChildItem -Path .\ -Filter *.gcno -Recurse -File -Name
           Get-ChildItem -Path .\ -Filter *.gcda -Recurse -File -Name
@@ -130,12 +141,13 @@ jobs:
           Get-Content coverage.xml
 
       - name: Run sonar-scanner
-        if: matrix.sonar
+        if: ${{ matrix.sonar-wrapper != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
-        run: sonar-scanner ${{ env.SONAR_ARGS }}
+        run: |
+          sonar-scanner ${{ matrix.sonar-args }}
 
   formatting-check:
     name: Formatting Check

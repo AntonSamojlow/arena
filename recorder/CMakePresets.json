@@ -116,10 +116,19 @@
 			}
 		},
 		{
-			"name": "coverage",
+			"name": "gcov",
+			"description": "whether to enable gcov based code coverage (use with gcc or clang in Debug)",
 			"hidden": true,
 			"cacheVariables": {
-				"ENABLE_COVERAGE": true
+				"ENABLE_GCOV": true
+			}
+		},
+		{
+			"name": "llvmprof",
+			"description": "whether to enable llvm profile based code coverage (use with clang)",
+			"hidden": true,
+			"cacheVariables": {
+				"ENABLE_LLVMPROF": true
 			}
 		},
 		{
@@ -235,23 +244,6 @@
 			]
 		},
 		{
-			"name": "clang-debug-asan-leaksan",
-			"displayName": "Clang Debug A+LeakSan",
-			"inherits": [
-				"clang-debug",
-				"asan",
-				"leaksan"
-			]
-		},
-		{
-			"name": "clang-debug-memsan",
-			"displayName": "Clang Debug MemSan",
-			"inherits": [
-				"clang-debug",
-				"memsan"
-			]
-		},
-		{
 			"name": "clang-release",
 			"displayName": "Clang Release",
 			"inherits": [
@@ -276,19 +268,44 @@
 			]
 		},
 		{
-			"name": "gcc-debug-coverage",
-			"displayName": "Gcc Debug Coverage",
-			"inherits": [
-				"gcc-debug",
-				"coverage"
-			]
-		},
-		{
 			"name": "gcc-release",
 			"displayName": "Gcc Release",
 			"inherits": [
 				"gcc",
 				"release"
+			]
+		},
+		{
+			"name": "gcc-debug-gcov",
+			"displayName": "(Gcc  Coverage)",
+			"inherits": [
+				"gcc-debug",
+				"gcov"
+			]
+		},
+		{
+			"name": "clang-debug-gcov",
+			"displayName": "(Clang Coverage)",
+			"inherits": [
+				"clang-debug",
+				"gcov"
+			]
+		},
+		{
+			"name": "clang-debug-asan-leaksan",
+			"displayName": "(Clang A+LeakSan)",
+			"inherits": [
+				"clang-debug",
+				"asan",
+				"leaksan"
+			]
+		},
+		{
+			"name": "clang-debug-memsan",
+			"displayName": "(Clang MemSan)",
+			"inherits": [
+				"clang-debug",
+				"memsan"
 			]
 		}
 	],
