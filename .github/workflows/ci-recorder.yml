@@ -117,7 +117,7 @@ jobs:
         working-directory: recorder #required for matrix.sonar-wrapper values to work
         shell: pwsh
         run: |
-          ${{ matrix.sonar-wrapper }} cmake --build ./build/${{ matrix.cmake-preset }}
+          ${{ matrix.sonar-wrapper }} cmake --build ./build/${{ matrix.cmake-preset }} --verbose
 
       - name: Cmake Build (preset ${{ matrix.build-preset }})
         if: ${{ matrix.build-preset != '' }}
