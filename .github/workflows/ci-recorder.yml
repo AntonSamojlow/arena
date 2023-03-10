@@ -79,7 +79,10 @@ jobs:
       - name: Collect coverage into one XML report
         if: matrix.gcov
         shell: pwsh
-        run: gcovr --gcov-executable gcov-${{ env.GCC_VERSION }} --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
+        run: |
+          $exec = "gcov-${{ env.GCC_VERSION }}"
+          if( ${{ contains(matrix.cmake-preset, 'clang') }} ) { $exec = "llvm-cov gcov" }
+          gcovr --gcov-executable "$exec" --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
 
       - name: Coverage report debug info
         if: matrix.gcov # && env.RUNNER_DEBUG
