@@ -77,27 +77,6 @@ jobs:
           gcov: ${{ matrix.coverage }}
           sonar: ${{ matrix.sonar }}
 
-      - name: install clang
-        if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains(matrix.cmake-preset, 'clang') }}
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: ${{ env.DESIRED_CLANG_VERSION }} # ignored on windows
-          platform: x64
-
-      - name: install clang-tidy
-        shell: bash
-        if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains(matrix.cmake-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-        run: sudo apt-get install -y clang-tidy-${{ env.DESIRED_CLANG_VERSION }}
-
-      - name: setup clang-tidy path
-        shell: bash
-        if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains( matrix.cmake-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-        run: |
-          for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
-            if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
-            sudo ln -s /usr/bin/${f}-${{ env.DESIRED_CLANG_VERSION }} /usr/bin/${f}
-          done
-
       - name: install gcovr
         if: matrix.coverage
         shell: pwsh
