@@ -116,16 +116,13 @@ jobs:
         if: matrix.gcov
         shell: pwsh
         run: |
-          $flags = "--sonarqube --exclude-unreachable-branches"
-          $debug = "${{ env.RUNNER_DEBUG }}"
-          if ($debug -ne "") { $flags += " --verbose" }
           if (${{ contains(matrix.cmake-preset, 'clang') }}) {
-            $flags += " --gcov-executable llvm-cov gcov"
+            $exec =  'llvm-cov gcov'
           }
           else {
-            $flags += " --gcov-executable gcov-${{ env.GCC_VERSION }}"
+            $exec = 'gcov-${{ env.GCC_VERSION }}''
           }
-          gcovr "$flags" --output coverage_gcov.xml
+          gcovr --sonarqube --exclude-unreachable-branches --gcov-executable $exec --output coverage_gcov.xml
 
       - name: Run llvm-cov (collect llvm profile based coverage)
         if: matrix.llvmprof
