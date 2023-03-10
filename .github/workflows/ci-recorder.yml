@@ -127,12 +127,12 @@ jobs:
         shell: pwsh
         run:
           | # remember to merge all test files if multiple test projects are run
-          $test_executable = "tests"
           $test_location = "${{ github.workspace }}/recorder/build/${{ inputs.preset }}/test"
-          $result_file = $test_location/default.profraw
+          $result_file = "$test_location/default.profraw"
+          $test_executable = "$test_location/tests"
           Write-Host "merging file $(Get-ChildItem $result_file)"
           llvm-profdata merge -o merged.profdata $result_file
-          llvm-cov show --instr-profile merged.profdata "$test_location/$test_executable" > coverage_llvm.txt
+          llvm-cov show --instr-profile merged.profdata $test_executable > coverage_llvm.txt
 
       - name: Coverage report debug info
         if: matrix.gcov && env.RUNNER_DEBUG
