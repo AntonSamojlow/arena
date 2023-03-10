@@ -276,31 +276,31 @@
 			]
 		},
 		{
-			"name": "gcc-debug-gcov",
-			"displayName": "(Gcc gcov-Coverage)",
+			"name": "gcc-gcov",
+			"displayName": "(Gcc gcov)",
 			"inherits": [
 				"gcc-debug",
 				"gcov"
 			]
 		},
 		{
-			"name": "clang-release-llvmprofile",
-			"displayName": "(Clang gcov-Coverage)",
+			"name": "clang-llvmprofile",
+			"displayName": "(Clang llvmprofile)",
 			"inherits": [
 				"clang-release",
 				"llvmprofile"
 			]
 		},
 		{
-			"name": "clang-debug-gcov",
-			"displayName": "(Clang llvm-Coverage)",
+			"name": "clang-gcov",
+			"displayName": "(Clang gcov)",
 			"inherits": [
 				"clang-debug",
-				"llvmreport"
+				"gcov"
 			]
 		},
 		{
-			"name": "clang-debug-asan-leaksan",
+			"name": "clang-asan-leaksan",
 			"displayName": "(Clang A+LeakSan)",
 			"inherits": [
 				"clang-debug",
@@ -309,7 +309,7 @@
 			]
 		},
 		{
-			"name": "clang-debug-memsan",
+			"name": "clang-memsan",
 			"displayName": "(Clang MemSan)",
 			"inherits": [
 				"clang-debug",

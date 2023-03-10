@@ -73,11 +73,11 @@ jobs:
         cmake-preset:
           - gcc-debug
           - gcc-release
-          - clang-debug-gcov
+          - clang-gcov
           - clang-release-tidy
         include:
           - os: ubuntu-latest
-            cmake-preset: clang-debug-gcov
+            cmake-preset: clang-gcov
             gcov: true
             sonar: true
 
