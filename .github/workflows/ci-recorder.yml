@@ -62,10 +62,8 @@ jobs:
     name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
     env:
       SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
-      SONAR_ARGS: >
-        --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
-        --define sonar.coverageReportPaths=coverage_gcov.xml
-        --define sonar.cfamily.llvm-cov.reportPath=coverage_llvm.txt
+      SONAR_ARGS: --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
+
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -146,14 +144,21 @@ jobs:
           Write-Host "Content of 'coverage.xml':"
           Get-Content coverage.xml
 
-      - name: Run sonar-scanner
-        if: matrix.sonar
+      - name: Run sonar-scanner (for gcov based coverage))
+        if: matrix.sonar && matrix.gcov
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
-        run: |
-          sonar-scanner ${{ env.SONAR_ARGS }}
+        run: sonar-scanner ${{ env.SONAR_ARGS }} --define sonar.coverageReportPaths=coverage_gcov.xml
+
+      - name: Run sonar-scanner (for llvm profile based coverage))
+        if: matrix.sonar && matrix.llvmprof
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: pwsh
+        run: sonar-scanner ${{ env.SONAR_ARGS }} --define sonar.cfamily.llvm-cov.reportPath=coverage_llvm.txt
 
   formatting-check:
     name: Formatting Check
