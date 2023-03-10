@@ -69,12 +69,13 @@ jobs:
           vcpkg_root: ${{ github.workspace }}/recorder/vcpkg
           vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg/bincache
 
-      - name: install gcc
-        if: ${{ env.INSTALL_GCC_VERSION > 0 && contains(matrix.cmake-preset, 'gcc') }}
-        uses: egor-tensin/setup-gcc@v1
+      - name: Setup linux tools
+        uses: "./.github/setup-linux-tools"
         with:
-          version: ${{ env.DESIRED_GCC_VERSION }}
-          platform: x64
+          clang: ${{ contains(matrix.cmake-preset, 'clang') }}
+          gcc: ${{ contains(matrix.cmake-preset, 'gcc') }}
+          gcov: ${{ matrix.coverage }}
+          sonar: ${{ matrix.sonar }}
 
       - name: install clang
         if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains(matrix.cmake-preset, 'clang') }}
