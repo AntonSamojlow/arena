@@ -127,7 +127,7 @@ jobs:
         shell: pwsh
         run:
           | # remember to merge all test files if multiple test projects are run
-          $test_location = "${{ github.workspace }}/recorder/build/${{ inputs.cmake-preset }}/test"
+          $test_location = "${{ github.workspace }}/recorder/build/${{ matrix.cmake-preset }}/test"
           $result_file = "$test_location/default.profraw"
           $test_executable = "$test_location/tests"
           Write-Host "merging file $(Get-ChildItem $result_file)"
