@@ -114,9 +114,15 @@ jobs:
         if: matrix.gcov
         shell: pwsh
         run: |
-          $exec = "gcov-${{ env.GCC_VERSION }}"
-          if( ${{ contains(matrix.cmake-preset, 'clang') }} ) { $exec = "llvm-cov gcov" }
-          gcovr --gcov-executable "$exec" --verbose --sonarqube --exclude-unreachable-branches --output coverage.xml
+          $flags = "--sonarqube --exclude-unreachable-branches"
+          if (${{ env.RUNNER_DEBUG }}) { $flags += " --verbose" }
+          if( ${{ contains(matrix.cmake-preset, 'clang') }} ) {
+            $flags += " --gcov-executable llvm-cov gcov"
+          }
+          else {
+            $flags += " --gcov-executable gcov-${{ env.GCC_VERSION }}"
+          }
+          gcovr $flags --output coverage.xml
 
       - name: Run llvm-cov (collect llvm profile based coverage)
         if: matrix.llvmprof
@@ -131,7 +137,7 @@ jobs:
           llvm-cov show --instr-profile merged.profdata "$test_location/$test_executable" > coverage.txt
 
       - name: Coverage report debug info
-        if: matrix.gcov # && env.RUNNER_DEBUG
+        if: matrix.gcov && env.RUNNER_DEBUG
         shell: pwsh
         run: |
           Write-Host "listing .gcno and .gcda files:"
@@ -141,13 +147,13 @@ jobs:
           Get-Content coverage.xml
 
       - name: Run sonar-scanner
-        if: ${{ matrix.sonar-wrapper != '' }}
+        if: ${{ env.SONAR_WRAPPER != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
         run: |
-          sonar-scanner ${{ matrix.sonar-args }}
+          sonar-scanner ${{ env.SONAR_ARGS }}
 
   formatting-check:
     name: Formatting Check
