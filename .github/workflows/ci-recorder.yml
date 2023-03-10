@@ -28,7 +28,7 @@ jobs:
         --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
         --define sonar.coverageReportPaths=coverage.xml
       # TO BE REMOVED:
-      INSTALL_GCC_VERSION: -1
+      INSTALL_GCC_VERSION: 12
       INSTALL_CLANG_VERSION: -1
 
     runs-on: ${{ matrix.os }}
