@@ -120,7 +120,7 @@ jobs:
             $exec =  'llvm-cov gcov'
           }
           else {
-            $exec = 'gcov-${{ env.GCC_VERSION }}''
+            $exec = 'gcov-${{ env.GCC_VERSION }}'
           }
           gcovr --sonarqube --exclude-unreachable-branches --gcov-executable $exec --output coverage_gcov.xml
 
