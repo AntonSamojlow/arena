@@ -20,6 +20,44 @@ env:
   GCC_VERSION: 12
 
 jobs:
+  ci-windows:
+    name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+        cmake-preset:
+          - x64-msvc-release
+          - x64-msvc-debug
+          - x64-clang-cl-release-tidy
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0 # vcpkg submodule uses 'baseline', which requires full git history
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Prepare vcpkg, cmake and ninja
+        uses: "./.github/prepare-vcpkg-cmake"
+        with:
+          os: windows
+          platform: x64
+          vcpkg_root: ${{ github.workspace }}/recorder/vcpkg
+          vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg/bincache
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          vsversion: ${{ env.VS_VERSION }}
+          arch: x64
+
+      - name: Cmake build and test
+        uses: "./.github/cmake-build-test"
+        with:
+          preset: ${{ matrix.cmake-preset }}
+
   ci-linux:
     name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
     env:
@@ -27,21 +65,17 @@ jobs:
       SONAR_ARGS: >
         --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
         --define sonar.coverageReportPaths=coverage.xml
-
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-latest
-
         cmake-preset:
           - gcc-debug-gcov
-
-        # used to compose a 'vcpkg-triplet-like' label for the cache key (see below)
-        platform:
-          - x64
-
+          - gcc-release
+          - clang-debug
+          - clang-release-tidy
         include:
           - os: ubuntu-latest
             cmake-preset: gcc-debug-gcov
@@ -87,7 +121,8 @@ jobs:
       - name: Run llvm-cov (collect llvm profile based coverage)
         if: matrix.llvmprof
         shell: pwsh
-        run: | # remember to merge all test files if multiple test projects are run
+        run:
+          | # remember to merge all test files if multiple test projects are run
           $test_executable = "tests"
           $test_location = "${{ github.workspace }}/recorder/build/${{ inputs.preset }}/test"
           $result_file = $test_location/default.profraw
@@ -113,3 +148,24 @@ jobs:
         shell: pwsh
         run: |
           sonar-scanner ${{ matrix.sonar-args }}
+
+  formatting-check:
+    name: Formatting Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: clang-format src
+        if: always()
+        uses: jidicula/clang-format-action@v4.9.0
+        with:
+          clang-format-version: ${{ env.CLANG_VERSION}}
+          check-path: "recorder/src"
+          # exclude: '(hello|world)' # Exclude file paths containing "hello" or "world"
+          exclude-regex: ""
+      - name: clang-format test
+        if: always()
+        uses: jidicula/clang-format-action@v4.9.0
+        with:
+          clang-format-version: ${{ env.CLANG_VERSION}}
+          check-path: "recorder/test"
+          exclude-regex: ""
