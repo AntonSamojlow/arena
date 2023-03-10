@@ -4,7 +4,7 @@ include_guard()
 function(enable_coverage target_name)
   message(TRACE "[${target_name}] - function 'enable_coverage'")
 
-  if(NOT ENABLE_GCOV OR ENABLE_LLVMPROFILE)
+  if(NOT ENABLE_GCOV AND NOT ENABLE_LLVMPROFILE)
     message(STATUS "[${target_name}] no coverage enabled")
 
   elseif(MSVC)

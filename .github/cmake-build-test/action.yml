@@ -8,7 +8,7 @@ inputs:
   sonar:
     description: whether to add the sonar build wrapper
     required: false
-    default: "false"
+    default: 'false'
 
 runs:
   using: "composite"
@@ -22,15 +22,15 @@ runs:
       if: inputs.sonar != 'true'
       working-directory: recorder/build/${{ inputs.preset }}
       shell: pwsh
-      run: cmake --build . --verbose
+      run: cmake --build .
 
     - name: Cmake Build (sonar wrapped)
       if: inputs.sonar == 'true'
       working-directory: recorder #required for sonar-wrapper values to work correctly
       shell: pwsh
-      run: ${{ env.SONAR_WRAPPER }} cmake --build ./build/${{ inputs.preset }} --verbose
+      run: ${{ env.SONAR_WRAPPER }} cmake --build ./build/${{ inputs.preset }}
 
     - name: CTest
       working-directory: recorder/build/${{ inputs.preset }}
       shell: pwsh
-      run: ctest --verbose
+      run: ./test/tests
