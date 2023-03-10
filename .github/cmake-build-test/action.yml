@@ -22,15 +22,15 @@ runs:
       if: inputs.sonar != 'true'
       working-directory: recorder/build/${{ inputs.preset }}
       shell: pwsh
-      run: cmake --build .
+      run: cmake --build . --verbose
 
     - name: Cmake Build (sonar wrapped)
       if: inputs.sonar == 'true'
       working-directory: recorder #required for sonar-wrapper values to work correctly
       shell: pwsh
-      run: ${{ env.SONAR_WRAPPER }} cmake --build ./build/${{ inputs.preset }}
+      run: ${{ env.SONAR_WRAPPER }} cmake --build ./build/${{ inputs.preset }} --verbose
 
     - name: CTest
       working-directory: recorder/build/${{ inputs.preset }}
       shell: pwsh
-      run: ./test/tests
+      run: ctest .
