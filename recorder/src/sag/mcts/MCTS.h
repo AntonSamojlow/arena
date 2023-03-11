@@ -87,7 +87,7 @@ auto select(typename G::state state,
 		std::ranges::transform(actions, std::back_inserter(ucb_values), [&](auto action) {
 			return upper_confidence_bound(state, action);
 		});
-		size_t min_index = static_cast<size_t>(std::distance(ucb_values.begin(), std::ranges::min_element(ucb_values)));
+		auto min_index = static_cast<size_t>(std::distance(ucb_values.begin(), std::ranges::min_element(ucb_values)));
 
 		if (sample_actions_uniformly) {
 			auto edges = graph.edges_at(state, actions[min_index]);

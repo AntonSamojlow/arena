@@ -7,176 +7,136 @@
 name: ci (recorder)
 on:
   schedule:
-    - cron: '25 16 * * *'
+    - cron: "25 16 * * *"
   pull_request:
     types: [opened, synchronize, reopened]
   push:
     branches:
       - main
 
-defaults:
-  run:
-    shell: pwsh
+env:
+  VS_VERSION: 2022
+  CLANG_VERSION: 15
+  GCC_VERSION: 12
 
 jobs:
-  build-test-analyze:
-    name: ${{ matrix.os }} (${{ matrix.configure-preset }})
+  ci-windows:
+    name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+        cmake-preset:
+          - x64-msvc-release
+          - x64-msvc-debug
+          - x64-clang-cl-release-tidy
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0 # vcpkg submodule uses 'baseline', which requires full git history
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Prepare vcpkg, cmake and ninja
+        uses: "./.github/prepare-vcpkg-cmake"
+        with:
+          os: windows
+          platform: x64
+          vcpkg_root: ${{ github.workspace }}/recorder/vcpkg
+          vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg/bincache
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          vsversion: ${{ env.VS_VERSION }}
+          arch: x64
+
+      - name: Cmake build and test
+        uses: "./.github/cmake-build-test"
+        with:
+          preset: ${{ matrix.cmake-preset }}
+
+  ci-linux:
+    name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
+    env:
+      SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
+      SONAR_ARGS: --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
+
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-latest
-
-        configure-preset:
+        cmake-preset:
+          - gcc-gcov
           - gcc-release
+          - clang-debug
           - clang-release-tidy
-
-        # used to compose a 'vcpkg-triplet-like' label for the cache key (see below)
-        platform:
-          - x64
-
         include:
           - os: ubuntu-latest
-            configure-preset: gcc-debug-coverage
-            coverage: true
-            sonar-wrapper: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
-            sonar-args: >
-              --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
-              --define sonar.coverageReportPaths=coverage.xml
-          - os: windows-latest
-            configure-preset: msvc-release
-            #sonar-wrapper: build-wrapper-win-x86-64 --out-dir ./build-wrapper-output
-            #sonar-args: >
-            #  --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
-          - os: windows-latest
-            configure-preset: clang-cl-release
-
-    env:
-      # Indicates the location of the vcpkg as a Git submodule of the project repository.
-      VCPKG_ROOT: ${{ github.workspace }}/recorder/vcpkg
-      # Tells vcpkg where binary packages are stored.
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/recorder/vcpkg/bincache
-      # optional:
-      DEBUG: false
-      INSTALL_GCC_VERSION: -1
-      INSTALL_CLANG_VERSION: -1
+            cmake-preset: gcc-gcov
+            gcov: true
+            sonar: true
 
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
           fetch-depth: 0 # vcpkg submodule uses ''baseline', which requires full git history
+          ref: ${{ github.event.workflow_run.head_branch }}
 
-      - name: "Create directory '${{ env.VCPKG_DEFAULT_BINARY_CACHE }}'"
-        run: mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
-        shell: bash
-
-      - name: install gcc
-        if: ${{ env.INSTALL_GCC_VERSION > 0 && contains(matrix.configure-preset, 'gcc') }}
-        uses: egor-tensin/setup-gcc@v1
+      - name: Prepare vcpkg, cmake and ninja
+        uses: "./.github/prepare-vcpkg-cmake"
         with:
-          version: ${{ env.DESIRED_GCC_VERSION }}
+          os: windows
           platform: x64
+          vcpkg_root: ${{ github.workspace }}/recorder/vcpkg
+          vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg/bincache
 
-      - name: install clang
-        if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains(matrix.configure-preset, 'clang') }}
-        uses: egor-tensin/setup-clang@v1
+      - name: Setup linux tools
+        uses: "./.github/setup-linux-tools"
         with:
-          version: ${{ env.DESIRED_CLANG_VERSION }} # ignored on windows
-          platform: x64
+          clang: ${{ contains(matrix.cmake-preset, 'clang') }}
+          gcc: ${{ contains(matrix.cmake-preset, 'gcc') }}
+          gcov: ${{ matrix.gcov }}
+          sonar: ${{ matrix.sonar }}
 
-      - name: install clang-tidy
-        shell: bash
-        if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains(matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-        run: sudo apt-get install -y clang-tidy-${{ env.DESIRED_CLANG_VERSION }}
-
-      - name: setup clang-tidy path
-        shell: bash
-        if: ${{ env.INSTALL_CLANG_VERSION > 0 && contains( matrix.configure-preset, 'clang') && contains(matrix.os, 'ubuntu')}}
-        run: |
-          for f in clang++ clang-tidy; do # ?? is it really needed to also touch the clang++ path?
-            if [ -e /usr/bin/${f} ]; then sudo unlink /usr/bin/${f}; fi
-            sudo ln -s /usr/bin/${f}-${{ env.DESIRED_CLANG_VERSION }} /usr/bin/${f}
-          done
-
-      # Setup the build machine with the most recent versions of CMake and Ninja. Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
-      - uses: lukka/get-cmake@latest
-
-      # Restore both vcpkg and its artifacts from the GitHub cache service.
-      - name: Restore vcpkg and its artifacts.
-        uses: actions/cache@v3
+      - name: Cmake build and test
+        uses: "./.github/cmake-build-test"
         with:
-          # The first path is the location of vcpkg: it contains the vcpkg executable and data files, as long as the
-          # built package archives (aka binary cache) which are located by VCPKG_DEFAULT_BINARY_CACHE env var.
-          # The other paths starting with '!' are exclusions: they contain termporary files generated during the build of the installed packages.
-          path: |
-            ${{ env.VCPKG_ROOT }}
-            !${{ env.VCPKG_ROOT }}/buildtrees
-            !${{ env.VCPKG_ROOT }}/packages
-            !${{ env.VCPKG_ROOT }}/downloads
-            !${{ env.VCPKG_ROOT }}/installed
-          # The key is composed in a way that it gets properly invalidated: this must happen whenever vcpkg's Git commit id changes, or the list of packages changes. In this case a cache miss must happen and a new entry with a new key with be pushed to GitHub the cache service.
-          # The key includes: hash of the vcpkg.json file, the hash of the vcpkg Git commit id, and the used vcpkg's triplet. The vcpkg's commit id would suffice, but computing an hash out it does not harm.
-          # Note: given a key, the cache content is immutable. If a cache entry has been created improperly, in order the recreate the right content the key must be changed as well, and it must be brand new (i.e. not existing already).
-          key: |
-            ${{ hashFiles( 'vcpkg.json' ) }}-${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}-${{ matrix.os }}-${{ matrix.platform }}
+          preset: ${{ matrix.cmake-preset }}
+          sonar: ${{ matrix.sonar }}
 
-      # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly.
-      # As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
-      - uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Set up Python 3.8 for gcovr
-        uses: actions/setup-python@v4
-        if: ${{ matrix.coverage }}
-        with:
-          python-version: 3.8
-
-      - name: install gcovr 5.0
-        if: ${{ matrix.coverage }}
+      - name: Run gcovr (collect gcov based coverage)
+        if: matrix.gcov
+        shell: pwsh
         run: |
-          pip install gcovr==5.0
+          if (${{ contains(matrix.cmake-preset, 'clang') }}) {
+            $exec =  'llvm-cov gcov'
+          }
+          else {
+            $exec = 'gcov-${{ env.GCC_VERSION }}'
+          }
+          gcovr --sonarqube --exclude-unreachable-branches --gcov-executable $exec --output coverage_gcov.xml
 
-      - name: Install sonar-scanner and build-wrapper
-        if: ${{ matrix.sonar-wrapper != '' }}
-        uses: SonarSource/sonarcloud-github-c-cpp@v1
-
-      - name: Cmake Configure ${{ matrix.configure-preset }}
-        working-directory: recorder
-        run: |
-          cmake --preset ${{ matrix.configure-preset }}
-
-      - name: Cmake Build
-        if: ${{ matrix.build-preset == '' }}
-        working-directory: recorder #required for matrix.sonar-wrapper values to work
-        run: |
-          ${{ matrix.sonar-wrapper }} cmake --build ./build/${{ matrix.configure-preset }}
-
-      - name: Cmake Build (preset ${{ matrix.build-preset }})
-        if: ${{ matrix.build-preset != '' }}
-        working-directory: recorder #required for matrix.sonar-wrapper values to work
-        run: |
-          ${{ matrix.sonar-wrapper }} cmake --build --preset ${{ matrix.build-preset }}
-
-      - name: Run CTest ${{ matrix.configure-preset }}
-        if: ${{ matrix.test-preset == '' }}
-        working-directory: recorder/build/${{ matrix.configure-preset }}
-        run: |
-          ctest --verbose
-
-      - name: Run CTest (preset ${{ matrix.test-preset }})
-        if: ${{ matrix.test-preset != '' }}
-        working-directory: recorder
-        run: |
-          ctest --preset ${{ matrix.test-preset }}
-
-      - name: Collect coverage into one XML report
-        if: ${{ matrix.coverage }}
-        run: |
-          gcovr --sonarqube > coverage.xml
+      - name: Run llvm-cov (collect llvm profile based coverage)
+        if: matrix.llvmprofile
+        shell: pwsh
+        run:
+          | # remember to merge all test files if multiple test projects are run
+          $test_location = "${{ github.workspace }}/recorder/build/${{ matrix.cmake-preset }}/test"
+          $result_file = "$test_location/default.profraw"
+          $test_executable = "$test_location/tests"
+          Write-Host "merging file $(Get-ChildItem $result_file)"
+          llvm-profdata merge -o merged.profdata $result_file
+          llvm-cov show --instr-profile merged.profdata $test_executable > coverage_llvm.txt
 
       - name: Coverage report debug info
-        if: ${{ matrix.coverage && env.DEBUG }}
+        if: matrix.gcov && env.RUNNER_DEBUG
+        shell: pwsh
         run: |
           Write-Host "listing .gcno and .gcda files:"
           Get-ChildItem -Path .\ -Filter *.gcno -Recurse -File -Name
@@ -184,33 +144,39 @@ jobs:
           Write-Host "Content of 'coverage.xml':"
           Get-Content coverage.xml
 
-
-      - name: Run sonar-scanner
-        if: ${{ matrix.sonar-wrapper != '' }}
+      - name: Run sonar-scanner (for gcov based coverage))
+        if: matrix.sonar && matrix.gcov
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner ${{ matrix.sonar-args }}
+        shell: pwsh
+        run: sonar-scanner ${{ env.SONAR_ARGS }} --define sonar.coverageReportPaths=coverage_gcov.xml
 
+      - name: Run sonar-scanner (for llvm profile based coverage))
+        if: matrix.sonar && matrix.llvmprofile
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: pwsh
+        run: sonar-scanner ${{ env.SONAR_ARGS }} --define sonar.cfamily.llvm-cov.reportPath=coverage_llvm.txt
 
   formatting-check:
     name: Formatting Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: clang-format src
-      if: ${{ always() }}
-      uses: jidicula/clang-format-action@v4.9.0
-      with:
-        clang-format-version: '15'
-        check-path: 'recorder/src'
-        # exclude: '(hello|world)' # Exclude file paths containing "hello" or "world"
-        exclude-regex: ''
-    - name: clang-format test
-      if: ${{ always() }}
-      uses: jidicula/clang-format-action@v4.9.0
-      with:
-        clang-format-version: '15'
-        check-path: 'recorder/test'
-        exclude-regex: ''
+      - uses: actions/checkout@v3
+      - name: clang-format src
+        if: always()
+        uses: jidicula/clang-format-action@v4.9.0
+        with:
+          clang-format-version: ${{ env.CLANG_VERSION}}
+          check-path: "recorder/src"
+          # exclude: '(hello|world)' # Exclude file paths containing "hello" or "world"
+          exclude-regex: ""
+      - name: clang-format test
+        if: always()
+        uses: jidicula/clang-format-action@v4.9.0
+        with:
+          clang-format-version: ${{ env.CLANG_VERSION}}
+          check-path: "recorder/test"
+          exclude-regex: ""
