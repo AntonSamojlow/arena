@@ -32,20 +32,6 @@ runs:
         version: ${{ env.CLANG_VERSION }} # ignored on windows
         platform: x64
 
-    # DEBUGGING
-    - name: install clang
-      if: inputs.clang == 'true'
-      working-directory: cd /usr/lib/llvm-15/lib/clang/15.0.7/lib/
-      shell: pwsh
-      run: ls
-
-    # DEBUGGING
-    - name: install clang
-      if: inputs.clang == 'true'
-      working-directory: cd /usr/lib/llvm-15/lib/clang/15.0.7/lib/linux
-      shell: pwsh
-      run: ls
-
     - name: install clang-tidy
       shell: bash
       if: inputs.clang == 'true'
