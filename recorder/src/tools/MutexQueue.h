@@ -69,10 +69,11 @@ class MutexQueue {
 	}
 
 	template <class Rep, class Period>
-	[[nodiscard]] auto wait_for_and_dequeuep(const std::chrono::duration<Rep, Period>& time_out) -> std::optional<T> {
+	[[nodiscard]] auto wait_for_and_dequeue(const std::chrono::duration<Rep, Period>& time_out) -> std::optional<T> {
 		std::unique_lock lock{mutex_};
 
-		condition_var_.wait_for(lock, time_out, [&] { return !queue_.empty(); });
+		if (!condition_var_.wait_for(lock, time_out, [&] { return !queue_.empty(); }))
+			return std::nullopt;
 
 		T result = queue_.front();
 		queue_.pop();
