@@ -53,10 +53,10 @@ TEST_CASE("MutexQueue wait operation", "[tools]") {
 	tools::MutexQueue<int> queue;
 
 	std::jthread const pusher{[](tools::MutexQueue<int>& target_queue) {
-												std::this_thread::sleep_for(100ms);
-												target_queue.emplace(1);
-												target_queue.push(2);
-											},
+															std::this_thread::sleep_for(100ms);
+															target_queue.emplace(1);
+															target_queue.push(2);
+														},
 		std::ref(queue)};
 
 	CHECK(!queue.wait_for_and_dequeue(1ms).has_value());
