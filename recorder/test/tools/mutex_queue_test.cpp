@@ -3,6 +3,7 @@
 #include <atomic>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <functional>
 #include <optional>
 #include <thread>
 #include <vector>
@@ -53,6 +54,21 @@ auto read(tools::MutexQueue<int>& queue, int count) -> void {
 		auto result = queue.wait_and_dequeue();
 		CHECK(result.has_value());
 	}
+}
+
+TEST_CASE("MutexQueue wait operation", "[tools]") {
+	tools::MutexQueue<int> queue;
+
+	std::jthread pusher{[](tools::MutexQueue<int>& target_queue) {
+												std::this_thread::sleep_for(100ms);
+												target_queue.emplace(1);
+												target_queue.push(2);
+											},
+		std::ref(queue)};
+
+	CHECK(!queue.wait_for_and_dequeue(1ms).has_value());
+	CHECK(queue.wait_for_and_dequeue(200ms) == 1);
+	CHECK(queue.wait_and_dequeue() == 2);
 }
 
 TEST_CASE("MutexQueue concurrent operations", "[tools]") {
