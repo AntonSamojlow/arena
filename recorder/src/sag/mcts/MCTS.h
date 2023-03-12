@@ -74,9 +74,8 @@ auto select(typename G::state state,
 		auto requirement_failed = [&](typename G::action action) {
 			if (!graph.is_expanded_at(state, action))
 				return true;
-			return std::ranges::any_of(graph.edges_at(state, action), [&](ActionEdge<typename G::state> edge) {
-				return !stats.has(edge.state());
-			});
+			return std::ranges::any_of(
+				graph.edges_at(state, action), [&](ActionEdge<typename G::state> edge) { return !stats.has(edge.state()); });
 		};
 		if (std::ranges::any_of(actions, requirement_failed))
 			return path;
@@ -84,9 +83,8 @@ auto select(typename G::state state,
 		// cache upper_confidence_bound values to avoid concurrencey issues
 		// (another thread might update stats while this one executes std::min_element)
 		std::vector<double> ucb_values;
-		std::ranges::transform(actions, std::back_inserter(ucb_values), [&](auto action) {
-			return upper_confidence_bound(state, action);
-		});
+		std::ranges::transform(
+			actions, std::back_inserter(ucb_values), [&](auto action) { return upper_confidence_bound(state, action); });
 		auto min_index = static_cast<size_t>(std::distance(ucb_values.begin(), std::ranges::min_element(ucb_values)));
 
 		if (sample_actions_uniformly) {
