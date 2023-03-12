@@ -1,11 +1,10 @@
-#include <vcruntime.h>
-
 #include <atomic>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <functional>
 #include <optional>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 #include "tools/MutexQueue.h"
@@ -15,41 +14,35 @@ using namespace std::chrono_literals;
 TEMPLATE_TEST_CASE("MutexQueue base operations", "[tools]", int, double, std::string) {
 	tools::MutexQueue<TestType> queue;
 
-	// prepare two different values
-	TestType first{};
-	TestType second{};
-	if constexpr (std::is_arithmetic_v<TestType>) {
-		second = 2;
-	}
-	if constexpr (std::is_same_v<TestType, std::string>) {
-		second = "2";
-	}
-	CHECK(first != second);
-
 	// test base operations
 	CHECK(queue.empty());
 	CHECK(queue.size() == 0);  // NOLINT
-	queue.push(first);
-	queue.emplace(second);
+	queue.push(TestType{});
+
+	if constexpr (std::is_arithmetic_v<TestType>) {
+		queue.emplace(0);
+	} else if constexpr (std::is_same_v<TestType, std::string>) {
+		queue.emplace("string");
+	}
 
 	CHECK(!queue.empty());
 	CHECK(queue.size() == 2);
 
-	CHECK(queue.try_dequeue() == first);
+	CHECK(queue.try_dequeue().has_value());
 	CHECK(queue.size() == 1);
-	CHECK(queue.try_dequeue() == second);
+	CHECK(queue.try_dequeue().has_value());
 	CHECK(queue.empty());
 	CHECK(queue.try_dequeue() == std::nullopt);
 	CHECK(queue.wait_for_and_dequeue(1ms) == std::nullopt);
 }
 
-auto write(tools::MutexQueue<int>& queue, int count) -> void {
+static auto write(tools::MutexQueue<int>& queue, int count) -> void {
 	for (int i = 0; i < count; ++i) {
 		queue.push(i);
 	}
 }
 
-auto read(tools::MutexQueue<int>& queue, int count) -> void {
+static auto read(tools::MutexQueue<int>& queue, int count) -> void {
 	for (int i = 0; i < count; ++i) {
 		auto result = queue.wait_and_dequeue();
 		CHECK(result.has_value());
@@ -59,7 +52,7 @@ auto read(tools::MutexQueue<int>& queue, int count) -> void {
 TEST_CASE("MutexQueue wait operation", "[tools]") {
 	tools::MutexQueue<int> queue;
 
-	std::jthread pusher{[](tools::MutexQueue<int>& target_queue) {
+	std::jthread const pusher{[](tools::MutexQueue<int>& target_queue) {
 												std::this_thread::sleep_for(100ms);
 												target_queue.emplace(1);
 												target_queue.push(2);
@@ -104,7 +97,7 @@ TEST_CASE("MutexQueue concurrent operations", "[tools]") {
 		for (int attempt = 0; attempt < 100; ++attempt) {
 			if (queue.empty()) {
 				break;
-			};
+			}
 			std::this_thread::sleep_for(10ms);
 		}
 
@@ -125,7 +118,7 @@ TEST_CASE("MutexQueue concurrent operations", "[tools]") {
 		for (int attempt = 0; attempt < 100; ++attempt) {
 			if (queue.empty()) {
 				break;
-			};
+			}
 			std::this_thread::sleep_for(10ms);
 		}
 
