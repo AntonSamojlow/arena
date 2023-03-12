@@ -36,18 +36,20 @@ TEMPLATE_TEST_CASE("MutexQueue base operations", "[tools]", int, double, std::st
 	CHECK(queue.wait_for_and_dequeue(1ms) == std::nullopt);
 }
 
-static auto write(tools::MutexQueue<int>& queue, int count) -> void {
-	for (int i = 0; i < count; ++i) {
-		queue.push(i);
+struct Ops {
+	static auto write(tools::MutexQueue<int>& queue, int count) -> void {
+		for (int i = 0; i < count; ++i) {
+			queue.push(i);
+		}
 	}
-}
 
-static auto read(tools::MutexQueue<int>& queue, int count) -> void {
-	for (int i = 0; i < count; ++i) {
-		auto result = queue.wait_and_dequeue();
-		CHECK(result.has_value());
+	static auto read(tools::MutexQueue<int>& queue, int count) -> void {
+		for (int i = 0; i < count; ++i) {
+			auto result = queue.wait_and_dequeue();
+			CHECK(result.has_value());
+		}
 	}
-}
+};
 
 TEST_CASE("MutexQueue wait operation", "[tools]") {
 	tools::MutexQueue<int> queue;
@@ -76,22 +78,22 @@ TEST_CASE("MutexQueue concurrent operations", "[tools]") {
 	SECTION("Concurrent writes") {
 		// concurrently fill the queue
 		for (int i = 0; i < thread_count; ++i) {
-			threads.emplace_back(::write, std::ref(queue), push_count);
+			threads.emplace_back(Ops::write, std::ref(queue), push_count);
 		}
 
 		// drain the queue the expected numbers of times
-		read(queue, push_count * thread_count);
+		Ops::read(queue, push_count * thread_count);
 		CHECK(queue.empty());
 	}
 
 	SECTION("Concurrent reads") {
 		// fill the queue
-		write(queue, push_count * thread_count);
+		Ops::write(queue, push_count * thread_count);
 		CHECK(queue.size() == static_cast<size_t>(push_count * thread_count));
 
 		// concurrently drain the queue the expected numbers of times
 		for (int i = 0; i < thread_count; ++i) {
-			threads.emplace_back(::read, std::ref(queue), push_count);
+			threads.emplace_back(Ops::read, std::ref(queue), push_count);
 		}
 
 		for (int attempt = 0; attempt < 100; ++attempt) {
@@ -107,12 +109,12 @@ TEST_CASE("MutexQueue concurrent operations", "[tools]") {
 	SECTION("Concurrent reads and writes") {
 		// concurrently fill the queue
 		for (int i = 0; i < thread_count; ++i) {
-			threads.emplace_back(::write, std::ref(queue), push_count);
+			threads.emplace_back(Ops::write, std::ref(queue), push_count);
 		}
 
 		// concurrently drain the queue the expected numbers of times
 		for (int i = 0; i < thread_count; ++i) {
-			threads.emplace_back(::read, std::ref(queue), push_count);
+			threads.emplace_back(Ops::read, std::ref(queue), push_count);
 		}
 
 		for (int attempt = 0; attempt < 100; ++attempt) {
