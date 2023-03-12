@@ -1,10 +1,10 @@
 #pragma once
 
 #include <concepts>
+#include <condition_variable>
 #include <mutex>
 #include <optional>
 #include <queue>
-#include <condition_variable>
 
 namespace tools {
 
