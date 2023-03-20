@@ -27,13 +27,20 @@ TEMPLATE_TEST_CASE("MutexQueue base operations", "[tools]", int, double, std::st
 
 	CHECK(!queue.empty());
 	CHECK(queue.size() == 2);
+	SECTION("Test dequeue") {
+		CHECK(queue.try_dequeue().has_value());
+		CHECK(queue.size() == 1);
+		CHECK(queue.try_dequeue().has_value());
+		CHECK(queue.empty());
+		CHECK(queue.try_dequeue() == std::nullopt);
+		CHECK(queue.wait_for_and_dequeue(1ms) == std::nullopt);
+	}
 
-	CHECK(queue.try_dequeue().has_value());
-	CHECK(queue.size() == 1);
-	CHECK(queue.try_dequeue().has_value());
-	CHECK(queue.empty());
-	CHECK(queue.try_dequeue() == std::nullopt);
-	CHECK(queue.wait_for_and_dequeue(1ms) == std::nullopt);
+	SECTION("Test drain") {
+		auto drained = queue.drain();
+		CHECK(queue.empty());
+		CHECK(drained.size() == 2);
+	}
 }
 
 struct Ops {

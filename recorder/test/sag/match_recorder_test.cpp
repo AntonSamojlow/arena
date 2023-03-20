@@ -17,7 +17,7 @@ TEST_CASE("Match recorder test", "[sag, match]") {
 
 	sag::match::RandomPlayer<Graph> player_one{};
 	sag::match::RandomPlayer<Graph> player_two{};
-	sag::match::MatchRecorder recorder{};
+	sag::match::MatchRecorder_v0 recorder{};
 
 	auto root = container.roots()[0];
 	auto const time_pre_record = steady_clock::now();

@@ -3,10 +3,12 @@
 
 #include <chrono>
 #include <random>
+#include <tl/expected.hpp>
 
 #include "Player.h"
 #include "sag/GraphConcepts.h"
 #include "sag/GraphOperations.h"
+#include "tools/Failure.h"
 
 namespace sag::match {
 
@@ -51,9 +53,9 @@ struct Match {
 static_assert(std::regular<Match<int, int>>);
 static_assert(std::regular<Match<int, float>>);
 
-class MatchRecorder {
+class MatchRecorder_v0 {
  public:
-	MatchRecorder() {
+	MatchRecorder_v0() {
 		std::random_device rand;
 		rng_ = std::mt19937(rand());
 	}
@@ -101,7 +103,7 @@ class MatchRecorder {
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 };
 
-static_assert(std::semiregular<MatchRecorder>);
+static_assert(std::semiregular<MatchRecorder_v0>);
 
 template <Graph G>
 auto score(Match<typename G::state, typename G::action> const& record, typename G::rules const& rules) -> sag::Score {
@@ -109,5 +111,19 @@ auto score(Match<typename G::state, typename G::action> const& record, typename 
 		return Score{0};
 	return rules.score(record.plays.back());
 }
+
+// clang-format off
+template <typename S, typename State, typename Action>
+concept Storage = sag::Vertices<State, Action>
+	&& requires (S storage, Match<State, Action> match, std::string_view extra_data){
+	{ storage.add(match, extra_data) } -> std::same_as<tl::expected<void, Failure>>;
+};
+
+template <class R>
+concept RecorderTypes =
+  sag::Graph<typename R::graph> &&
+  Player<typename R::player, typename R::graph> &&
+	Storage<typename R::storage, typename R::graph::state, typename R::graph::action>;
+// clang-format on
 
 }  // namespace sag::match

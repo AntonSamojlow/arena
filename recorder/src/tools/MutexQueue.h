@@ -46,6 +46,13 @@ class MutexQueue {
 		return queue_.size();
 	}
 
+	auto drain() -> std::queue<T, Container> {
+		std::lock_guard lock{mutex_};
+		std::queue<T, Container> result;
+		queue_.swap(result);
+		return result;
+	}
+
 	[[nodiscard]] auto try_dequeue() -> std::optional<T> {
 		std::lock_guard lock{mutex_};
 		if (queue_.empty()) {
