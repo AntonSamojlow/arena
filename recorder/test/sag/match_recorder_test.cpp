@@ -4,6 +4,7 @@
 
 #include "sag/TicTacToe.h"
 #include "sag/rec/Match.h"
+#include "sag/rec/MatchRecorder.h"
 #include "sag/rec/Player.h"
 #include "sag/storage/MemoryMatchStorage.h"
 

@@ -1,4 +1,6 @@
-﻿#include <spdlog/spdlog.h>
+﻿#include "sag/rec/Recorder.h"
+
+#include <spdlog/spdlog.h>
 #include <sqlite3.h>
 
 #include <cstddef>
@@ -19,7 +21,8 @@ auto main() -> int {
 	auto logger = spdlog::default_logger();
 	logger->info("recorder start");
 
-	// sag::rec::MatchRecorder<ExampleTypes> recorder;
+	sag::rec::MatchRecorder<sag::rec::TicTacToeRecorder> match_recorder;
+	sag::rec::Recorder recorder(match_recorder);
 
 	logger->info("recorder end");
 	return 0;
