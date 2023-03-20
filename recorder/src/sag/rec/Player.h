@@ -7,7 +7,7 @@
 #include "sag/ExampleGraph.h"
 #include "sag/GraphConcepts.h"
 
-namespace sag::match {
+namespace sag::rec {
 
 template <typename P, typename G>
 concept Player = std::regular<P> && Graph<G> &&
@@ -54,4 +54,4 @@ class RandomPlayer {
 
 static_assert(Player<RandomPlayer<sag::example::Graph>, sag::example::Graph>);
 
-}  // namespace sag::match
+}  // namespace sag::rec

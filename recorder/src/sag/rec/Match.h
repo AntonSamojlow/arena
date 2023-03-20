@@ -10,7 +10,7 @@
 #include "sag/GraphOperations.h"
 #include "tools/Failure.h"
 
-namespace sag::match {
+namespace sag::rec {
 
 /// Wrapper around std::pair, representing a state and a correspnding play
 template <typename S, typename A>
@@ -126,4 +126,4 @@ concept RecorderTypes =
 	Storage<typename R::storage, typename R::graph::state, typename R::graph::action>;
 // clang-format on
 
-}  // namespace sag::match
+}  // namespace sag::rec

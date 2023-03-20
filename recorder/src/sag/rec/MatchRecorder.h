@@ -3,17 +3,17 @@
 #include <vector>
 
 #include "sag/GraphConcepts.h"
-#include "sag/match/Match.h"
-#include "sag/match/Player.h"
+#include "sag/rec/Match.h"
+#include "sag/rec/Player.h"
 #include "tools/MutexQueue.h"
 
-namespace sag::match {
+namespace sag::rec {
 
 enum class RecorderCommand { Record, Stop, Quit, Info };
 
 enum class RecorderState { Stopped, Recording, Stopping };
 
-class MatchRecorder {
+class RecorderThreadHandle {
  public:
 	auto start() -> void;
 
@@ -23,7 +23,6 @@ class MatchRecorder {
 	auto reduce_commands_(std::vector<RecorderCommand> const& commands) -> void;
 	auto drain_inbox_() -> std::vector<RecorderCommand>;
 	tools::MutexQueue<RecorderCommand> inbox_queue_;
-	RecorderState state_ = RecorderState::Stopped;
 };
 
-}  // namespace sag::match
+}  // namespace sag::rec

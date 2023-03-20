@@ -7,8 +7,8 @@
 
 #include "../helpers.h"
 #include "sag/TicTacToe.h"
-#include "sag/match/Match.h"
-#include "sag/match/Player.h"
+#include "sag/rec/Match.h"
+#include "sag/rec/Player.h"
 #include "sag/storage/MemoryMatchStorage.h"
 #include "sag/storage/SQLiteMatchStorage.h"
 

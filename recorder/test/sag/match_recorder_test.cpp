@@ -3,8 +3,8 @@
 #include <chrono>
 
 #include "sag/TicTacToe.h"
-#include "sag/match/Match.h"
-#include "sag/match/Player.h"
+#include "sag/rec/Match.h"
+#include "sag/rec/Player.h"
 #include "sag/storage/MemoryMatchStorage.h"
 
 using namespace sag::tic_tac_toe;
@@ -15,9 +15,9 @@ TEST_CASE("Match recorder test", "[sag, match]") {
 	Graph::container container;
 	Graph::rules const rules;
 
-	sag::match::RandomPlayer<Graph> player_one{};
-	sag::match::RandomPlayer<Graph> player_two{};
-	sag::match::MatchRecorder_v0 recorder{};
+	sag::rec::RandomPlayer<Graph> player_one{};
+	sag::rec::RandomPlayer<Graph> player_two{};
+	sag::rec::MatchRecorder_v0 recorder{};
 
 	auto root = container.roots()[0];
 	auto const time_pre_record = steady_clock::now();

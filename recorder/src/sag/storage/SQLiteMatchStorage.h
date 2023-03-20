@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "sag/match/Match.h"
+#include "sag/rec/Match.h"
 #include "tools/Failure.h"
 #include "tools/SQLiteConnection.h"
 
@@ -84,7 +84,7 @@ class SQLiteMatchStorage {
 			throw std::runtime_error(result.error().reason);
 	}
 
-	auto add(match::Match<S, A> match, std::string_view extra_data) const -> tl::expected<void, Failure> {
+	auto add(rec::Match<S, A> match, std::string_view extra_data) const -> tl::expected<void, Failure> {
 		std::string command =
 			fmt::format("INSERT INTO matches (score, starttime, endtime, extra_data) VALUES ({}, {}, {}, {}) RETURNING id;",
 				FloatingPointConverter<float>::to_insert_text(match.end_score.value()),
@@ -97,7 +97,7 @@ class SQLiteMatchStorage {
 		int64_t match_id = std::atoi(result->rows.front()[0].c_str());
 		command = "INSERT INTO records (match_id, turn_nr, state, action) VALUES";
 		for (size_t turn_nr = 0; turn_nr < match.plays.size(); ++turn_nr) {
-			sag::match::Play<S, A> const& play = match.plays[turn_nr];
+			sag::rec::Play<S, A> const& play = match.plays[turn_nr];
 			command += fmt::format("({}, {}, {}, {}),",
 				IntegerConverter<int64_t>::to_insert_text(match_id),
 				IntegerConverter<size_t>::to_insert_text(turn_nr),
