@@ -5,6 +5,7 @@
 #include <mutex>
 #include <optional>
 #include <queue>
+#include <vector>
 
 namespace tools {
 
@@ -64,11 +65,10 @@ class MutexQueue {
 		return result;
 	}
 
-	[[nodiscard]] auto wait_and_dequeue() -> std::optional<T> {
+	[[nodiscard]] auto wait_and_dequeue() -> T {
 		std::unique_lock lock{mutex_};
 
 		condition_var_.wait(lock, [&] { return !queue_.empty(); });
-
 		T result = queue_.front();
 		queue_.pop();
 		return result;
