@@ -12,7 +12,7 @@ auto Recorder::request(Recorder::Command command) -> void {
 }
 
 auto Recorder::state() const -> Recorder::State {
-	return state_.load();
+	return state_;
 }
 
 }  // namespace sag::rec
