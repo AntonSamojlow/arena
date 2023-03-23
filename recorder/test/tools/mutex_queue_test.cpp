@@ -52,7 +52,7 @@ struct Ops {
 
 	static auto read(tools::MutexQueue<int>& queue, int count) -> void {
 		for (int i = 0; i < count; ++i) {
-			auto result = queue.wait_and_dequeue();
+			queue.wait_and_dequeue();
 		}
 	}
 };

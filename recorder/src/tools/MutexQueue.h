@@ -65,7 +65,7 @@ class MutexQueue {
 		return result;
 	}
 
-	[[nodiscard]] auto wait_and_dequeue() -> T {
+	auto wait_and_dequeue() -> T {
 		std::unique_lock lock{mutex_};
 
 		condition_var_.wait(lock, [&] { return !queue_.empty(); });

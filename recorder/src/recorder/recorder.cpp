@@ -20,10 +20,8 @@ auto main() -> int {
 	auto logger = spdlog::default_logger();
 	logger->info("recorder start");
 
-	sag::rec::MatchRecorder<sag::rec::TicTacToeRecorder> match_recorder;
-	sag::rec::Recorder recorder(match_recorder);
+	sag::rec::Recorder recorder(sag::rec::MatchRecorder<sag::rec::TicTacToeRecorder> {});
 
-	std::this_thread::sleep_for(1000ms);
 	logger->info("recorder end");
 	return 0;
 }
