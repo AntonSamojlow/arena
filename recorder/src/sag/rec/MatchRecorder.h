@@ -1,31 +1,8 @@
 #pragma once
-#include <spdlog/common.h>
-#include <spdlog/logger.h>
-#include <spdlog/spdlog.h>
-
-#include <algorithm>
-#include <chrono>
-#include <concepts>
-#include <iterator>
-#include <memory>
-#include <optional>
-#include <queue>
-#include <random>
-#include <ranges>
-#include <stop_token>
-#include <tl/expected.hpp>
-#include <type_traits>
-
-#include "Match.h"
 #include "MatchConcepts.h"
-#include "sag/GraphConcepts.h"
-#include "sag/GraphOperations.h"
 #include "sag/TicTacToe.h"
-#include "sag/rec/MatchConcepts.h"
-#include "sag/rec/Player.h"
 #include "sag/rec/Recorder.h"
 #include "sag/storage/MemoryMatchStorage.h"
-#include "tools/MutexQueue.h"
 
 namespace sag::rec {
 
