@@ -9,6 +9,7 @@
 #include <iterator>
 #include <memory>
 #include <optional>
+#include <queue>
 #include <random>
 #include <ranges>
 #include <stop_token>
@@ -52,44 +53,23 @@ class MatchRecorder {
 		state = Recorder::State::Stopped;
 
 		while (!token.stop_requested()) {
-			bool info_requested = false;
+			if (state == Recorder::State::Recording)
+				record_once();
 
 			// check and parse accumulated queue content
-			auto commands = queue.drain();
-			if (!commands.empty()) {
-				std::optional<Recorder::Command> last_state_change_command = std::nullopt;
-				while (!commands.empty()) {
-					switch (commands.front()) {
-						case Recorder::Command::Record: last_state_change_command = Recorder::Command::Record; break;
-						case Recorder::Command::Stop: last_state_change_command = Recorder::Command::Stop; break;
-						case Recorder::Command::Quit: state = Recorder::State::Stopped; return;
-						case Recorder::Command::Info: info_requested = true; break;
-					}
-					commands.pop();
-				}
-				// collapse record and stop commands (last one wins)
-				if (last_state_change_command.has_value()) {
-					if (last_state_change_command == Recorder::Command::Stop)
-						state = Recorder::State::Stopped;
-					if (last_state_change_command == Recorder::Command::Record)
-						state = Recorder::State::Recording;
-				}
-			} else if (state == Recorder::State::Stopped) {
+			if (parse_queue_and_check_info(state, queue))
+				generate_info();
+
+			if (state == Recorder::State::Stopped) {
 				// wait for next queue content
 				switch (queue.wait_and_dequeue()) {
 					// collapse record and stop to the last one wins:
 					case Recorder::Command::Record: state = Recorder::State::Recording; break;
 					case Recorder::Command::Stop: break;
 					case Recorder::Command::Quit: return;
-					case Recorder::Command::Info: info_requested = true; break;
+					case Recorder::Command::Info: generate_info(); break;
 				}
 			}
-
-			// act
-			if (info_requested)
-				generate_info();
-			if (state == Recorder::State::Recording)
-				record_once();
 		}
 	}
 
@@ -142,6 +122,37 @@ class MatchRecorder {
 		storage_.add(match, "");
 
 		logger_->debug("match stored");
+	}
+
+	/// Drains and parses the accumulated queue content, collapsing repeated state changes into one change.
+	/// Returns true if info output was requested; false otherwoise.
+	auto parse_queue_and_check_info(std::atomic<Recorder::State>& state, tools::MutexQueue<Recorder::Command>& queue)
+		-> bool {
+		auto commands = queue.drain();
+		bool info_requested = false;
+
+		if (commands.empty())
+			return info_requested;
+
+		std::optional<Recorder::Command> last_state_change_command = std::nullopt;
+		while (!commands.empty()) {
+			switch (commands.front()) {
+				case Recorder::Command::Record: last_state_change_command = Recorder::Command::Record; break;
+				case Recorder::Command::Stop: last_state_change_command = Recorder::Command::Stop; break;
+				case Recorder::Command::Quit: state = Recorder::State::Stopped; return info_requested;
+				case Recorder::Command::Info: info_requested = true; break;
+			}
+			commands.pop();
+		}
+		// collapse record and stop commands (last one wins)
+		if (last_state_change_command.has_value()) {
+			if (last_state_change_command == Recorder::Command::Stop)
+				state = Recorder::State::Stopped;
+			if (last_state_change_command == Recorder::Command::Record)
+				state = Recorder::State::Recording;
+		}
+
+		return info_requested;
 	}
 };
 
