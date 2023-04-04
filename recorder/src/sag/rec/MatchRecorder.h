@@ -1,7 +1,7 @@
 #pragma once
 #include "MatchConcepts.h"
+#include "tools/MutexQueue.h"
 #include "sag/TicTacToe.h"
-#include "sag/rec/Recorder.h"
 #include "sag/storage/MemoryMatchStorage.h"
 
 namespace sag::rec {
@@ -16,6 +16,8 @@ static_assert(MatchRecorderTypes<TicTacToeRecorder>);
 
 template <MatchRecorderTypes Types>
 class MatchRecorder {
+	enum class Signal { Record, Stop, Quit };
+
  public:
 	MatchRecorder() = default;
 	MatchRecorder(std::vector<typename Types::player> players,
@@ -25,39 +27,39 @@ class MatchRecorder {
 			: players_(players), graph_(graph), rules_(rules), storage_(storage) {}
 
 	auto operator()(
-		std::stop_token const& token, std::atomic<Recorder::State>& state, tools::MutexQueue<Recorder::Command>& queue)
+		std::stop_token const& token, std::atomic<bool>& is_running, tools::MutexQueue<Signal>& queue)
 		-> void {
-		state = Recorder::State::Stopped;
-
+		is_running = false;
 		while (!token.stop_requested()) {
-			if (state == Recorder::State::Recording)
+			if (is_running)
 				record_once();
 
 			// check and parse accumulated queue content
-			if (parse_queue_and_check_info(state, queue))
+			if (parse_queue_and_check_info(is_running, queue))
 				generate_info();
 
-			if (state == Recorder::State::Stopped) {
+			if (!is_running) {
 				// wait for next queue content
 				switch (queue.wait_and_dequeue()) {
 					// collapse record and stop to the last one wins:
-					case Recorder::Command::Record: state = Recorder::State::Recording; break;
-					case Recorder::Command::Stop: break;
-					case Recorder::Command::Quit: return;
-					case Recorder::Command::Info: generate_info(); break;
+					case Signal::Record: is_running = false; break;
+					case Signal::Stop: break;
+					case Signal::Quit: return;
 				}
 			}
 		}
 	}
 
  private:
-	using State = typename Types::graph::state;
-	using Action = typename Types::graph::action;
+
 
 	std::vector<typename Types::player> players_;
 	typename Types::graph::container graph_;
 	typename Types::graph::rules rules_;
 	typename Types::storage storage_;
+
+	tools::MutexQueue<Signal> signal_queue_;
+	std::jthread thread_;
 
 	std::shared_ptr<spdlog::logger> logger_ = spdlog::default_logger();  // todo: make logger configurable/injectable
 	std::mt19937 rng_ = std::mt19937(std::random_device()());
@@ -66,6 +68,9 @@ class MatchRecorder {
 	auto generate_info() const -> void { logger_->debug("{} players", players_.size()); }
 
 	auto record_once() -> void {
+		using State = typename Types::graph::state;
+		using Action = typename Types::graph::action;
+
 		// todo: pick randomly?
 		State state = graph_.roots().front();
 
@@ -102,37 +107,32 @@ class MatchRecorder {
 	}
 
 	/// Drains and parses the accumulated queue content, collapsing repeated state changes into one change.
-	/// Returns true if info output was requested; false otherwoise.
-	auto parse_queue_and_check_info(std::atomic<Recorder::State>& state, tools::MutexQueue<Recorder::Command>& queue)
+	/// Returns true if info output was requested; false otherwise.
+	auto parse_queue_and_check_info(std::atomic<bool>& is_running, tools::MutexQueue<Signal>& queue)
 		-> bool {
 		auto commands = queue.drain();
-		bool info_requested = false;
 
 		if (commands.empty())
-			return info_requested;
 
-		std::optional<Recorder::Command> last_state_change_command = std::nullopt;
+		std::optional<Recorder::Signal> last_state_change_command = std::nullopt;
 		while (!commands.empty()) {
 			switch (commands.front()) {
-				case Recorder::Command::Record: last_state_change_command = Recorder::Command::Record; break;
-				case Recorder::Command::Stop: last_state_change_command = Recorder::Command::Stop; break;
-				case Recorder::Command::Quit: state = Recorder::State::Stopped; return info_requested;
-				case Recorder::Command::Info: info_requested = true; break;
+				case Signal::Record: last_state_change_command = Signal::Record; break;
+				case Signal::Stop: last_state_change_command = Signal::Stop; break;
+				case Signal::Quit: is_running = false; return info_requested;
 			}
 			commands.pop();
 		}
 		// collapse record and stop commands (last one wins)
 		if (last_state_change_command.has_value()) {
-			if (last_state_change_command == Recorder::Command::Stop)
+			if (last_state_change_command == Signal::Stop)
 				state = Recorder::State::Stopped;
-			if (last_state_change_command == Recorder::Command::Record)
+			if (last_state_change_command == Signal::Record)
 				state = Recorder::State::Recording;
 		}
 
 		return info_requested;
 	}
 };
-
-static_assert(std::is_convertible<MatchRecorder<TicTacToeRecorder>, Recorder::Function>());
 
 }  // namespace sag::rec
