@@ -15,7 +15,7 @@ class MutexQueue {
  private:
 	std::queue<T, Container> queue_ = {};
 	mutable std::mutex mutex_ = {};
-	std::condition_variable condition_var_ = {};
+	std::condition_variable condition_var_  = {};
 
  public:
 	MutexQueue() = default;

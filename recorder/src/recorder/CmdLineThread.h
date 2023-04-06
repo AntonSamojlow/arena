@@ -2,9 +2,7 @@
 #include <stop_token>
 #include <thread>
 
-#include "recorder/CmdLineThread.h"
 #include "tools/MutexQueue.h"
-#include "tools/Failure.h"
 
 namespace recorder {
 
@@ -17,11 +15,10 @@ class CmdLineThread {
  public:
 	CmdLineThread();
 
-	// [[nodiscard]] auto queue() -> tools::MutexQueue<CmdLineRequest>&;
+	[[nodiscard]] auto queue() -> tools::MutexQueue<CmdLineRequest>& {return queue_;}
 
  private:
-	tools::Failure failure {};
-	// tools::MutexQueue<CmdLineRequest> queue_{};
+	tools::MutexQueue<CmdLineRequest> queue_{};
 	std::jthread thread_;
 };
 }  // namespace recorder
