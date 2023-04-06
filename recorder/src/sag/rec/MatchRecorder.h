@@ -1,8 +1,11 @@
 #pragma once
+#include <queue>
+#include <string>
+
 #include "MatchConcepts.h"
-#include "tools/MutexQueue.h"
 #include "sag/TicTacToe.h"
 #include "sag/storage/MemoryMatchStorage.h"
+#include "tools/MutexQueue.h"
 
 namespace sag::rec {
 
@@ -14,10 +17,10 @@ struct TicTacToeRecorder {
 
 static_assert(MatchRecorderTypes<TicTacToeRecorder>);
 
+enum class Signal { Record, Halt, Quit, Status };
+
 template <MatchRecorderTypes Types>
 class MatchRecorder {
-	enum class Signal { Record, Stop, Quit };
-
  public:
 	MatchRecorder() = default;
 	MatchRecorder(std::vector<typename Types::player> players,
@@ -26,46 +29,48 @@ class MatchRecorder {
 		typename Types::storage storage)
 			: players_(players), graph_(graph), rules_(rules), storage_(storage) {}
 
-	auto operator()(
-		std::stop_token const& token, std::atomic<bool>& is_running, tools::MutexQueue<Signal>& queue)
-		-> void {
-		is_running = false;
+	// recorder is callable: it may run in a thread, with a queue for control signals
+	auto operator()(std::stop_token const& token, tools::MutexQueue<Signal>& queue) -> void {
+		logger_->info("recorder thread start");
 		while (!token.stop_requested()) {
-			if (is_running)
+			if (is_running_)
 				record_once();
 
-			// check and parse accumulated queue content
-			if (parse_queue_and_check_info(is_running, queue))
-				generate_info();
-
-			if (!is_running) {
-				// wait for next queue content
-				switch (queue.wait_and_dequeue()) {
-					// collapse record and stop to the last one wins:
-					case Signal::Record: is_running = false; break;
-					case Signal::Stop: break;
-					case Signal::Quit: return;
+			while (auto signal = queue.try_dequeue()) {
+				switch (signal.value()) {
+					case Signal::Record:
+						logger_->info("record signal");
+						is_running_ = true;
+						break;
+					case Signal::Halt:
+						logger_->info("halt signal");
+						is_running_ = false;
+						break;
+					case Signal::Quit: logger_->info("quit signal"); return;
+					case Signal::Status:
+						logger_->info("status signal");
+						generate_info();
+						break;
 				}
 			}
 		}
+		logger_->info("recorder thread end");
 	}
 
  private:
-
-
+	bool is_running_ = false;
 	std::vector<typename Types::player> players_;
 	typename Types::graph::container graph_;
 	typename Types::graph::rules rules_;
 	typename Types::storage storage_;
 
-	tools::MutexQueue<Signal> signal_queue_;
-	std::jthread thread_;
-
 	std::shared_ptr<spdlog::logger> logger_ = spdlog::default_logger();  // todo: make logger configurable/injectable
 	std::mt19937 rng_ = std::mt19937(std::random_device()());
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 
-	auto generate_info() const -> void { logger_->debug("{} players", players_.size()); }
+	auto generate_info() const -> void {
+		logger_->info("match recorder status: {} players, running={}", players_.size(), is_running_);
+	}
 
 	auto record_once() -> void {
 		using State = typename Types::graph::state;
@@ -104,34 +109,6 @@ class MatchRecorder {
 		storage_.add(match, "");
 
 		logger_->debug("match stored");
-	}
-
-	/// Drains and parses the accumulated queue content, collapsing repeated state changes into one change.
-	/// Returns true if info output was requested; false otherwise.
-	auto parse_queue_and_check_info(std::atomic<bool>& is_running, tools::MutexQueue<Signal>& queue)
-		-> bool {
-		auto commands = queue.drain();
-
-		if (commands.empty())
-
-		std::optional<Recorder::Signal> last_state_change_command = std::nullopt;
-		while (!commands.empty()) {
-			switch (commands.front()) {
-				case Signal::Record: last_state_change_command = Signal::Record; break;
-				case Signal::Stop: last_state_change_command = Signal::Stop; break;
-				case Signal::Quit: is_running = false; return info_requested;
-			}
-			commands.pop();
-		}
-		// collapse record and stop commands (last one wins)
-		if (last_state_change_command.has_value()) {
-			if (last_state_change_command == Signal::Stop)
-				state = Recorder::State::Stopped;
-			if (last_state_change_command == Signal::Record)
-				state = Recorder::State::Recording;
-		}
-
-		return info_requested;
 	}
 };
 

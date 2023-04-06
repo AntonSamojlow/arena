@@ -15,7 +15,7 @@ class MutexQueue {
  private:
 	std::queue<T, Container> queue_ = {};
 	mutable std::mutex mutex_ = {};
-	std::condition_variable condition_var_  = {};
+	std::condition_variable condition_var_ = {};
 
  public:
 	MutexQueue() = default;
@@ -47,11 +47,9 @@ class MutexQueue {
 		return queue_.size();
 	}
 
-	auto drain() -> std::queue<T, Container> {
+	auto swap(std::queue<T, Container>& other) -> void {
 		std::lock_guard lock{mutex_};
-		std::queue<T, Container> result;
-		queue_.swap(result);
-		return result;
+		queue_.swap(other);
 	}
 
 	[[nodiscard]] auto try_dequeue() -> std::optional<T> {

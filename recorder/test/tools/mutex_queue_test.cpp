@@ -3,6 +3,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <functional>
 #include <optional>
+#include <queue>
 #include <thread>
 #include <type_traits>
 #include <vector>
@@ -37,7 +38,8 @@ TEMPLATE_TEST_CASE("MutexQueue base operations", "[tools]", int, double, std::st
 	}
 
 	SECTION("Test drain") {
-		auto drained = queue.drain();
+		std::queue<TestType> drained;
+		queue.swap(drained);
 		CHECK(queue.empty());
 		CHECK(drained.size() == 2);
 	}
