@@ -1,23 +1,27 @@
 #pragma once
-
 #include <stop_token>
 #include <thread>
 
+#include "recorder/CmdLineThread.h"
 #include "tools/MutexQueue.h"
+#include "tools/Failure.h"
 
 namespace recorder {
 
-struct CmdLineRequest {};
+struct CmdLineRequest {
+	enum class Type { Quit };
+	Type type;
+};
 
 class CmdLineThread {
  public:
-	CmdLineThread() = default;
+	CmdLineThread();
 
-	[[nodiscard]] auto queue() -> tools::MutexQueue<CmdLineRequest>&;
+	// [[nodiscard]] auto queue() -> tools::MutexQueue<CmdLineRequest>&;
 
  private:
-	auto thread_loop(std::stop_token& token) -> void;
-	tools::MutexQueue<CmdLineRequest> queue_;
+	tools::Failure failure {};
+	// tools::MutexQueue<CmdLineRequest> queue_{};
 	std::jthread thread_;
 };
 }  // namespace recorder

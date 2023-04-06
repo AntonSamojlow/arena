@@ -22,7 +22,7 @@ class MemoryMatchStorage {
 	};
 
  public:
-	auto add(rec::Match<S, A> match, std::string_view extra_data) -> tl::expected<void, Failure> {
+	auto add(rec::Match<S, A> match, std::string_view extra_data) -> tl::expected<void, tools::Failure> {
 		data_.emplace_back(match, extra_data);
 		return {};
 	}

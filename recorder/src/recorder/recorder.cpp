@@ -6,17 +6,13 @@
 #include <thread>
 #include <vector>
 
-#include "sag/TicTacToe.h"
-#include "sag/rec/MatchRecorder.h"
-#include "sag/rec/Player.h"
-#include "sag/storage/MemoryMatchStorage.h"
-
-using namespace sag::tic_tac_toe;
-using namespace std::literals;
+#include "recorder/CmdLineThread.h"
 
 auto main() -> int {
 	auto logger = spdlog::default_logger();
 	logger->info("recorder start");
+	recorder::CmdLineThread cmd_line_thread;
+	// while (cmd_line_thread.queue().wait_and_dequeue().type != recorder::CmdLineRequest::Type::Quit) {}
 
 	logger->info("recorder end");
 	return 0;

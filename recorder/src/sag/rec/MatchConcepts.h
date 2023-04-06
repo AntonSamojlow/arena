@@ -12,7 +12,7 @@ namespace sag::rec {
 template <typename S, typename State, typename Action>
 concept Storage = sag::Vertices<State, Action>
 	&& requires (S storage, Match<State, Action> match, std::string_view extra_data){
-	{ storage.add(match, extra_data) } -> std::same_as<tl::expected<void, Failure>>;
+	{ storage.add(match, extra_data) } -> std::same_as<tl::expected<void, tools::Failure>>;
 };
 
 template <class Types>

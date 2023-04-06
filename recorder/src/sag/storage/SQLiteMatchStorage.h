@@ -84,7 +84,7 @@ class SQLiteMatchStorage {
 			throw std::runtime_error(result.error().reason);
 	}
 
-	auto add(rec::Match<S, A> match, std::string_view extra_data) const -> tl::expected<void, Failure> {
+	auto add(rec::Match<S, A> match, std::string_view extra_data) const -> tl::expected<void, tools::Failure> {
 		std::string command =
 			fmt::format("INSERT INTO matches (score, starttime, endtime, extra_data) VALUES ({}, {}, {}, {}) RETURNING id;",
 				FloatingPointConverter<float>::to_insert_text(match.end_score.value()),
@@ -93,7 +93,7 @@ class SQLiteMatchStorage {
 				TextConverter::to_insert_text(std::string(extra_data)));
 		auto result = connection_->execute(command);
 		if (!result.has_value())
-			return tl::unexpected<Failure>(result.error());
+			return tl::unexpected<tools::Failure>(result.error());
 		int64_t match_id = std::atoi(result->rows.front()[0].c_str());
 		command = "INSERT INTO records (match_id, turn_nr, state, action) VALUES";
 		for (size_t turn_nr = 0; turn_nr < match.plays.size(); ++turn_nr) {
@@ -108,14 +108,14 @@ class SQLiteMatchStorage {
 		command[command.size() - 1] = ';';
 		result = connection_->execute(command);
 		if (!result.has_value())
-			return tl::unexpected<Failure>(result.error());
+			return tl::unexpected<tools::Failure>(result.error());
 
 		return {};
 	}
 
  private:
 	std::unique_ptr<tools::SQLiteConnection> connection_;
-	[[nodiscard]] auto initialize_tables() const -> tl::expected<void, Failure> {
+	[[nodiscard]] auto initialize_tables() const -> tl::expected<void, tools::Failure> {
 		std::string const create_matches =
 			"CREATE TABLE matches(id integer, score real, starttime integer, endtime integer, extra_data text,"
 			"PRIMARY KEY(id));";
@@ -128,11 +128,11 @@ class SQLiteMatchStorage {
 
 		auto result = connection_->execute(create_matches);
 		if (!result.has_value())
-			return tl::unexpected<Failure>{result.error()};
+			return tl::unexpected<tools::Failure>{result.error()};
 
 		result = connection_->execute(create_records);
 		if (!result.has_value())
-			return tl::unexpected<Failure>{result.error()};
+			return tl::unexpected<tools::Failure>{result.error()};
 
 		return {};
 	}
