@@ -25,7 +25,7 @@ struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::rec::Signal> 
 
 namespace {
 auto cli_thread_loop(std::stop_token const& token, tools::MutexQueue<std::string>* queue) -> void {
-	std::shared_ptr<spdlog::logger> logger = spdlog::default_logger();  // todo: make logger configurable/injectable
+	std::shared_ptr<spdlog::logger> const logger = spdlog::default_logger();  // todo: make logger configurable/injectable
 	logger->info("thread loop starts");
 	while (!token.stop_requested()) {
 		std::string input;
@@ -46,44 +46,47 @@ using CliThreadHandle = tools::SingleQueuedThreadHandle<std::string>;
 }  // namespace
 
 auto main() -> int {
-	const std::map<std::string, sag::rec::Signal> cliRecorderSignals = {
-		{"record", sag::rec::Signal::Record},
-		{"r", sag::rec::Signal::Record},
-		{"halt", sag::rec::Signal::Halt},
-		{"h", sag::rec::Signal::Halt},
-		{"quit", sag::rec::Signal::Quit},
-		{"q", sag::rec::Signal::Quit},
-		{"exit", sag::rec::Signal::Quit},
-		{"status", sag::rec::Signal::Status},
-		{"s", sag::rec::Signal::Status},
-		{"info", sag::rec::Signal::Status},
-	};
+	try {
+		const std::map<std::string, sag::rec::Signal> cliRecorderSignals = {
+			{"record", sag::rec::Signal::Record},
+			{"r", sag::rec::Signal::Record},
+			{"halt", sag::rec::Signal::Halt},
+			{"h", sag::rec::Signal::Halt},
+			{"quit", sag::rec::Signal::Quit},
+			{"q", sag::rec::Signal::Quit},
+			{"exit", sag::rec::Signal::Quit},
+			{"status", sag::rec::Signal::Status},
+			{"s", sag::rec::Signal::Status},
+			{"info", sag::rec::Signal::Status},
+		};
 
-	auto logger = spdlog::default_logger();
-	logger->set_level(spdlog::level::info);
-	logger->info("recorder start");
-	CliThreadHandle cli_thread(&::cli_thread_loop);
+		auto logger = spdlog::default_logger();
+		logger->set_level(spdlog::level::info);
+		logger->info("recorder start");
+		CliThreadHandle cli_thread(&::cli_thread_loop);
 
-	using TTTRec = sag::rec::TicTacToeRecorder;
-	std::vector<sag::rec::RecorderThreadHandle<TTTRec>> recorder_threads;
-	recorder_threads.reserve(4);
-	for (int i = 0; i < 4; ++i) {
-		recorder_threads.emplace_back(sag::rec::RecorderThreadHandle<TTTRec>{{{{}, {}}, {}, {}, {}}});
-	}
-
-	while (true) {
-		std::string command = cli_thread.queue().wait_and_dequeue();
-		std::ranges::transform(command, command.begin(), [](unsigned char letter) { return std::tolower(letter); });
-		if (cliRecorderSignals.contains(command)) {
-			sag::rec::Signal signal = cliRecorderSignals.at(command);
-			std::ranges::for_each(recorder_threads, [&](auto& recorder_thread) { recorder_thread.queue().emplace(signal); });
-			if (signal == sag::rec::Signal::Quit)
-				break;
-		} else {
-			logger->warn("unknown command: {0}", command);
+		using TTTRec = sag::rec::TicTacToeRecorder;
+		std::vector<sag::rec::RecorderThreadHandle<TTTRec>> recorder_threads;
+		recorder_threads.reserve(4);
+		for (int i = 0; i < 4; ++i) {
+			recorder_threads.emplace_back(sag::rec::RecorderThreadHandle<TTTRec>{{{{}, {}}, {}, {}, {}}});
 		}
-	}
 
-	logger->info("recorder end");
-	return 0;
+		while (true) {
+			std::string command = cli_thread.queue().wait_and_dequeue();
+			std::ranges::transform(command, command.begin(), [](unsigned char letter) { return std::tolower(letter); });
+			if (cliRecorderSignals.contains(command)) {
+				sag::rec::Signal signal = cliRecorderSignals.at(command);
+				std::ranges::for_each(
+					recorder_threads, [&](auto& recorder_thread) { recorder_thread.queue().emplace(signal); });
+				if (signal == sag::rec::Signal::Quit)
+					break;
+			} else {
+				logger->warn("unknown command: {0}", command);
+			}
+		}
+
+		logger->info("recorder end");
+		return 0;
+	} catch (...) {}
 }
