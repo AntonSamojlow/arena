@@ -22,21 +22,21 @@ enum class Signal { Record, Halt, Quit, Status };
 template <MatchRecorderTypes Types>
 class MatchRecorder {
  public:
-	MatchRecorder() = default;
-	MatchRecorder(std::vector<typename Types::player> players,
-		typename Types::graph::container graph,
-		typename Types::graph::rules rules,
-		typename Types::storage storage)
+	// MatchRecorder() = default;
+	MatchRecorder(std::vector<typename Types::player> const & players,
+		typename Types::graph::container const & graph,
+		typename Types::graph::rules const & rules,
+		typename Types::storage const & storage)
 			: players_(players), graph_(graph), rules_(rules), storage_(storage) {}
 
 	// recorder is callable: it may run in a thread, with a queue for control signals
-	auto operator()(std::stop_token const& token, tools::MutexQueue<Signal>& queue) -> void {
+	auto operator()(std::stop_token const& token, tools::MutexQueue<Signal>* queue) -> void {
 		logger_->info("recorder thread start");
 		while (!token.stop_requested()) {
 			if (is_running_)
 				record_once();
 
-			while (auto signal = queue.try_dequeue()) {
+			while (auto signal = queue->try_dequeue()) {
 				switch (signal.value()) {
 					case Signal::Record:
 						logger_->info("record signal");

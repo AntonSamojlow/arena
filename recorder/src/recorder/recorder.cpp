@@ -1,11 +1,49 @@
 ﻿#include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 
+#include <iostream>
+#include <memory>
 #include <string>
 #include <thread>
+#include <type_traits>
+#include <vector>
 
+#include "sag/rec/MatchConcepts.h"
 #include "sag/rec/MatchRecorder.h"
-#include "tools/CmdLineThread.h"
+#include "tools/MutexQueue.h"
+#include "tools/ThreadHandle.h"
+
+namespace sag::rec {
+template <MatchRecorderTypes Types>
+struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::rec::Signal> {
+ public:
+	explicit RecorderThreadHandle(MatchRecorder<Types>&& recorder)
+			: tools::SingleQueuedThreadHandle<sag::rec::Signal>(recorder) {}
+};
+
+}  // namespace sag::rec
+
+namespace {
+auto cli_thread_loop(std::stop_token const& token, tools::MutexQueue<std::string>* queue) -> void {
+	std::shared_ptr<spdlog::logger> logger = spdlog::default_logger();  // todo: make logger configurable/injectable
+	logger->info("thread loop starts");
+	while (!token.stop_requested()) {
+		std::string input;
+		logger->debug("waiting for user input");
+		std::getline(std::cin, input);
+		queue->emplace(input);
+
+		// convert to lower case before comparing to exit conditions
+		std::ranges::transform(input, input.begin(), [](unsigned char letter) { return std::tolower(letter); });
+		if (input == "q" || input == "quit" || input == "exit") {
+			logger->info("exit requested (input: {0})", input);
+			break;
+		}
+	}
+	logger->info("thread loop ends");
+}
+using CliThreadHandle = tools::SingleQueuedThreadHandle<std::string>;
+}  // namespace
 
 auto main() -> int {
 	const std::map<std::string, sag::rec::Signal> cliRecorderSignals = {
@@ -24,24 +62,21 @@ auto main() -> int {
 	auto logger = spdlog::default_logger();
 	logger->set_level(spdlog::level::info);
 	logger->info("recorder start");
-	tools::CmdLineThread cmd_line_thread;
+	CliThreadHandle cli_thread(&::cli_thread_loop);
 
 	using TTTRec = sag::rec::TicTacToeRecorder;
-
-	TTTRec::graph::container graph;
-	TTTRec::graph::rules rules;
-	TTTRec::storage storage;
-	std::vector<TTTRec::player> players = {{}, {}};
-	sag::rec::MatchRecorder<TTTRec> recorder(players, graph, rules, storage);
-	tools::MutexQueue<sag::rec::Signal> recorder_signal_queue;
-	std::jthread recorder_thread(recorder, std::ref(recorder_signal_queue));
+	std::vector<sag::rec::RecorderThreadHandle<TTTRec>> recorder_threads;
+	recorder_threads.reserve(4);
+	for (int i = 0; i < 4; ++i) {
+		recorder_threads.emplace_back(sag::rec::RecorderThreadHandle<TTTRec>{{{{}, {}}, {}, {}, {}}});
+	}
 
 	while (true) {
-		std::string command = cmd_line_thread.queue().wait_and_dequeue();
+		std::string command = cli_thread.queue().wait_and_dequeue();
 		std::ranges::transform(command, command.begin(), [](unsigned char letter) { return std::tolower(letter); });
 		if (cliRecorderSignals.contains(command)) {
 			sag::rec::Signal signal = cliRecorderSignals.at(command);
-			recorder_signal_queue.emplace(signal);
+			std::ranges::for_each(recorder_threads, [&](auto& recorder_thread) { recorder_thread.queue().emplace(signal); });
 			if (signal == sag::rec::Signal::Quit)
 				break;
 		} else {

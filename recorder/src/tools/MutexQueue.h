@@ -13,9 +13,9 @@ namespace tools {
 template <class T, class Container = std::deque<T>>
 class MutexQueue {
  private:
-	std::queue<T, Container> queue_ = {};
 	mutable std::mutex mutex_ = {};
 	std::condition_variable condition_var_ = {};
+	std::queue<T, Container> queue_ = {};
 
  public:
 	MutexQueue() = default;
