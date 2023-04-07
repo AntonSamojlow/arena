@@ -23,10 +23,10 @@ template <MatchRecorderTypes Types>
 class MatchRecorder {
  public:
 	// MatchRecorder() = default;
-	MatchRecorder(std::vector<typename Types::player> const & players,
-		typename Types::graph::container const & graph,
-		typename Types::graph::rules const & rules,
-		typename Types::storage const & storage)
+	MatchRecorder(std::vector<typename Types::player> const& players,
+		typename Types::graph::container const& graph,
+		typename Types::graph::rules const& rules,
+		typename Types::storage const& storage)
 			: players_(players), graph_(graph), rules_(rules), storage_(storage) {}
 
 	// recorder is callable: it may run in a thread, with a queue for control signals

@@ -1,6 +1,7 @@
 ﻿#include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -34,7 +35,8 @@ auto cli_thread_loop(std::stop_token const& token, tools::MutexQueue<std::string
 		queue->emplace(input);
 
 		// convert to lower case before comparing to exit conditions
-		std::ranges::transform(input, input.begin(), [](unsigned char letter) { return std::tolower(letter); });
+		std::ranges::transform(
+			input, input.begin(), [](unsigned char letter) { return static_cast<char>(std::tolower(letter)); });
 		if (input == "q" || input == "quit" || input == "exit") {
 			logger->info("exit requested (input: {0})", input);
 			break;
@@ -42,10 +44,11 @@ auto cli_thread_loop(std::stop_token const& token, tools::MutexQueue<std::string
 	}
 	logger->info("thread loop ends");
 }
-using CliThreadHandle = tools::SingleQueuedThreadHandle<std::string>;
 }  // namespace
 
 auto main() -> int {
+	auto logger = spdlog::default_logger();
+
 	try {
 		const std::map<std::string, sag::rec::Signal> cliRecorderSignals = {
 			{"record", sag::rec::Signal::Record},
@@ -60,10 +63,9 @@ auto main() -> int {
 			{"info", sag::rec::Signal::Status},
 		};
 
-		auto logger = spdlog::default_logger();
 		logger->set_level(spdlog::level::info);
 		logger->info("recorder start");
-		CliThreadHandle cli_thread(&::cli_thread_loop);
+		tools::SingleQueuedThreadHandle<std::string> cli_thread(&::cli_thread_loop);
 
 		using TTTRec = sag::rec::TicTacToeRecorder;
 		std::vector<sag::rec::RecorderThreadHandle<TTTRec>> recorder_threads;
@@ -74,7 +76,8 @@ auto main() -> int {
 
 		while (true) {
 			std::string command = cli_thread.queue().wait_and_dequeue();
-			std::ranges::transform(command, command.begin(), [](unsigned char letter) { return std::tolower(letter); });
+			std::ranges::transform(
+				command, command.begin(), [](unsigned char letter) { return static_cast<char>(std::tolower(letter)); });
 			if (cliRecorderSignals.contains(command)) {
 				sag::rec::Signal signal = cliRecorderSignals.at(command);
 				std::ranges::for_each(
@@ -88,5 +91,8 @@ auto main() -> int {
 
 		logger->info("recorder end");
 		return 0;
-	} catch (...) {}
+	} catch (std::exception const& exc) {
+		logger->error("exception: {0}", exc.what());
+		return 1;
+	}
 }
