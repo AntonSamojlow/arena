@@ -21,7 +21,6 @@ struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::rec::Signal> 
 	explicit RecorderThreadHandle(MatchRecorder<Types>&& recorder)
 			: tools::SingleQueuedThreadHandle<sag::rec::Signal>(recorder) {}
 };
-
 }  // namespace sag::rec
 
 namespace {
