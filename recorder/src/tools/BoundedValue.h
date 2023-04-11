@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <concepts>
 
-namespace sag {
+namespace tools {
 
 /// <summary>
 /// Arithmetic read-only value forced to be between Min and Max.
@@ -42,4 +42,4 @@ static_assert(std::regular<Score>);
 static_assert(std::regular<UnitValue>);
 static_assert(std::regular<NonNegative>);
 
-}  // namespace sag
+}  // namespace tools

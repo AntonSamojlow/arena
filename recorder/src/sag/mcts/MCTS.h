@@ -47,8 +47,8 @@ auto mcts_run(typename G::state state,
 	typename G::rules const& rules,
 	bool sample_actions_uniformly,
 	std::function<float(typename G::state, typename G::action)> upper_confidence_bound,
-	std::function<UnitValue(void)> random_source,
-	std::function<Score(typename G::state)> initial_value_estimate) -> Path<typename G::state> {
+	std::function<tools::UnitValue(void)> random_source,
+	std::function<tools::Score(typename G::state)> initial_value_estimate) -> Path<typename G::state> {
 	// ensure start state is listed
 	if (!stats.has(state))
 		stats.initialize(state, rules.score(state));
@@ -65,7 +65,7 @@ auto select(typename G::state state,
 	typename G::container& graph,
 	bool sample_actions_uniformly,
 	std::function<float(typename G::state, typename G::action)> upper_confidence_bound,
-	std::function<UnitValue(void)>& random_source) -> Path<typename G::action> {
+	std::function<tools::UnitValue(void)>& random_source) -> Path<typename G::action> {
 	Path<typename G::state> path{false, {state}};
 	while (!graph.is_terminal_at(state)) {
 		auto const actions = graph.actions_at(state);
@@ -108,7 +108,7 @@ void expand(Path<typename G::state> const& path,
 	StatsContainer<typename G::state> auto& stats,
 	typename G::container& graph,
 	typename G::rules const& rules,
-	std::function<Score(typename G::state)> initial_value_estimate) {
+	std::function<tools::Score(typename G::state)> initial_value_estimate) {
 	typename G::state end_state = path.values.back();
 
 	if (path.terminal) {
@@ -138,7 +138,7 @@ auto update(Path<S> const& path, StatsContainer<S> auto& stats) -> void {
 	float const end_value = stats.at(path.values.back()).Q;
 	float sign = 2 * static_cast<float>(path.values.size() % 2) - 1;
 	for (auto it = path.values.begin(); it < path.values.end() - 1; ++it, sign *= -1)
-		stats.add_visit_result(*it, Score(sign * end_value));
+		stats.add_visit_result(*it, tools::Score(sign * end_value));
 
 	stats.add_visit(path.values.back());  // basically, we increment N
 }
@@ -152,7 +152,7 @@ template <Graph G>
 	typename G::action action,
 	typename G::container& graph,
 	StatsContainer<typename G::state> auto& stats,
-	NonNegative explore_constant) -> float {
+	tools::NonNegative explore_constant) -> float {
 	float value_estimate = 0.0;
 	int action_visits = 0;
 	for (auto egde : graph.edges_at(state, action)) {
@@ -168,7 +168,7 @@ template <Graph G>
 auto random_rollout(typename G::state state,
 	typename G::container& graph,
 	typename G::rules const& rules,
-	std::function<UnitValue(void)>& random_source) -> Score {
+	std::function<tools::UnitValue(void)>& random_source) -> tools::Score {
 	int rollout_length = 0;
 	while (!graph.is_terminal_at(state)) {
 		// pick a random action, expand and follow
@@ -182,7 +182,7 @@ auto random_rollout(typename G::state state,
 		rollout_length++;
 	}
 	float value = (1 - 2 * static_cast<float>(rollout_length % 2)) * rules.score(state).value();
-	return Score(value);
+	return tools::Score(value);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -197,7 +197,7 @@ class BaseMCTS {
 		rng_ = std::mt19937(rand());
 	}
 
-	BaseMCTS(bool sample_actions_uniformly, NonNegative explore_constant)
+	BaseMCTS(bool sample_actions_uniformly, tools::NonNegative explore_constant)
 			: sample_actions_uniformly_(sample_actions_uniformly), explore_constant_(explore_constant) {
 		std::random_device rand;
 		rng_ = std::mt19937(rand());
@@ -207,8 +207,8 @@ class BaseMCTS {
 		StatsContainer<typename G::state> auto& stats,
 		typename G::container& graph,
 		typename G::rules const& rules) -> void {
-		std::function<UnitValue(void)> random_source = [this]() -> UnitValue {
-			return UnitValue(unit_distribution_(rng_));
+		std::function<tools::UnitValue(void)> random_source = [this]() -> tools::UnitValue {
+			return tools::UnitValue(unit_distribution_(rng_));
 		};
 
 		std::function<float(typename G::state, typename G::action)> U_bound_lambda = [&](typename G::state target_state,
@@ -216,7 +216,8 @@ class BaseMCTS {
 			return upper_confidence_bound<G>(target_state, action, graph, stats, explore_constant_);
 		};
 
-		std::function<Score(typename G::state)> initial_value_estimate = [&](typename G::state start_state) -> Score {
+		std::function<tools::Score(typename G::state)> initial_value_estimate =
+			[&](typename G::state start_state) -> tools::Score {
 			return random_rollout<G>(start_state, graph, rules, random_source);
 		};
 
@@ -226,7 +227,7 @@ class BaseMCTS {
 
  private:
 	bool sample_actions_uniformly_ = false;
-	NonNegative explore_constant_ = NonNegative(1.0F);
+	tools::NonNegative explore_constant_{1.0F};
 	std::mt19937 rng_;
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 };

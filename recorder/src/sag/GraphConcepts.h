@@ -58,13 +58,13 @@ public:
 	ActionEdge(float weight, State const& state) : data_{ weight, state} {}
 	ActionEdge(float weight, State&& state) : data_{ weight, std::move(state) } {}
 
-	[[nodiscard]] auto weight() const -> UnitValue { return data_.first; }
+	[[nodiscard]] auto weight() const -> tools::UnitValue { return data_.first; }
 	[[nodiscard]] auto state() const -> State { return data_.second; }
 
 	friend auto operator<=>(const ActionEdge<State>&, const ActionEdge<State>&) = default;
 
  private:
-	std::pair<UnitValue, State> data_;
+	std::pair<tools::UnitValue, State> data_;
 };
 
 static_assert(std::regular<ActionEdge<int>>);
@@ -116,7 +116,7 @@ concept RulesEngine = Vertices<S, A> && requires(R const const_rules_engine, S s
 	{ const_rules_engine.list_roots() } -> std::same_as<std::vector<S>>;
 	{ const_rules_engine.list_actions(state) } -> std::same_as<std::vector<A>>;
 	{ const_rules_engine.list_edges(state, action) } -> std::same_as<std::vector<ActionEdge<S>>>;
-	{ const_rules_engine.score(state) } -> std::same_as<Score>;
+	{ const_rules_engine.score(state) } -> std::same_as<tools::Score>;
 };
 
 template <typename G, typename S, typename A>

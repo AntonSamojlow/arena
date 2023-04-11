@@ -44,7 +44,7 @@ struct Match {
 	std::chrono::time_point<std::chrono::steady_clock> end = {};
 	std::vector<Play<S, A>> plays;
 	S end_state;
-	Score end_score;
+	tools::Score end_score;
 
 	friend auto operator<=>(const Match&, const Match&) = default;
 };
@@ -53,9 +53,9 @@ static_assert(std::regular<Match<int, int>>);
 static_assert(std::regular<Match<int, float>>);
 
 template <Graph G>
-auto score(Match<typename G::state, typename G::action> const& record, typename G::rules const& rules) -> sag::Score {
+auto score(Match<typename G::state, typename G::action> const& record, typename G::rules const& rules) -> tools::Score {
 	if (record.plays.empty())
-		return Score{0};
+		return tools::Score{0};
 	return rules.score(record.plays.back());
 }
 

@@ -91,7 +91,7 @@ class MatchRecorder {
 			.end = {},
 			.plays = {},
 			.end_state = {},
-			.end_score = Score(0)};
+			.end_score = tools::Score(0)};
 
 		for (size_t turn = 0; !graph_.is_terminal_at(state); ++turn) {
 			auto player = players_[turn % players_.size()];
@@ -102,7 +102,7 @@ class MatchRecorder {
 			if (!graph_.is_expanded_at(state, action))
 				sag::expand(graph_, rules_, state, action);
 
-			state = sag::follow(graph_.edges_at(state, action), UnitValue{unit_distribution_(rng_)});
+			state = sag::follow(graph_.edges_at(state, action), tools::UnitValue{unit_distribution_(rng_)});
 		}
 		match.end = std::chrono::steady_clock::now();
 		match.end_state = state;

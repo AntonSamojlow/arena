@@ -28,6 +28,6 @@ auto create_match() -> sag::rec::Match<S, A> {
 		.end = std::chrono::steady_clock::now(),
 		.plays = create_plays<S, A>(),
 		.end_state = create_plays<S, A>().back().state(),
-		.end_score = sag::Score(-1),
+		.end_score = tools::Score(-1),
 	};
 }
