@@ -12,7 +12,7 @@ auto to_int64(std::string_view text) -> tl::expected<int64_t, Failure> {
 	// in order to check the error set by strtol
 	errno = 0;
 	char *end;
-	const int64_t result = strtol(text.data(), &end, 10);
+	const int64_t result = strtoll(text.data(), &end, 10);
 	if (text.data() == end)
 		return tl::unexpected<Failure>{
 			{.code = static_cast<int>(ConversionError::Impossible), .reason = "strtol conversion not possible"}};
