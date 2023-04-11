@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "sag/rec/Match.h"
+#include "tools/Conversions.h"
 #include "tools/Failure.h"
 #include "tools/SQLiteConnection.h"
 
@@ -112,8 +113,30 @@ class SQLiteMatchStorage {
 		return {};
 	}
 
+	auto count_records() const -> tl::expected<size_t, tools::Failure> { return count_rows("records"); }
+	auto count_matches() const -> tl::expected<size_t, tools::Failure> { return count_rows("matches"); }
+
  private:
 	std::unique_ptr<tools::SQLiteConnection> connection_;
+
+	[[nodiscard]] auto count_rows(std::string_view table_name) const -> tl::expected<size_t, tools::Failure> {
+		std::string const check_table = fmt::format("SELECT COUNT(*) name FROM {};", table_name);
+		auto result = connection_->execute(check_table);
+		if (!result.has_value())
+			return tl::unexpected<tools::Failure>{result.error()};
+		auto converted = tools::to_int64(result.value().rows.front()[0]);
+		if (!converted.has_value())
+			return tl::unexpected<tools::Failure>{converted.error()};
+		return converted.value();
+	}
+
+	[[nodiscard]] auto tables_exist(std::string_view table_name) const -> bool {
+		std::string const check_table =
+			fmt::format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}';", table_name);
+		return connection_->execute(check_table).has_value();
+	}
+
+	/// Attempts to initialize the tables. Does not return a failure if the tables exist.
 	[[nodiscard]] auto initialize_tables() const -> tl::expected<void, tools::Failure> {
 		std::string const create_matches =
 			"CREATE TABLE matches(id integer, score real, starttime integer, endtime integer, extra_data text,"
@@ -126,11 +149,11 @@ class SQLiteMatchStorage {
 			SqlAction::sql_type());
 
 		auto result = connection_->execute(create_matches);
-		if (!result.has_value())
+		if (!result.has_value() && !tables_exist("matches"))
 			return tl::unexpected<tools::Failure>{result.error()};
 
 		result = connection_->execute(create_records);
-		if (!result.has_value())
+		if (!result.has_value() && !tables_exist("records"))
 			return tl::unexpected<tools::Failure>{result.error()};
 
 		return {};

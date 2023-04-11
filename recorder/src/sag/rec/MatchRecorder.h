@@ -6,6 +6,7 @@
 #include "sag/TicTacToe.h"
 #include "sag/storage/MemoryMatchStorage.h"
 #include "tools/MutexQueue.h"
+#include "tools/ThreadHandle.h"
 
 namespace sag::rec {
 
@@ -22,12 +23,14 @@ enum class Signal { Record, Halt, Quit, Status };
 template <MatchRecorderTypes Types>
 class MatchRecorder {
  public:
-	// MatchRecorder() = default;
-	MatchRecorder(std::vector<typename Types::player> const& players,
-		typename Types::graph::container const& graph,
-		typename Types::graph::rules const& rules,
-		typename Types::storage const& storage)
-			: players_(players), graph_(graph), rules_(rules), storage_(storage) {}
+	MatchRecorder(std::vector<typename Types::player>&& players,
+		typename Types::graph::container&& graph,
+		typename Types::graph::rules&& rules,
+		typename Types::storage&& storage)
+			: players_(std::forward<decltype(players)>(players)),
+				graph_(std::forward<decltype(graph)>(graph)),
+				rules_(std::forward<decltype(rules)>(rules)),
+				storage_(std::forward<decltype(storage)>(storage)) {}
 
 	// recorder is callable: it may run in a thread, with a queue for control signals
 	auto operator()(std::stop_token const& token, tools::MutexQueue<Signal>* queue) -> void {
@@ -110,6 +113,14 @@ class MatchRecorder {
 
 		logger_->debug("match stored");
 	}
+};
+
+/// Handle to a recorder thread with input queue for control signals
+template <MatchRecorderTypes Types>
+struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::rec::Signal> {
+ public:
+	explicit RecorderThreadHandle(MatchRecorder<Types>&& recorder)
+			: tools::SingleQueuedThreadHandle<sag::rec::Signal>(std::forward<MatchRecorder<Types>>(recorder)) {}
 };
 
 }  // namespace sag::rec

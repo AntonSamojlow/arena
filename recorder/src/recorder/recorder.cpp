@@ -1,27 +1,14 @@
 ﻿#include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 
-#include <exception>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
-#include <type_traits>
 #include <vector>
 
-#include "sag/rec/MatchConcepts.h"
 #include "sag/rec/MatchRecorder.h"
-#include "tools/MutexQueue.h"
 #include "tools/ThreadHandle.h"
-
-namespace sag::rec {
-template <MatchRecorderTypes Types>
-struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::rec::Signal> {
- public:
-	explicit RecorderThreadHandle(MatchRecorder<Types>&& recorder)
-			: tools::SingleQueuedThreadHandle<sag::rec::Signal>(recorder) {}
-};
-}  // namespace sag::rec
 
 namespace {
 auto cli_thread_loop(std::stop_token const& token, tools::MutexQueue<std::string>* queue) -> void {
