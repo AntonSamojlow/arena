@@ -19,11 +19,11 @@ TEST_CASE("Conversion test", "[tools]") {
 
 	conversion = tools::to_int64("9223372036854775807");
 	CHECK(conversion.has_value());
-	CHECK(conversion.value() == 9223372036854775807I64);
+	CHECK(conversion.value() == 9223372036854775807LL);
 
 	conversion = tools::to_int64("-9223372036854775808");
 	CHECK(conversion.has_value());
-	CHECK(conversion.value() == (-9223372036854775807I64 - 1));
+	CHECK(conversion.value() == (-9223372036854775807LL - 1));
 
 	conversion = tools::to_int64("0");
 	CHECK(conversion.has_value());
