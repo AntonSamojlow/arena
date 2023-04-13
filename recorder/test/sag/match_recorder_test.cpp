@@ -28,7 +28,7 @@ TEST_CASE("Match recorder test", "[sag, match]") {
 	static_assert(std::is_nothrow_move_assignable_v<RecorderThreadHandle<TestRecorderTypes>>);
 
 	test::TempFilePath const db_file = test::unique_file_path(false);
-	TestRecorderTypes::storage test_storage(std::make_unique<tools::SQLiteConnection>(db_file.get(), false));
+	TestRecorderTypes::storage const test_storage(std::make_unique<tools::SQLiteConnection>(db_file.get(), false));
 
 	// start several recorder threads
 	std::vector<RecorderThreadHandle<TestRecorderTypes>> recorder_threads;
