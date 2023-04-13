@@ -35,18 +35,19 @@ auto cli_thread_loop(std::stop_token const& token, tools::MutexQueue<std::string
 auto main() -> int {
 	auto logger = spdlog::default_logger();
 
+	using enum sag::rec::Signal;
 	try {
-		const std::map<std::string, sag::rec::Signal> cliRecorderSignals = {
-			{"record", sag::rec::Signal::Record},
-			{"r", sag::rec::Signal::Record},
-			{"halt", sag::rec::Signal::Halt},
-			{"h", sag::rec::Signal::Halt},
-			{"quit", sag::rec::Signal::Quit},
-			{"q", sag::rec::Signal::Quit},
-			{"exit", sag::rec::Signal::Quit},
-			{"status", sag::rec::Signal::Status},
-			{"s", sag::rec::Signal::Status},
-			{"info", sag::rec::Signal::Status},
+		const std::map<std::string, sag::rec::Signal, std::less<>> cliRecorderSignals = {
+			{"record", Record},
+			{"r", Record},
+			{"halt", Halt},
+			{"h", Halt},
+			{"quit", Quit},
+			{"q", Quit},
+			{"exit", Quit},
+			{"status", Status},
+			{"s", Status},
+			{"info", Status},
 		};
 
 		logger->set_level(spdlog::level::info);

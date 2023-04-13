@@ -27,10 +27,10 @@ class MatchRecorder {
 		typename Types::graph::container&& graph,
 		typename Types::graph::rules&& rules,
 		typename Types::storage&& storage)
-			: players_(std::forward<decltype(players)>(players)),
-				graph_(std::forward<decltype(graph)>(graph)),
-				rules_(std::forward<decltype(rules)>(rules)),
-				storage_(std::forward<decltype(storage)>(storage)) {}
+			: players_(std::move(players)),
+				graph_(std::move(graph)),
+				rules_(std::move(rules)),
+				storage_(std::move(storage)) {}
 
 	// recorder is callable: it may run in a thread, with a queue for control signals
 	auto operator()(std::stop_token const& token, tools::MutexQueue<Signal>* queue) -> void {
@@ -120,7 +120,7 @@ template <MatchRecorderTypes Types>
 struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::rec::Signal> {
  public:
 	explicit RecorderThreadHandle(MatchRecorder<Types>&& recorder)
-			: tools::SingleQueuedThreadHandle<sag::rec::Signal>(std::forward<MatchRecorder<Types>>(recorder)) {}
+			: tools::SingleQueuedThreadHandle<sag::rec::Signal>(std::move(recorder)) {}
 };
 
 }  // namespace sag::rec

@@ -17,9 +17,11 @@ template <class QueueData>
 class SingleQueuedThreadHandle {
  public:
 	template <class Function>
-		requires ThreadFunction<Function, QueueData>
+		requires ThreadFunction<Function, QueueData> &&
+						 (!std::same_as<SingleQueuedThreadHandle, std::remove_cvref_t<Function>>)
 	explicit SingleQueuedThreadHandle(Function &&function)  // NOLINT(bugprone-forwarding-reference-overload)
 			: thread_(std::forward<Function>(function), queue_.get()) {}
+
 	~SingleQueuedThreadHandle() = default;
 
 	// no copy, but allow move
@@ -43,9 +45,11 @@ template <class InputData, class OutputData>
 class DoubleQueuedThreadHandle {
  public:
 	template <class Function>
-		requires ThreadFunction<Function, InputData, OutputData>
+		requires ThreadFunction<Function, InputData, OutputData> &&
+						 (!std::same_as<DoubleQueuedThreadHandle, std::remove_cvref_t<Function>>)
 	explicit DoubleQueuedThreadHandle(Function &&function)  // NOLINT(bugprone-forwarding-reference-overload)
 			: thread_(std::forward<Function>(function), inbox_.get(), outbox_.get()) {}
+
 	~DoubleQueuedThreadHandle() = default;
 
 	// no copy, but allow move
