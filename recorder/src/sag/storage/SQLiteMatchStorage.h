@@ -113,8 +113,8 @@ class SQLiteMatchStorage {
 		return {};
 	}
 
-	auto count_records() const -> tl::expected<size_t, tools::Failure> { return count_rows("records"); }
-	auto count_matches() const -> tl::expected<size_t, tools::Failure> { return count_rows("matches"); }
+	[[nodiscard]] auto count_records() const -> tl::expected<size_t, tools::Failure> { return count_rows("records"); }
+	[[nodiscard]] auto count_matches() const -> tl::expected<size_t, tools::Failure> { return count_rows("matches"); }
 
  private:
 	std::unique_ptr<tools::SQLiteConnection> connection_;
