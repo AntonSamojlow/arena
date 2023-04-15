@@ -2,13 +2,8 @@
 
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <chrono>
-#include <utility>
 
 #include "../helpers.h"
-#include "sag/TicTacToe.h"
-#include "sag/rec/Match.h"
-#include "sag/rec/Player.h"
 #include "sag/storage/MemoryMatchStorage.h"
 #include "sag/storage/SQLiteMatchStorage.h"
 

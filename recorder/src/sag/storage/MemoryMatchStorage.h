@@ -2,7 +2,6 @@
 
 #include "sag/GraphConcepts.h"
 #include "sag/rec/Match.h"
-#include "sag/rec/MatchConcepts.h"
 
 namespace sag::storage {
 

@@ -1,5 +1,4 @@
-﻿#include <spdlog/common.h>
-#include <spdlog/spdlog.h>
+﻿#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <memory>
@@ -8,6 +7,7 @@
 #include <vector>
 
 #include "sag/rec/MatchRecorder.h"
+#include "sag/rec/TicTacToeTestRecorder.h"
 #include "tools/ThreadHandle.h"
 
 namespace {
@@ -54,11 +54,11 @@ auto main() -> int {
 		logger->info("recorder start");
 		tools::SingleQueuedThreadHandle<std::string> cli_thread(&::cli_thread_loop);
 
-		using TTTRec = sag::rec::TicTacToeRecorder;
-		std::vector<sag::rec::RecorderThreadHandle<TTTRec>> recorder_threads;
+		using TestRec = sag::rec::TicTacToeTestRecorder;
+		std::vector<sag::rec::RecorderThreadHandle<TestRec>> recorder_threads;
 		recorder_threads.reserve(4);
 		for (int i = 0; i < 4; ++i) {
-			recorder_threads.emplace_back(sag::rec::RecorderThreadHandle<TTTRec>{{{{}, {}}, {}, {}, {}}});
+			recorder_threads.emplace_back(sag::rec::RecorderThreadHandle<TestRec>{{{{}, {}}, {}, {}, {}}});
 		}
 
 		while (true) {

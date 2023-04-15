@@ -1,11 +1,7 @@
 #pragma once
-#include <spdlog/spdlog.h>
-
-#include <chrono>
-#include <random>
+#include <tl/expected.hpp>
 
 #include "Player.h"
-#include "sag/GraphConcepts.h"
 #include "sag/GraphOperations.h"
 #include "tools/Failure.h"
 
@@ -58,5 +54,20 @@ auto score(Match<typename G::state, typename G::action> const& record, typename 
 		return tools::Score{0};
 	return rules.score(record.plays.back());
 }
+
+// clang-format off
+template <typename S, typename State, typename Action>
+concept Storage = sag::Vertices<State, Action>
+	&& requires (S storage, Match<State, Action> match, std::string_view extra_data){
+	{ storage.add(match, extra_data) } -> std::same_as<tl::expected<void, tools::Failure>>;
+};
+
+template <class Types>
+concept MatchRecorderTypes =
+  sag::Graph<typename Types::graph> &&
+  Player<typename Types::player, typename Types::graph> &&
+	Storage<typename Types::storage, typename Types::graph::state, typename Types::graph::action>;
+
+// clang-format on
 
 }  // namespace sag::rec

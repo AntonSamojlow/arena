@@ -1,11 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <chrono>
-#include <thread>
 
 #include "../helpers.h"
 #include "sag/TicTacToe.h"
-#include "sag/rec/Match.h"
 #include "sag/rec/MatchRecorder.h"
 #include "sag/rec/Player.h"
 #include "sag/storage/SQLiteMatchStorage.h"

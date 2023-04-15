@@ -1,22 +1,14 @@
 #pragma once
+#include <spdlog/spdlog.h>
+
 #include <queue>
 #include <string>
 
-#include "MatchConcepts.h"
-#include "sag/TicTacToe.h"
-#include "sag/storage/MemoryMatchStorage.h"
+#include "Match.h"
 #include "tools/MutexQueue.h"
 #include "tools/ThreadHandle.h"
 
 namespace sag::rec {
-
-struct TicTacToeRecorder {
-	using graph = tic_tac_toe::Graph;
-	using player = RandomPlayer<tic_tac_toe::Graph>;
-	using storage = storage::MemoryMatchStorage<typename graph::state, typename graph::action>;
-};
-
-static_assert(MatchRecorderTypes<TicTacToeRecorder>);
 
 enum class Signal { Record, Halt, Quit, Status };
 

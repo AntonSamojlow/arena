@@ -1,12 +1,5 @@
-#include <atomic>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <functional>
-#include <optional>
-#include <queue>
-#include <thread>
-#include <type_traits>
-#include <vector>
 
 #include "tools/MutexQueue.h"
 

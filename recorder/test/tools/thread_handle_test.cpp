@@ -1,6 +1,4 @@
 #include <catch2/catch_test_macros.hpp>
-#include <queue>
-#include <stop_token>
 
 #include "tools/MutexQueue.h"
 #include "tools/ThreadHandle.h"

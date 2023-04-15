@@ -1,22 +1,7 @@
 #pragma once
 
-#include <fmt/core.h>
-
-#include <chrono>
-#include <concepts>
-#include <cstdint>
-#include <cstdlib>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <tl/expected.hpp>
-#include <type_traits>
-#include <utility>
-
 #include "sag/rec/Match.h"
 #include "tools/Conversions.h"
-#include "tools/Failure.h"
 #include "tools/SQLiteConnection.h"
 
 namespace sag::storage {

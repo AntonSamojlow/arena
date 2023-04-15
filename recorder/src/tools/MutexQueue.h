@@ -1,11 +1,8 @@
 #pragma once
 
-#include <concepts>
-#include <condition_variable>
 #include <mutex>
 #include <optional>
 #include <queue>
-#include <vector>
 
 namespace tools {
 
