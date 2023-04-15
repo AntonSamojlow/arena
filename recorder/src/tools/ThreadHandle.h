@@ -1,5 +1,7 @@
 #pragma once
 
+#include <thread>
+
 #include "MutexQueue.h"
 #include "tools/MutexQueue.h"
 
