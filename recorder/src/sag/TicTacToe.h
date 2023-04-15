@@ -25,7 +25,7 @@ class Rules {
 	static auto list_roots() -> std::vector<Graph::state> { return {0}; }
 	static auto list_actions(Graph::state state) -> std::vector<Graph::action>;
 	static auto list_edges(Graph::state state, Graph::action action) -> std::vector<ActionEdge<Graph::state>>;
-	static auto score(Graph::state state) -> Score;
+	static auto score(Graph::state state) -> tools::Score;
 
 	static auto decode(Graph::state state_id) -> Board;
 	static auto encode(const Board& board) -> Graph::state;

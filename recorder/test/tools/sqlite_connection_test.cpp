@@ -3,8 +3,6 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
-#include <memory>
-#include <stdexcept>
 
 #include "../helpers.h"
 #include "tools/SQLiteConnection.h"
@@ -44,6 +42,18 @@ TEST_CASE("SQLiteConnectionTest", "[tools]") {
 		CHECK(rows[0][1] == "10");
 		CHECK(rows[1][0] == "goodbye");
 		CHECK(rows[1][1] == "20");
+
+		// create a second connection to same file and read from the table
+		tools::SQLiteConnection const second_handler{file_path.get(), false, logger};
+		auto second_read_result = second_handler.execute(read_command);
+		REQUIRE(second_read_result.has_value());
+		CHECK(second_read_result->header.size() == 2);
+		auto const& second_rows = second_read_result->rows;
+		REQUIRE(second_rows.size() == 2);
+		CHECK(second_rows[0][0] == "hello!");
+		CHECK(second_rows[0][1] == "10");
+		CHECK(second_rows[1][0] == "goodbye");
+		CHECK(second_rows[1][1] == "20");
 	}
 
 	{

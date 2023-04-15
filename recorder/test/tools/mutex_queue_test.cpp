@@ -1,11 +1,6 @@
-#include <atomic>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <functional>
-#include <optional>
 #include <thread>
-#include <type_traits>
-#include <vector>
 
 #include "tools/MutexQueue.h"
 
@@ -27,13 +22,21 @@ TEMPLATE_TEST_CASE("MutexQueue base operations", "[tools]", int, double, std::st
 
 	CHECK(!queue.empty());
 	CHECK(queue.size() == 2);
+	SECTION("Test dequeue") {
+		CHECK(queue.try_dequeue().has_value());
+		CHECK(queue.size() == 1);
+		CHECK(queue.try_dequeue().has_value());
+		CHECK(queue.empty());
+		CHECK(queue.try_dequeue() == std::nullopt);
+		CHECK(queue.wait_for_and_dequeue(1ms) == std::nullopt);
+	}
 
-	CHECK(queue.try_dequeue().has_value());
-	CHECK(queue.size() == 1);
-	CHECK(queue.try_dequeue().has_value());
-	CHECK(queue.empty());
-	CHECK(queue.try_dequeue() == std::nullopt);
-	CHECK(queue.wait_for_and_dequeue(1ms) == std::nullopt);
+	SECTION("Test drain") {
+		std::queue<TestType> drained;
+		queue.swap(drained);
+		CHECK(queue.empty());
+		CHECK(drained.size() == 2);
+	}
 }
 
 struct Ops {
@@ -45,8 +48,7 @@ struct Ops {
 
 	static auto read(tools::MutexQueue<int>& queue, int count) -> void {
 		for (int i = 0; i < count; ++i) {
-			auto result = queue.wait_and_dequeue();
-			CHECK(result.has_value());
+			queue.wait_and_dequeue();
 		}
 	}
 };

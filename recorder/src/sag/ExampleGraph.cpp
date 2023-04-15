@@ -54,8 +54,8 @@ auto Rules::list_edges(Graph::state state, Graph::action action) const -> Action
 	return graph_structure_.at(state)[static_cast<size_t>(action)];
 }
 
-auto Rules::score(Graph::state state) const -> Score {
-	return graph_structure_.at(state).empty() ? Score(-1.0F) : Score(0.0F);
+auto Rules::score(Graph::state state) const -> tools::Score {
+	return graph_structure_.at(state).empty() ? tools::Score(-1.0F) : tools::Score(0.0F);
 }
 
 auto Container::to_string(Graph::state state) -> std::string {

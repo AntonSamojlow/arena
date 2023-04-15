@@ -86,7 +86,7 @@ TEST_CASE("BaseMCTS test (small graph)", "[sag, mcts]") {
 	SECTION("use uniform action sampling") {
 		// Test BaseMCTS finds the correct action values at root
 		CHECK(stats.size() == 0);
-		sag::mcts::BaseMCTS<Graph> mcts_algo(true, sag::NonNegative(0.1F));
+		sag::mcts::BaseMCTS<Graph> mcts_algo(true, tools::NonNegative(0.1F));
 
 		for (size_t i = 0; i < 10'000; i++) {
 			mcts_algo.descend(root, stats, graph, rules);
@@ -102,7 +102,7 @@ TEST_CASE("BaseMCTS test (small graph)", "[sag, mcts]") {
 	SECTION("use random action sampling") {
 		// Test BaseMCTS finds the correct action values at root
 		CHECK(stats.size() == 0);
-		sag::mcts::BaseMCTS<Graph> mcts_algo(true, sag::NonNegative(0.1F));
+		sag::mcts::BaseMCTS<Graph> mcts_algo(true, tools::NonNegative(0.1F));
 
 		for (size_t i = 0; i < 10'000; i++) {
 			mcts_algo.descend(root, stats, graph, rules);
@@ -122,7 +122,7 @@ TEST_CASE("BaseMCTS test (wide graph)", "[sag, mcts]") {
 	Container graph(rules);
 	sag::mcts::Statistics<Graph::state> stats;
 	sag::mcts::BaseMCTS<Graph> mcts_default{};
-	sag::mcts::BaseMCTS<Graph> mcts_low_exploration{false, sag::NonNegative(0.1F)};
+	sag::mcts::BaseMCTS<Graph> mcts_low_exploration{false, tools::NonNegative(0.1F)};
 	Graph::state const root = graph.roots()[0];
 
 	CHECK(stats.size() == 0);
@@ -150,10 +150,10 @@ TEST_CASE("BaseMCTS test (wide graph)", "[sag, mcts]") {
 
 TEST_CASE("MCTS update test", "[mcts]") {
 	sag::mcts::Statistics<Graph::state> stats;
-	stats.initialize(1, sag::Score(0.1F));
-	stats.initialize(2, sag::Score(0.2F));
-	stats.initialize(3, sag::Score(0.3F));
-	stats.initialize(4, sag::Score(0.4F));
+	stats.initialize(1, tools::Score(0.1F));
+	stats.initialize(2, tools::Score(0.2F));
+	stats.initialize(3, tools::Score(0.3F));
+	stats.initialize(4, tools::Score(0.4F));
 
 	auto check_initial_state = [&]() -> void {
 		CHECK(stats.size() == 4);

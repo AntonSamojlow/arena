@@ -33,7 +33,7 @@ class Rules {
 	[[nodiscard]] auto list_actions(Graph::state state) const -> std::vector<Graph::action>;
 	[[nodiscard]] auto list_edges(Graph::state state, Graph::action action) const
 		-> std::vector<ActionEdge<Graph::state>>;
-	[[nodiscard]] auto score(Graph::state state) const -> Score;
+	[[nodiscard]] auto score(Graph::state state) const -> tools::Score;
 
  private:
 	std::vector<Graph::state> roots_;

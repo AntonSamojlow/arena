@@ -6,7 +6,7 @@
 namespace sag {
 
 template <typename S>
-auto follow(std::vector<ActionEdge<S>> edges, UnitValue random_roll) -> S {
+auto follow(std::vector<ActionEdge<S>> edges, tools::UnitValue random_roll) -> S {
 	float const threshold = random_roll.value();
 	float sum = 0.0F;
 	for (auto const& edge : edges) {

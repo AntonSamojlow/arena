@@ -20,7 +20,7 @@ static_assert(std::regular<StatsEntry>);
 
 template <typename C, typename Key>
 concept StatsContainer = sag::Identifier<Key> && std::regular<C> &&
-requires(const C const_container, C container, Key key, sag::Score score) {
+requires(const C const_container, C container, Key key, tools::Score score) {
 	{ const_container.at(key) } -> std::same_as<StatsEntry>;
 	{ const_container.has(key) } -> std::same_as<bool>;
 	{ const_container.size() } -> std::same_as<size_t>;
@@ -40,9 +40,9 @@ class Statistics {
 	[[nodiscard]] auto size() const -> size_t { return data_.size(); }
 
 	auto clear() -> void { this->clear(); }
-	auto initialize(K key, sag::Score q_value) -> void { data_.insert({key, {.N = 0, .Q = q_value.value()}}); }
+	auto initialize(K key, tools::Score q_value) -> void { data_.insert({key, {.N = 0, .Q = q_value.value()}}); }
 	auto add_visit(K key) -> void { data_.at(key).N++; }
-	auto add_visit_result(K key, sag::Score end_value) -> void {
+	auto add_visit_result(K key, tools::Score end_value) -> void {
 		StatsEntry& entry = data_.at(key);
 		++entry.N;
 		entry.Q += (end_value.value() - entry.Q) / static_cast<float>(entry.N);

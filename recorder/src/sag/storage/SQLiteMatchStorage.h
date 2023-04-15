@@ -1,22 +1,7 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <stdint.h>
-
-#include <chrono>
-#include <concepts>
-#include <cstdint>
-#include <cstdlib>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <tl/expected.hpp>
-#include <type_traits>
-#include <utility>
-
-#include "sag/match/Match.h"
-#include "tools/Failure.h"
+#include "sag/rec/Match.h"
+#include "tools/Conversions.h"
 #include "tools/SQLiteConnection.h"
 
 namespace sag::storage {
@@ -84,7 +69,7 @@ class SQLiteMatchStorage {
 			throw std::runtime_error(result.error().reason);
 	}
 
-	auto add(match::Match<S, A> match, std::string_view extra_data) const -> tl::expected<void, Failure> {
+	auto add(rec::Match<S, A> match, std::string_view extra_data) const -> tl::expected<void, tools::Failure> {
 		std::string command =
 			fmt::format("INSERT INTO matches (score, starttime, endtime, extra_data) VALUES ({}, {}, {}, {}) RETURNING id;",
 				FloatingPointConverter<float>::to_insert_text(match.end_score.value()),
@@ -93,11 +78,11 @@ class SQLiteMatchStorage {
 				TextConverter::to_insert_text(std::string(extra_data)));
 		auto result = connection_->execute(command);
 		if (!result.has_value())
-			return tl::unexpected<Failure>(result.error());
+			return tl::unexpected<tools::Failure>(result.error());
 		int64_t match_id = std::atoi(result->rows.front()[0].c_str());
 		command = "INSERT INTO records (match_id, turn_nr, state, action) VALUES";
 		for (size_t turn_nr = 0; turn_nr < match.plays.size(); ++turn_nr) {
-			sag::match::Play<S, A> const& play = match.plays[turn_nr];
+			sag::rec::Play<S, A> const& play = match.plays[turn_nr];
 			command += fmt::format("({}, {}, {}, {}),",
 				IntegerConverter<int64_t>::to_insert_text(match_id),
 				IntegerConverter<size_t>::to_insert_text(turn_nr),
@@ -108,14 +93,36 @@ class SQLiteMatchStorage {
 		command[command.size() - 1] = ';';
 		result = connection_->execute(command);
 		if (!result.has_value())
-			return tl::unexpected<Failure>(result.error());
+			return tl::unexpected<tools::Failure>(result.error());
 
 		return {};
 	}
 
+	[[nodiscard]] auto count_records() const -> tl::expected<size_t, tools::Failure> { return count_rows("records"); }
+	[[nodiscard]] auto count_matches() const -> tl::expected<size_t, tools::Failure> { return count_rows("matches"); }
+
  private:
 	std::unique_ptr<tools::SQLiteConnection> connection_;
-	[[nodiscard]] auto initialize_tables() const -> tl::expected<void, Failure> {
+
+	[[nodiscard]] auto count_rows(std::string_view table_name) const -> tl::expected<size_t, tools::Failure> {
+		std::string const check_table = fmt::format("SELECT COUNT(*) name FROM {};", table_name);
+		auto result = connection_->execute(check_table);
+		if (!result.has_value())
+			return tl::unexpected<tools::Failure>{result.error()};
+		auto converted = tools::to_int64(result.value().rows.front()[0]);
+		if (!converted.has_value())
+			return tl::unexpected<tools::Failure>{converted.error()};
+		return converted.value();
+	}
+
+	[[nodiscard]] auto tables_exist(std::string_view table_name) const -> bool {
+		std::string const check_table =
+			fmt::format("SELECT name FROM sqlite_master WHERE type='table' AND name='{}';", table_name);
+		return connection_->execute(check_table).has_value();
+	}
+
+	/// Attempts to initialize the tables. Does not return a failure if the tables exist.
+	[[nodiscard]] auto initialize_tables() const -> tl::expected<void, tools::Failure> {
 		std::string const create_matches =
 			"CREATE TABLE matches(id integer, score real, starttime integer, endtime integer, extra_data text,"
 			"PRIMARY KEY(id));";
@@ -127,12 +134,12 @@ class SQLiteMatchStorage {
 			SqlAction::sql_type());
 
 		auto result = connection_->execute(create_matches);
-		if (!result.has_value())
-			return tl::unexpected<Failure>{result.error()};
+		if (!result.has_value() && !tables_exist("matches"))
+			return tl::unexpected<tools::Failure>{result.error()};
 
 		result = connection_->execute(create_records);
-		if (!result.has_value())
-			return tl::unexpected<Failure>{result.error()};
+		if (!result.has_value() && !tables_exist("records"))
+			return tl::unexpected<tools::Failure>{result.error()};
 
 		return {};
 	}

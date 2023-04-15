@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <string>
+namespace tools {
 
 struct Failure {
 	int code;
@@ -11,3 +12,4 @@ struct Failure {
 };
 
 static_assert(std::regular<Failure>);
+}  // namespace tools

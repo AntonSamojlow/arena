@@ -1,9 +1,9 @@
 #pragma once
 
-#include "sag/match/Match.h"
+#include "sag/rec/Match.h"
 
 template <class S, class A>
-auto create_plays() -> std::vector<sag::match::Play<S, A>> {
+auto create_plays() -> std::vector<sag::rec::Play<S, A>> {
 	if constexpr (std::is_arithmetic_v<S>) {
 		if constexpr (std::is_arithmetic_v<A>)
 			return {{1, 0}, {2, 3}, {3, 1}};
@@ -20,7 +20,7 @@ auto create_plays() -> std::vector<sag::match::Play<S, A>> {
 }
 
 template <class S, class A>
-auto create_match() -> sag::match::Match<S, A> {
+auto create_match() -> sag::rec::Match<S, A> {
 	auto start = std::chrono::steady_clock::now();
 	return {
 		.player_ids = {"player-1", "player-2", "player-3"},
@@ -28,6 +28,6 @@ auto create_match() -> sag::match::Match<S, A> {
 		.end = std::chrono::steady_clock::now(),
 		.plays = create_plays<S, A>(),
 		.end_state = create_plays<S, A>().back().state(),
-		.end_score = sag::Score(-1),
+		.end_score = tools::Score(-1),
 	};
 }

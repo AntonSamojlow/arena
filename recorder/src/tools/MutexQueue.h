@@ -1,6 +1,5 @@
 #pragma once
 
-#include <concepts>
 #include <condition_variable>
 #include <mutex>
 #include <optional>
@@ -12,9 +11,9 @@ namespace tools {
 template <class T, class Container = std::deque<T>>
 class MutexQueue {
  private:
-	std::queue<T, Container> queue_ = {};
 	mutable std::mutex mutex_ = {};
 	std::condition_variable condition_var_ = {};
+	std::queue<T, Container> queue_ = {};
 
  public:
 	MutexQueue() = default;
@@ -46,6 +45,11 @@ class MutexQueue {
 		return queue_.size();
 	}
 
+	auto swap(std::queue<T, Container>& other) noexcept -> void {
+		std::lock_guard lock{mutex_};
+		queue_.swap(other);
+	}
+
 	[[nodiscard]] auto try_dequeue() -> std::optional<T> {
 		std::lock_guard lock{mutex_};
 		if (queue_.empty()) {
@@ -57,11 +61,10 @@ class MutexQueue {
 		return result;
 	}
 
-	[[nodiscard]] auto wait_and_dequeue() -> std::optional<T> {
+	auto wait_and_dequeue() -> T {
 		std::unique_lock lock{mutex_};
 
-		condition_var_.wait(lock, [&] { return !queue_.empty(); });
-
+		condition_var_.wait(lock, [this] { return !queue_.empty(); });
 		T result = queue_.front();
 		queue_.pop();
 		return result;
@@ -71,7 +74,7 @@ class MutexQueue {
 	[[nodiscard]] auto wait_for_and_dequeue(const std::chrono::duration<Rep, Period>& time_out) -> std::optional<T> {
 		std::unique_lock lock{mutex_};
 
-		if (!condition_var_.wait_for(lock, time_out, [&] { return !queue_.empty(); }))
+		if (!condition_var_.wait_for(lock, time_out, [this] { return !queue_.empty(); }))
 			return std::nullopt;
 
 		T result = queue_.front();

@@ -1,50 +1,78 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <chrono>
 
+#include "../helpers.h"
 #include "sag/TicTacToe.h"
-#include "sag/match/Match.h"
-#include "sag/match/Player.h"
-#include "sag/storage/MemoryMatchStorage.h"
+#include "sag/rec/MatchRecorder.h"
+#include "sag/rec/Player.h"
+#include "sag/storage/SQLiteMatchStorage.h"
 
 using namespace sag::tic_tac_toe;
+using namespace sag::rec;
 using namespace std::chrono;
+
 namespace {
 
 TEST_CASE("Match recorder test", "[sag, match]") {
-	Graph::container container;
-	Graph::rules const rules;
+	struct TestRecorderTypes {
+		using graph = Graph;
+		using player = RandomPlayer<Graph>;
+		using storage = sag::storage::SQLiteMatchStorage<sag::storage::IntegerConverter<typename graph::state>,
+			sag::storage::IntegerConverter<typename graph::action>>;
+	};
 
-	sag::match::RandomPlayer<Graph> player_one{};
-	sag::match::RandomPlayer<Graph> player_two{};
-	sag::match::MatchRecorder recorder{};
+	static_assert(std::is_nothrow_move_constructible_v<RecorderThreadHandle<TestRecorderTypes>>);
+	static_assert(std::is_nothrow_move_assignable_v<RecorderThreadHandle<TestRecorderTypes>>);
 
-	auto root = container.roots()[0];
-	auto const time_pre_record = steady_clock::now();
-	auto match = recorder.record_duel<Graph>(root, container, rules, player_one, player_two);
-	auto const time_post_record = steady_clock::now();
+	test::TempFilePath const db_file = test::unique_file_path(false);
+	TestRecorderTypes::storage const test_storage(std::make_unique<tools::SQLiteConnection>(db_file.get(), false));
 
-	CHECK(time_pre_record < match.start);
-	CHECK(match.start < match.end);
-	CHECK(match.end < time_post_record);
+	// start several recorder threads
+	std::vector<RecorderThreadHandle<TestRecorderTypes>> recorder_threads;
+	recorder_threads.reserve(3);
+	for (int i = 0; i < 3; ++i) {
+		// assemble recorder with owning storage
+		auto connection = std::make_unique<tools::SQLiteConnection>(db_file.get(), false);
+		TestRecorderTypes::storage storage(std::move(connection));
+		MatchRecorder<TestRecorderTypes> recorder{{{}, {}}, {}, {}, std::move(storage)};
+		recorder_threads.emplace_back(std::move(recorder));
+	}
 
-	CHECK(match.player_ids[0] == player_one.id());
-	CHECK(match.player_ids[1] == player_two.id());
+	auto signal_all = [&recorder_threads](Signal signal) -> void {
+		for (auto& rec : recorder_threads)
+			rec.queue().emplace(signal);
+	};
 
-	for (auto play : match.plays)
-		spdlog::default_logger()->info("state {}", container.to_string(play.state()));
-	spdlog::default_logger()->info("endstate: {}", container.to_string(match.end_state));
-	CHECK(match.plays.size() > 4);
-	CHECK(match.plays.size() < 10);
+	std::this_thread::sleep_for(100ms);
+	CHECK(test_storage.count_records().value() == 0);
+	CHECK(test_storage.count_matches().value() == 0);
+	signal_all(Signal::Status);
+	recorder_threads[0].queue().emplace(Signal::Record);
+	std::this_thread::sleep_for(100ms);
 
-	float const end_value = rules.score(match.end_state).value();
-	bool const is_a_draw = std::abs(end_value) < std::numeric_limits<float>::epsilon();
-	bool const is_a_loss = std::abs(end_value + 1.0F) < std::numeric_limits<float>::epsilon();
-	CHECK((is_a_draw || is_a_loss));
+	signal_all(Signal::Status);
+	std::this_thread::sleep_for(100ms);
 
-	sag::storage::MemoryMatchStorage<typename Graph::state, typename Graph::action> storage{};
-	CHECK(storage.size() == 0);
-	storage.add(match, "some_extra_data");
-	CHECK(storage.size() == 1);
+	recorder_threads[0].queue().emplace(Signal::Halt);
+	signal_all(Signal::Status);
+	std::this_thread::sleep_for(100ms);
+
+	auto match_count_one_thread = test_storage.count_matches().value();
+	CHECK(match_count_one_thread > 0);
+	std::this_thread::sleep_for(100ms);
+	bool match_count_is_constant = match_count_one_thread == test_storage.count_matches().value();
+	CHECK(match_count_is_constant);
+
+	signal_all(Signal::Record);
+	std::this_thread::sleep_for(100ms);
+
+	signal_all(Signal::Quit);
+	std::this_thread::sleep_for(100ms);
+
+	auto match_count_several_threads = test_storage.count_matches().value();
+	CHECK(match_count_several_threads > match_count_one_thread);
+	std::this_thread::sleep_for(100ms);
+	match_count_is_constant = match_count_several_threads == test_storage.count_matches().value();
+	CHECK(match_count_is_constant);
 }
 }  // namespace
