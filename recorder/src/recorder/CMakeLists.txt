@@ -5,7 +5,8 @@ set(TARGET_NAME recorder)
 find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
 find_package(unofficial-sqlite3 CONFIG REQUIRED)
-set(DEPENDENCIES spdlog::spdlog fmt::fmt unofficial::sqlite3::sqlite3 sag tools)
+find_package(nlohmann_json CONFIG REQUIRED)
+set(DEPENDENCIES spdlog::spdlog fmt::fmt unofficial::sqlite3::sqlite3 nlohmann_json::nlohmann_json sag tools)
 
 # source files
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
