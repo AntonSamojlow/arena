@@ -8,7 +8,7 @@
 #include "tools/MutexQueue.h"
 #include "tools/ThreadHandle.h"
 
-namespace sag::rec {
+namespace sag::match {
 
 enum class Signal { Record, Halt, Quit, Status };
 
@@ -109,10 +109,10 @@ class MatchRecorder {
 
 /// Handle to a recorder thread with input queue for control signals
 template <MatchRecorderTypes Types>
-struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::rec::Signal> {
+struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::match::Signal> {
  public:
 	explicit RecorderThreadHandle(MatchRecorder<Types>&& recorder)
-			: tools::SingleQueuedThreadHandle<sag::rec::Signal>(std::move(recorder)) {}
+			: tools::SingleQueuedThreadHandle<sag::match::Signal>(std::move(recorder)) {}
 };
 
-}  // namespace sag::rec
+}  // namespace sag::match

@@ -3,7 +3,7 @@
 #include "sag/TicTacToe.h"
 #include "sag/storage/MemoryMatchStorage.h"
 
-namespace sag::rec {
+namespace sag::match {
 
 struct TicTacToeTestRecorder {
 	using graph = tic_tac_toe::Graph;
@@ -13,4 +13,4 @@ struct TicTacToeTestRecorder {
 
 static_assert(MatchRecorderTypes<TicTacToeTestRecorder>);
 
-}  // namespace sag::rec
+}  // namespace sag::match

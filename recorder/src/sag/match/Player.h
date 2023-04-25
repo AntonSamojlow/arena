@@ -7,7 +7,7 @@
 #include "sag/ExampleGraph.h"
 #include "sag/GraphConcepts.h"
 
-namespace sag::rec {
+namespace sag::match {
 
 // clang-format off
 template <typename P, typename G>
@@ -57,4 +57,4 @@ class RandomPlayer {
 
 static_assert(Player<RandomPlayer<sag::example::Graph>, sag::example::Graph>);
 
-}  // namespace sag::rec
+}  // namespace sag::match

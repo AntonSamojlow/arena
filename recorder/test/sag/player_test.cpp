@@ -1,4 +1,4 @@
-#include "sag/rec/Player.h"
+#include "sag/match/Player.h"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -8,8 +8,8 @@ using namespace sag::example;
 namespace {
 
 TEST_CASE("Random player test", "[sag, match]") {
-	sag::rec::RandomPlayer<Graph> player_one{};
-	sag::rec::RandomPlayer<Graph> player_two{};
+	sag::match::RandomPlayer<Graph> player_one{};
+	sag::match::RandomPlayer<Graph> player_two{};
 
 	SECTION("check equality of default constructed") {
 		CHECK(player_one == player_two);
@@ -17,7 +17,7 @@ TEST_CASE("Random player test", "[sag, match]") {
 	}
 
 	SECTION("check equality of copied value") {
-		sag::rec::RandomPlayer<Graph> copy = player_one;
+		sag::match::RandomPlayer<Graph> copy = player_one;
 		CHECK(player_one == copy);
 		CHECK((player_one != copy) == false);
 	}
