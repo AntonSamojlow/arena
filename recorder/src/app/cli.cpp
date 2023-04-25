@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 
 #include <iostream>
+#include <ranges>
 
 namespace app {
 auto cli_thread_loop(std::stop_token const& token, tools::MutexQueue<std::string>* queue) -> void {
