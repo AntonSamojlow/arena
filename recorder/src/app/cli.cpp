@@ -2,8 +2,8 @@
 
 #include <spdlog/spdlog.h>
 
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
 namespace app {
 auto cli_thread_loop(std::stop_token const& token, tools::MutexQueue<std::string>* queue) -> void {
