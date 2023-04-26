@@ -1,5 +1,6 @@
 #include "app/app.h"
 
 auto main() -> int {
-	return app::run();
+	app::App app{};
+	return app.run();
 }
