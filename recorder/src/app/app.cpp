@@ -64,8 +64,7 @@ auto App::run() -> int {
 		logger->set_level(spdlog::level::info);
 		logger->info("app start");
 
-		ReadCommandLoop command_loop = {.command_source = input_source_};
-		tools::SingleQueuedThreadHandle<std::string> cli_thread(command_loop);
+		tools::SingleQueuedThreadHandle<std::string> cli_thread(ReadCommandLoop{input_source_});
 
 		using TestRec = sag::match::TicTacToeTestRecorder;
 		std::vector<sag::match::RecorderThreadHandle<TestRec>> recorder_threads;
