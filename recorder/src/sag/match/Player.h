@@ -32,10 +32,8 @@ auto player_id(Player<G> auto const& player) -> std::string {
 template <Graph G>
 class RandomPlayer {
  public:
-	RandomPlayer() {
-		std::random_device rand;
-		rng_ = std::mt19937(rand());
-	}
+	RandomPlayer() : rng_(std::mt19937(std::random_device()())) {}
+	explicit RandomPlayer(std::string_view name) : rng_(std::mt19937(std::random_device()())), name_(name) {}
 
 	[[nodiscard]] auto id() const -> std::string { return name_; }
 	[[nodiscard]] auto display_name() const -> std::string { return name_; }
@@ -50,9 +48,9 @@ class RandomPlayer {
 	}
 
  private:
-	std::string name_ = "random player";
 	std::mt19937 rng_;
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
+	std::string name_ = "random-player";
 };
 
 static_assert(Player<RandomPlayer<sag::example::Graph>, sag::example::Graph>);

@@ -2,14 +2,16 @@
 
 #include <spdlog/common.h>
 #include <tools/MutexQueue.h>
+#include <vcruntime.h>
 
 #include <iostream>
 #include <memory>
+#include <ranges>
 #include <string>
 #include <thread>
 #include <vector>
 
-#include "config.h"
+#include "app/config.h"
 #include "sag/match/MatchRecorder.h"
 #include "sag/match/TicTacToeTestRecorder.h"
 
@@ -43,9 +45,8 @@ struct ReadCommandLoop {
 
 namespace app {
 
-auto App::run() -> int {
+auto App::run(config::Recorder const& config) -> int {
 	auto logger = spdlog::default_logger();
-
 	using enum sag::match::Signal;
 	try {
 		const std::map<std::string, sag::match::Signal, std::less<>> cliRecorderSignals = {
@@ -68,9 +69,16 @@ auto App::run() -> int {
 
 		using TestRec = sag::match::TicTacToeTestRecorder;
 		std::vector<sag::match::RecorderThreadHandle<TestRec>> recorder_threads;
-		recorder_threads.reserve(4);
-		for (int i = 0; i < 4; ++i) {
-			recorder_threads.emplace_back(sag::match::RecorderThreadHandle<TestRec>{{{{}, {}}, {}, {}, {}}});
+
+		recorder_threads.reserve(config.parallel_games);
+		for (size_t i = 0; i < config.parallel_games; ++i) {
+			std::vector<typename TestRec::player> players;
+			players.reserve(config.players.size());
+			for (config::Player const& player_config : config.players)
+				players.emplace_back(player_config.name);
+
+			sag::match::MatchRecorder<TestRec> recorder{std::move(players), {}, {}, {}};
+			recorder_threads.emplace_back(std::move(recorder));
 		}
 
 		while (true) {

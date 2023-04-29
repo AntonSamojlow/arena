@@ -1,6 +1,7 @@
 #pragma once
 #include <spdlog/spdlog.h>
 
+#include <numeric>
 #include <queue>
 #include <string>
 
@@ -64,7 +65,13 @@ class MatchRecorder {
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 
 	auto generate_info() const -> void {
-		logger_->info("match recorder status: {} players, running={}", players_.size(), is_running_);
+		auto comma_join_name = [](std::string existing, auto player) {
+			return std::move(existing) + ", " + player.display_name();
+		};
+		std::string player_names =
+			std::accumulate(std::next(players_.begin()), players_.end(), players_.front().display_name(), comma_join_name);
+
+		logger_->info("match recorder status: {} players ({}), running={}", players_.size(), player_names, is_running_);
 	}
 
 	auto record_once() -> void {
