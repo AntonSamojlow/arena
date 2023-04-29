@@ -26,11 +26,11 @@ runs:
       run: |
         ${{ inputs.nuget_cmd_prefix }} `./recorder/vcpkg/vcpkg fetch nuget | tail -n 1` \
           sources add \
-          -source "https://nuget.pkg.github.com/{{ github.repository_owner }}/index.json" \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
           -name "GitHub" \
-          -username "{{ github.repository_owner }}" \
+          -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}"
         ${{ inputs.nuget_cmd_prefix }} `./recorder/vcpkg/vcpkg fetch nuget | tail -n 1` \
           setapikey "${{ secrets.GITHUB_TOKEN }}" \
-          -source "https://nuget.pkg.github.com/{{ github.repository_owner }}/index.json"
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
