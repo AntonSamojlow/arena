@@ -13,12 +13,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: "Create directory '${{ inputs.vcpkg_default_cache }}'"
-      run: mkdir -p ${{ inputs.vcpkg_default_cache }}
-      shell: bash
-
     # Setup the build machine with the most recent versions of CMake and Ninja.
-    # Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
     - uses: lukka/get-cmake@latest
       # with:
       #   cmakeVersion: 3.25.2     # <--= optional, stick to exactly 3.25.2 version
