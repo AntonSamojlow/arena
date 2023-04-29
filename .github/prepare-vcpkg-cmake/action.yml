@@ -20,7 +20,17 @@ runs:
       #   ninjaVersion: 1.11.1     # <--= optional, stick to exactly 1.11.1 version
 
     - name: "DEBUGSTEP"
-      shell: "pwsh"
+      shell: pwsh
+      working-directory: recorder
+      run: Get-ChildItem
+
+    - name: "DEBUGSTEP"
+      shell: pwsh
+      working-directory: recorder/vcpkg
+      run: Get-ChildItem
+
+    - name: "DEBUGSTEP"
+      shell: pwsh
       working-directory: recorder
       run: ./vcpkg/vcpkg
 
