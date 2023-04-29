@@ -21,14 +21,15 @@ runs:
 
     - name: "Setup NuGet Credentials"
       shell: bash
+      working-directory: recorder
       run: |
-        ${{ inputs.nuget_cmd_prefix }} `./recorder/vcpkg/vcpkg fetch nuget | tail -n 1` \
+        ${{ inputs.nuget_cmd_prefix }} `./vcpkg/vcpkg fetch nuget | tail -n 1` \
           sources add \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
           -name "GitHub" \
           -username "${{ github.repository_owner }}" \
           -password "${{ inputs.github_token }}"
-        ${{ inputs.nuget_cmd_prefix }} `./recorder/vcpkg/vcpkg fetch nuget | tail -n 1` \
+        ${{ inputs.nuget_cmd_prefix }} `./vcpkg/vcpkg fetch nuget | tail -n 1` \
           setapikey "${{ inputs.github_token }}" \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
