@@ -22,7 +22,7 @@ runs:
     - name: "DEBUGSTEP"
       shell: "pwsh"
       working-directory: recorder
-      run: Get-ChildItem .
+      run: vcpkg/vcpkg
 
     - name: "Setup NuGet Credentials"
       shell: "bash"
