@@ -31,11 +31,11 @@ runs:
 
     - name: "DEBUGSTEP"
       shell: pwsh
-      working-directory: recorder
-      run: ./vcpkg/vcpkg
+      working-directory: recorder/vcpkg
+      run: vcpkg
 
     - name: "Setup NuGet Credentials"
-      shell: "pwsh"
+      shell: pwsh
       working-directory: recorder
       run: >
         $nuget_exe = ./vcpkg/vcpkg fetch nuget;
