@@ -44,10 +44,7 @@ jobs:
       - name: Prepare vcpkg, cmake and ninja
         uses: "./.github/prepare-vcpkg-cmake"
         with:
-          os: windows
-          platform: x64
-          vcpkg_root: ${{ github.workspace }}/recorder/vcpkg
-          vcpkg_default_cache: ${{ github.workspace }}/recorder/vcpkg/bincache
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -92,6 +89,7 @@ jobs:
       - name: Prepare vcpkg, cmake and ninja
         uses: "./.github/prepare-vcpkg-cmake"
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           nuget_cmd_prefix: "mono"
 
       - name: Setup linux tools

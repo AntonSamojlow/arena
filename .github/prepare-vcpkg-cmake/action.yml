@@ -2,6 +2,9 @@ name: prepare-vcpkg-cmake
 description: Prepares the host for building with vcpkg and cmake (incl. ninja)
 
 inputs:
+  github_token:
+    description: workflow auth token (https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
+    required: true
   nuget_cmd_prefix:
     description: To run `nuget.exe` on non-Windows platforms, we must use `mono`.
     required: false
@@ -30,7 +33,7 @@ runs:
           -storepasswordincleartext \
           -name "GitHub" \
           -username "${{ github.repository_owner }}" \
-          -password "${{ secrets.GITHUB_TOKEN }}"
+          -password "${{ inputs.github_token }}"
         ${{ inputs.nuget_cmd_prefix }} `./recorder/vcpkg/vcpkg fetch nuget | tail -n 1` \
-          setapikey "${{ secrets.GITHUB_TOKEN }}" \
+          setapikey "${{ inputs.github_token }}" \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
