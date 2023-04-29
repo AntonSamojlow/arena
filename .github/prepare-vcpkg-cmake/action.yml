@@ -32,7 +32,7 @@ runs:
     - name: "DEBUGSTEP"
       shell: pwsh
       working-directory: recorder/vcpkg
-      run: vcpkg
+      run: vcpkg --version
 
     - name: "Setup NuGet Credentials"
       shell: pwsh
