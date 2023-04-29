@@ -2,49 +2,29 @@ name: prepare-vcpkg-cmake
 description: Prepares the host for building with vcpkg and cmake (incl. ninja)
 
 inputs:
-  os:
-    description: used as part of the cache key
+  github_token:
+    description: workflow auth token (https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
     required: true
-  platform:
-    description: used as part of the cache key
-    required: true
-  vcpkg_default_cache:
-    description: vcpkg default cache location
-    required: true
-  vcpkg_root:
-    description: vcpkg root directory
+  nuget_cmd_prefix:
+    description: To run `nuget.exe` on non-Windows platforms, we must use `mono`.
     required: false
     default: ""
 
 runs:
   using: "composite"
   steps:
-    - name: "Create directory '${{ inputs.vcpkg_default_cache }}'"
-      run: mkdir -p ${{ inputs.vcpkg_default_cache }}
-      shell: bash
-
     # Setup the build machine with the most recent versions of CMake and Ninja.
-    # Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
     - uses: lukka/get-cmake@latest
       # with:
       #   cmakeVersion: 3.25.2     # <--= optional, stick to exactly 3.25.2 version
       #   ninjaVersion: 1.11.1     # <--= optional, stick to exactly 1.11.1 version
 
-    # Restore both vcpkg and its artifacts from the GitHub cache service.
-    - name: Restore vcpkg and its artifacts.
-      uses: actions/cache@v3
-      with:
-        # The first path is the location of vcpkg: it contains the vcpkg executable and data files, as long as the
-        # built package archives (aka binary cache) which are located by vcpkg_default_cache.
-        # The other paths starting with '!' are exclusions: (contain termporary files generated during vcpkg installs)
-        path: |
-          ${{ inputs.vcpkg_root }}
-          !${{ inputs.vcpkg_root }}/buildtrees
-          !${{ inputs.vcpkg_root }}/packages
-          !${{ inputs.vcpkg_root }}/downloads
-          !${{ inputs.vcpkg_root }}/installed
-        # The key is composed in a way that it gets properly invalidated: this must happen whenever vcpkg's Git commit id changes, or the list of packages changes. In this case a cache miss must happen and a new entry with a new key with be pushed to GitHub the cache service.
-        # The key includes: hash of the vcpkg.json file, the hash of the vcpkg Git commit id, and the used vcpkg's triplet. The vcpkg's commit id would suffice, but computing an hash out it does not harm.
-        # Note: given a key, the cache content is immutable. If a cache entry has been created improperly, in order the recreate the right content the key must be changed as well, and it must be brand new (i.e. not existing already).
-        key: |
-          ${{ hashFiles( 'vcpkg.json' ) }}-${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}-${{ inputs.os }}-${{ inputs.platform }}
+    - name: "Setup NuGet Credentials"
+      shell: pwsh
+      working-directory: recorder/vcpkg
+      run: |
+        $source = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+        vcpkg fetch nuget
+        $nuget_exe = vcpkg fetch nuget
+        & ${{ inputs.nuget_cmd_prefix }} $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
+        & ${{ inputs.nuget_cmd_prefix }} $nuget_exe setapikey "${{ inputs.github_token }}" -source $source
