@@ -20,7 +20,7 @@ runs:
       #   ninjaVersion: 1.11.1     # <--= optional, stick to exactly 1.11.1 version
 
     - name: "Setup NuGet Credentials"
-      shell: pwsh
+      shell: bash
       run: |
         ${{ inputs.nuget_cmd_prefix }} `./recorder/vcpkg/vcpkg fetch nuget | tail -n 1` \
           sources add \
