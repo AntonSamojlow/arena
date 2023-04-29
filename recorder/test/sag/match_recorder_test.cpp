@@ -3,12 +3,12 @@
 
 #include "../helpers.h"
 #include "sag/TicTacToe.h"
-#include "sag/rec/MatchRecorder.h"
-#include "sag/rec/Player.h"
+#include "sag/match/MatchRecorder.h"
+#include "sag/match/Player.h"
 #include "sag/storage/SQLiteMatchStorage.h"
 
 using namespace sag::tic_tac_toe;
-using namespace sag::rec;
+using namespace sag::match;
 using namespace std::chrono;
 
 namespace {

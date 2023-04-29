@@ -1,6 +1,7 @@
 #pragma once
 #include <spdlog/spdlog.h>
 
+#include <numeric>
 #include <queue>
 #include <string>
 
@@ -8,7 +9,7 @@
 #include "tools/MutexQueue.h"
 #include "tools/ThreadHandle.h"
 
-namespace sag::rec {
+namespace sag::match {
 
 enum class Signal { Record, Halt, Quit, Status };
 
@@ -64,7 +65,13 @@ class MatchRecorder {
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 
 	auto generate_info() const -> void {
-		logger_->info("match recorder status: {} players, running={}", players_.size(), is_running_);
+		auto comma_join_name = [](std::string existing, auto player) {
+			return std::move(existing) + ", " + player.display_name();
+		};
+		std::string player_names =
+			std::accumulate(std::next(players_.begin()), players_.end(), players_.front().display_name(), comma_join_name);
+
+		logger_->info("match recorder status: {} players ({}), running={}", players_.size(), player_names, is_running_);
 	}
 
 	auto record_once() -> void {
@@ -109,10 +116,10 @@ class MatchRecorder {
 
 /// Handle to a recorder thread with input queue for control signals
 template <MatchRecorderTypes Types>
-struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::rec::Signal> {
+struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::match::Signal> {
  public:
 	explicit RecorderThreadHandle(MatchRecorder<Types>&& recorder)
-			: tools::SingleQueuedThreadHandle<sag::rec::Signal>(std::move(recorder)) {}
+			: tools::SingleQueuedThreadHandle<sag::match::Signal>(std::move(recorder)) {}
 };
 
-}  // namespace sag::rec
+}  // namespace sag::match

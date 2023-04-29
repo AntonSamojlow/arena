@@ -32,6 +32,7 @@ if(ENABLE_CLANG_TIDY)
 endif()
 
 # include sub-projects
+add_subdirectory (src/app)
 add_subdirectory (src/recorder)
 add_subdirectory (src/tools)
 add_subdirectory (src/sag)

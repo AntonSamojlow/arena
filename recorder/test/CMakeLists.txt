@@ -9,7 +9,7 @@ set(DEPENDENCIES spdlog::spdlog fmt::fmt unofficial::sqlite3::sqlite3)
 # source files
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp *.ixx)
 set(SOURCES ${SOURCES})
-set(LIBRARIESUNDERTEST sag tools)
+set(LIBRARIESUNDERTEST app sag tools)
 
 # build target test (executable)
 add_executable(tests ${SOURCES})

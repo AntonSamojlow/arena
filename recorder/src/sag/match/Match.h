@@ -5,7 +5,7 @@
 #include "sag/GraphOperations.h"
 #include "tools/Failure.h"
 
-namespace sag::rec {
+namespace sag::match {
 
 /// Wrapper around std::pair, representing a state and a correspnding play
 template <typename S, typename A>
@@ -70,4 +70,4 @@ concept MatchRecorderTypes =
 
 // clang-format on
 
-}  // namespace sag::rec
+}  // namespace sag::match
