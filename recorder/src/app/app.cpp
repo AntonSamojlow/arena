@@ -2,10 +2,7 @@
 
 #include <spdlog/common.h>
 #include <tools/MutexQueue.h>
-#include <vcruntime.h>
 
-#include <iostream>
-#include <memory>
 #include <ranges>
 #include <string>
 #include <thread>
