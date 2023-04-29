@@ -35,5 +35,5 @@ runs:
           -name "GitHub"
           -username "${{ github.repository_owner }}"
           -password "${{ inputs.github_token }}";
-        ${{ inputs.nuget_cmd_prefix }}  $nuget_exe setapikey "${{ inputs.github_token }}"
+        ${{ inputs.nuget_cmd_prefix }} & $nuget_exe setapikey "${{ inputs.github_token }}"
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
