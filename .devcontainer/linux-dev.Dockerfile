@@ -10,7 +10,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN update
 RUN install git
 # general build tooling
-RUN install gdb curl zip pkg-config
+RUN install ninja-build gdb curl zip pkg-config
 # for Sonar (java runtime)
 RUN install default-jre
 # for Nuget access of vcpkg binary caching
@@ -33,18 +33,18 @@ RUN ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';" ,"cmake", "
 # --- Install *specified* version of gcc from https://packages.ubuntu.com ---
 ARG GCC_VERSION=12
 RUN install "g++-$env:GCC_VERSION" "gcc-$env:GCC_VERSION"
+# reset shell
 SHELL ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
 # remove existing gcc and g++ symlinks (possibly installed by previous dependencies like CMake)
 RUN $locations = whereis gcc; \
   if($locations -like "*/usr/bin/gcc*") {rm /usr/bin/gcc};
 RUN $locations = whereis g++; \
   if($locations -like "*/usr/bin/g++*") {rm /usr/bin/g++};
-# add new symlinks for the installed version (vcpkg default triples use g++)
+# add new symlinks for the installed versions (vcpkg default triples use g++)
 RUN ln -s "/usr/bin/gcc-$env:GCC_VERSION" /usr/bin/gcc
 RUN ln -s "/usr/bin/g++-$env:GCC_VERSION" /usr/bin/g++
 
 # --- Install *specified* version of llvm, clang, etc. from https://apt.llvm.org/ ---
-# reset shell
 ARG CLANG_VERSION=15
 RUN $v = $env:CLANG_VERSION; \
   $n = $env:UBUNTU_CODE_NAME; \
@@ -52,4 +52,6 @@ RUN $v = $env:CLANG_VERSION; \
   add-apt-repository "deb http://apt.llvm.org/$n/ llvm-toolchain-$n-$v main"; \
   apt-get update; \
   apt-get --yes --fix-missing install llvm-$v clang-$v clang-tidy-$v lldb-$v lld-$v libclang-$v-dev;
+# set symlink only for clang-tidy (clang-tidy cmake script uses 'default' version)
+RUN ln -s "/usr/bin/clang-tidy-env:CLANG_VERSION" /usr/bin/clang-tidy
 RUN Get-Command "clang-$env:CLANG_VERSION" | Write-Host
