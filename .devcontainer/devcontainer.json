@@ -1,0 +1,38 @@
+{
+  // "image": "MYREPO",
+  "build": {
+    "dockerfile": "./linux-dev.Dockerfile"
+  },
+  // *bind* the hosts workspace into the container
+  "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind",
+  // improve performance by using *named local volumes* for certain sub folders
+  // (https://code.visualstudio.com/remote/advancedcontainers/improve-performance)
+  // note that data in *volume* mounts will persist: to clean up, delete manually or rebuild container
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-recorder-build,target=${containerWorkspaceFolder}/recorder/build,type=volume",
+    "source=${localWorkspaceFolderBasename}-recorder-vcpkg,target=${containerWorkspaceFolder}/recorder/vcpkg,type=volume"
+  ],
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools-extension-pack",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "twxs.cmake",
+        "fredericbonnet.cmake-test-adapter",
+        "ms-vscode-remote.remote-containers",
+        "waderyan.gitblame",
+        "mhutchie.git-graph",
+        "donjayamanne.githistory",
+        "DavidAnson.vscode-markdownlint",
+        "ms-vscode.powershell",
+        "mutantdino.resourcemonitor",
+        "ms-vscode.test-adapter-converter",
+        "hbenl.vscode-test-explorer",
+        "redhat.vscode-yaml"
+      ]
+    }
+  },
+  // lets make sure tge vcpkg *git submodule* is checked out
+  "postCreateCommand": "git submodule update --init"
+}
