@@ -33,8 +33,8 @@ jobs:
 
       - name: Docker build
         shell: pwsh
-        run: docker build -f $env:IMAGE -t $GAR_LOCATION-docker.pkg.dev/$GAR_PROJECT/$GAR_REPOSITORY/linux-dev:latest
+        run: docker build -f $env:IMAGE -t "$GAR_LOCATION-docker.pkg.dev/$GAR_PROJECT/$GAR_REPOSITORY/linux-dev:latest"
 
       - name: Docker push
         shell: pwsh
-        run: docker push $GAR_LOCATION-docker.pkg.dev/$GAR_PROJECT/$GAR_REPOSITORY/linux-dev:latest
+        run: docker push "$GAR_LOCATION-docker.pkg.dev/$GAR_PROJECT/$GAR_REPOSITORY/linux-dev:latest"
