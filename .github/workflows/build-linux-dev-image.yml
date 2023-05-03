@@ -1,0 +1,39 @@
+# workflow that builds the linux-dev image and uploads it to some container registry
+
+name: linux dev image
+on: workflow_dispatch
+
+env:
+  IMAGE: "./devcontainer/linux-dev.Dockerfile"
+  GC_LOCATION: "europe-west3-docker"
+  GC_PROJECT: "arena-385320"
+
+jobs:
+  build:
+    name: Build & push docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: "actions/checkout@v3"
+
+      - id: "auth"
+        name: Authenticate to Google Cloud
+        uses: "google-github-actions/auth@v1"
+        with:
+          credentials_json: "${{ secrets.GOOGLE_CLOUD_KEY }}"
+
+      - id: "login"
+        name: Login to GAR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.GC_LOCATION }}-pkg.dev
+          username: _json_key
+          password: ${{ secrets.GOOGLE_CLOUD_KEY }}
+
+      - name: Docker build
+        shell: pwsh
+        run: docker build -f $env:IMAGE -t $($env:GC_LOCATION)/$($env:GC_PROJECT)/recorder/linux-dev:latest
+
+      - name: Docker push
+        shell: pwsh
+        run: docker push $($env:GC_LOCATION)/$($env:GC_PROJECT)/recorder/linux-dev:latest
