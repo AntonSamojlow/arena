@@ -4,7 +4,7 @@ name: linux dev image
 on: workflow_dispatch
 
 env:
-  IMAGE: "./devcontainer/linux-dev.Dockerfile"
+  IMAGE: "linux-dev.Dockerfile"
   GAR_LOCATION: "europe-west3"
   GAR_PROJECT: "arena-385320"
   GAR_REPOSITORY: "recorder"
@@ -33,6 +33,7 @@ jobs:
 
       - name: Docker build
         shell: pwsh
+        working-directory: .devcontainer
         run: docker build -f ${{ env.IMAGE }} -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GAR_PROJECT}}/${{ env.GAR_REPOSITORY }}/linux-dev:latest .
 
       - name: Docker push
