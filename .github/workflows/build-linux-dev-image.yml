@@ -21,7 +21,7 @@ jobs:
         uses: "google-github-actions/auth@v1.1.0"
         with:
           credentials_json: "${{ secrets.GOOGLE_CLOUD_KEY }}"
-          token_format: "access_token"
+          # token_format: "access_token"
 
       # - id: "login"
       #   name: Login to GAR
