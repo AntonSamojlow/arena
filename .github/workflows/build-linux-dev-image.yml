@@ -3,7 +3,7 @@
 name: linux dev image
 on: workflow_dispatch
 
-env.
+env:
   IMAGE: "./devcontainer/linux-dev.Dockerfile"
   GAR_LOCATION: "europe-west3"
   GAR_PROJECT: "arena-385320"
