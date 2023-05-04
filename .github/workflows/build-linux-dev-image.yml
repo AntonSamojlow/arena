@@ -9,6 +9,7 @@ env:
   GAR_PROJECT: "arena-385320"
   GAR_REPOSITORY: "recorder"
   GCLOUD_SERVICE_ACCOUNT: "github-workflows"
+  GCLOUD_WORKLOAD_ID_PROVIDER: "projects/1070825474922/locations/global/workloadIdentityPools/github-id-pool/providers/github-id-pool-provider"
 
 jobs:
   build:
@@ -25,7 +26,7 @@ jobs:
         uses: "google-github-actions/auth@v1.1.0"
         with:
           token_format: "access_token"
-          workload_identity_provider: <your-provider-id>
+          workload_identity_provider: ${{ env.GCLOUD_WORKLOAD_ID_PROVIDER }}
           service_account: ${{ env.GCLOUD_SERVICE_ACCOUNT }}@${{ env.GAR_PROJECT }}.iam.gserviceaccount.com
           access_token_lifetime: 300s
 
