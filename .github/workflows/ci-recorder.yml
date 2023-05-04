@@ -91,10 +91,12 @@ jobs:
           ref: ${{ github.event.workflow_run.head_branch }}
 
       - name: debugggging
+        working-directory: recorder/vcpkg
         shell: pwsh
         run: Get-ChildItem
 
       - name: debugggging
+        working-directory: recorder/vcpkg
         shell: pwsh
         run: ./vcpkg fetch nuget
 
