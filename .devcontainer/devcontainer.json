@@ -1,8 +1,9 @@
 {
-  // "image": "MYREPO",
-  "build": {
-    "dockerfile": "./linux-dev.Dockerfile"
-  },
+  // image from GAR might require running `gcloud auth login` (provided gcloud SDK is installed)
+  "image": "europe-west3-docker.pkg.dev/arena-385320/recorder/linux-dev:latest",
+  // "build": {
+  //   "dockerfile": "./linux-dev.Dockerfile"
+  // },
   // *bind* the hosts workspace into the container
   "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind",
   // improve performance by using *named local volumes* for certain sub folders

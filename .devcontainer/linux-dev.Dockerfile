@@ -35,14 +35,9 @@ ARG GCC_VERSION=12
 RUN install "g++-$env:GCC_VERSION" "gcc-$env:GCC_VERSION"
 # reset shell
 SHELL ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
-# remove existing gcc and g++ symlinks (possibly installed by previous dependencies like CMake)
-RUN $locations = whereis gcc; \
-  if($locations -like "*/usr/bin/gcc*") {rm /usr/bin/gcc};
-RUN $locations = whereis g++; \
-  if($locations -like "*/usr/bin/g++*") {rm /usr/bin/g++};
 # add new symlinks for the installed versions (vcpkg default triples use g++)
-RUN ln -s "/usr/bin/gcc-$env:GCC_VERSION" /usr/bin/gcc
-RUN ln -s "/usr/bin/g++-$env:GCC_VERSION" /usr/bin/g++
+RUN update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-$env:GCC_VERSION" 20
+RUN update-alternatives --install /usr/bin/g++ g++ "/usr/bin/g++-$env:GCC_VERSION" 20
 
 # --- Install *specified* version of llvm, clang, etc. from https://apt.llvm.org/ ---
 ARG CLANG_VERSION=15
@@ -53,5 +48,5 @@ RUN $v = $env:CLANG_VERSION; \
   apt-get update; \
   apt-get --yes --fix-missing install llvm-$v clang-$v clang-tidy-$v lldb-$v lld-$v libclang-$v-dev;
 # set symlink only for clang-tidy (clang-tidy cmake script uses 'default' version)
-RUN ln -s "/usr/bin/clang-tidy-env:CLANG_VERSION" /usr/bin/clang-tidy
+RUN update-alternatives --install /usr/bin/clang-tidy clang-tidy "/usr/bin/clang-tidy-$env:CLANG_VERSION" 20
 RUN Get-Command "clang-$env:CLANG_VERSION" | Write-Host
