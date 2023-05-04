@@ -1,10 +1,27 @@
 # workflow that builds the linux-dev image and uploads it to some container registry
 
 name: linux dev image
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      version-tag:
+        description: "Log level"
+        required: true
+        default: "latest"
+        type: string
+      gcc-version:
+        description: "Gcc version"
+        required: true
+        type: string
+        default: "12"
+      clang-version:
+        description: "Clang version (incl. llvm and clang tooling)"
+        required: true
+        type: string
+        default: "15"
 
 env:
-  IMAGE: "linux-dev.Dockerfile"
+  IMAGE_FILE: "linux-dev.Dockerfile"
   GAR_LOCATION: "europe-west3"
   GAR_PROJECT: "arena-385320"
   GAR_REPOSITORY: "recorder"
@@ -20,6 +37,9 @@ jobs:
       id-token: "write"
     steps:
       - uses: "actions/checkout@v3"
+
+      - name: Save image tag
+        run: echo "IMAGE_TAG=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GAR_PROJECT}}/${{ env.GAR_REPOSITORY }}/linux-dev:-${{ inputs.version-tag }}" >> $GITHUB_STATE
 
       - id: "auth"
         name: Authenticate to Google Cloud
@@ -41,8 +61,16 @@ jobs:
       - name: Docker build
         shell: pwsh
         working-directory: .devcontainer
-        run: docker build -f ${{ env.IMAGE }} -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GAR_PROJECT}}/${{ env.GAR_REPOSITORY }}/linux-dev:latest .
+        run: >
+          docker build
+          --file ${{ env.IMAGE_FILE }}
+          --tag ${{ env.IMAGE_TAG }}
+          --build-arg CLANG_VERSION=${{ inputs.clang-version }}
+          --build-arg GCC_VERSION=${{ inputs.gcc-version }}
+          --label=clang-version-${{ inputs.clang-version }}
+          --label=gcc-version-${{ inputs.gcc-version }}
+          .
 
       - name: Docker push
         shell: pwsh
-        run: docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GAR_PROJECT}}/${{ env.GAR_REPOSITORY }}/linux-dev:latest
+        run: docker push ${{ env.IMAGE_TAG }}
