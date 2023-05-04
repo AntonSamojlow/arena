@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version-tag:
-        description: "Log level"
+        description: "Version tag"
         required: true
         default: "latest"
         type: string
@@ -39,7 +39,7 @@ jobs:
       - uses: "actions/checkout@v3"
 
       - name: Save image tag
-        run: echo "IMAGE_TAG=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GAR_PROJECT}}/${{ env.GAR_REPOSITORY }}/linux-dev:-${{ inputs.version-tag }}" >> $GITHUB_ENV
+        run: echo "IMAGE_TAG=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GAR_PROJECT}}/${{ env.GAR_REPOSITORY }}/linux-dev:${{ inputs.version-tag }}" >> $GITHUB_ENV
 
       - id: "auth"
         name: Authenticate to Google Cloud
