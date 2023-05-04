@@ -8,6 +8,7 @@ env:
   GAR_LOCATION: "europe-west3"
   GAR_PROJECT: "arena-385320"
   GAR_REPOSITORY: "recorder"
+  GCLOUD_SERVICE_ACCOUNT: "github-workflows"
 
 jobs:
   build:
@@ -23,8 +24,10 @@ jobs:
         name: Authenticate to Google Cloud
         uses: "google-github-actions/auth@v1.1.0"
         with:
-          credentials_json: "${{ secrets.GOOGLE_CLOUD_KEY }}"
           token_format: "access_token"
+          workload_identity_provider: <your-provider-id>
+          service_account: ${{ env.GCLOUD_SERVICE_ACCOUNT }}@${{ env.GAR_PROJECT }}.iam.gserviceaccount.com
+          access_token_lifetime: 300s
 
       - id: "login"
         name: Login to GAR
