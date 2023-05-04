@@ -23,8 +23,8 @@ runs:
       shell: pwsh
       working-directory: recorder/vcpkg
       run: |
-        $source = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
         vcpkg fetch nuget
         $nuget_exe = vcpkg fetch nuget
+        $source = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
         & ${{ inputs.nuget_cmd_prefix }} $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
         & ${{ inputs.nuget_cmd_prefix }} $nuget_exe setapikey "${{ inputs.github_token }}" -source $source
