@@ -61,7 +61,11 @@ jobs:
     env:
       SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
       SONAR_ARGS: --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
-
+    container:
+      image: europe-west3-docker.pkg.dev/arena-385320/recorder/linux-dev:latest
+      credentials:
+        username: _json_key_base64
+        password: ${{ secrets.GCLOUD_JSON_KEY }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -86,19 +90,15 @@ jobs:
           fetch-depth: 0 # vcpkg submodule uses ''baseline', which requires full git history
           ref: ${{ github.event.workflow_run.head_branch }}
 
-      - name: Prepare vcpkg, cmake and ninja
-        uses: "./.github/prepare-vcpkg-cmake"
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          nuget_cmd_prefix: "mono"
-
-      - name: Setup linux tools
-        uses: "./.github/setup-linux-tools"
-        with:
-          clang: ${{ contains(matrix.cmake-preset, 'clang') }}
-          gcc: ${{ contains(matrix.cmake-preset, 'gcc') }}
-          gcov: ${{ matrix.gcov }}
-          sonar: ${{ matrix.sonar }}
+      - name: "Setup NuGet Credentials"
+        shell: pwsh
+        working-directory: recorder/vcpkg
+        run: |
+          $source = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          vcpkg fetch nuget
+          $nuget_exe = vcpkg fetch nuget
+          & ${{ inputs.nuget_cmd_prefix }} $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
+          & ${{ inputs.nuget_cmd_prefix }} $nuget_exe setapikey "${{ inputs.github_token }}" -source $source
 
       - name: Cmake build and test
         uses: "./.github/cmake-build-test"
