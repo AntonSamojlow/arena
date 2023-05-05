@@ -16,7 +16,7 @@ runs:
     - name: Bootstrap vcpkg
       working-directory: recorder/vcpkg
       shell: pwsh
-      run:
+      run: |
         if($env:RUNNER_OS -eq 'Windows'){ ./bootstrap-vcpkg.bat }
         if($env:RUNNER_OS -eq 'Linux'){ ./bootstrap-vcpkg.sh }
 
