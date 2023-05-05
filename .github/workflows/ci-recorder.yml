@@ -95,12 +95,22 @@ jobs:
         working-directory: recorder/vcpkg
         run: Get-ChildItem | Select-Object UnixMode, Length, Name
 
+      - name: debug
+        shell: pwsh
+        working-directory: recorder/vcpkg
+        run: ./bootstrap-vcpkg.sh
+
+      - name: debug
+        shell: pwsh
+        working-directory: recorder/vcpkg
+        run: Get-ChildItem | Select-Object UnixMode, Length, Name
+
       - name: "Setup NuGet Credentials"
         shell: pwsh
         working-directory: recorder/vcpkg
         run: |
           $source = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-          ./vcpkg/bootstrap-vcpkg.sh
+          ./bootstrap-vcpkg.sh
           ./vcpkg fetch nuget
           $nuget_exe = ./vcpkg fetch nuget
           & ${{ inputs.nuget_cmd_prefix }} $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
