@@ -13,18 +13,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Debug
-      shell: pwsh
-      working-directory: recorder/vcpkg
-      run: Get-ChildItem | Select-Object UnixMode, Length, Name
-
-    - name: Linux prep
-      if: runner.os == 'Linux'
+    - name: Bootstrap vcpkg
       working-directory: recorder/vcpkg
       shell: pwsh
-      run: |
-        echo "NUGET_CMD_PREFIX=mono" >> $GITHUB_ENV
-        ./bootstrap-vcpkg.sh
+      run:
+        if($env:RUNNER_OS -eq 'Windows'){ ./bootstrap-vcpkg.bat }
+        if($env:RUNNER_OS -eq 'Linux'){ ./bootstrap-vcpkg.sh }
 
     - name: Debug
       shell: pwsh
@@ -42,7 +36,9 @@ runs:
       working-directory: recorder/vcpkg
       run: |
         $source = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+        $nuget_cmd_prefix = ''
+        if($env:RUNNER_OS -eq 'Linux'){ $nuget_cmd_prefix = 'mono' }
         ./vcpkg fetch nuget
         $nuget_exe = ./vcpkg fetch nuget
-        & ${{ env.NUGET_CMD_PREFIX }} $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
-        & ${{ env.NUGET_CMD_PREFIX }} $nuget_exe setapikey "${{ inputs.github_token }}" -source $source
+        & $nuget_cmd_prefix $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
+        & $nuget_cmd_prefix $nuget_exe setapikey "${{ inputs.github_token }}" -source $source
