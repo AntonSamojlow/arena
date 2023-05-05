@@ -97,10 +97,12 @@ jobs:
 
       - name: "Setup NuGet Credentials"
         shell: pwsh
+        working-directory: recorder/vcpkg
         run: |
           $source = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-          recorder/vcpkg/vcpkg fetch nuget
-          $nuget_exe = recorder/vcpkg/vcpkg fetch nuget
+          ./vcpkg/bootstrap-vcpkg.sh
+          ./vcpkg fetch nuget
+          $nuget_exe = ./vcpkg fetch nuget
           & ${{ inputs.nuget_cmd_prefix }} $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
           & ${{ inputs.nuget_cmd_prefix }} $nuget_exe setapikey "${{ inputs.github_token }}" -source $source
 
