@@ -5,10 +5,6 @@ inputs:
   github_token:
     description: workflow auth token (https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
     required: true
-  nuget_cmd_prefix:
-    description: To run `nuget.exe` on non-Windows platforms, we must use `mono`.
-    required: false
-    default: ""
 
 runs:
   using: "composite"
@@ -19,11 +15,6 @@ runs:
       run: |
         if($env:RUNNER_OS -eq 'Windows'){ ./bootstrap-vcpkg.bat }
         if($env:RUNNER_OS -eq 'Linux'){ ./bootstrap-vcpkg.sh }
-
-    - name: Debug
-      shell: pwsh
-      working-directory: recorder/vcpkg
-      run: Get-ChildItem | Select-Object UnixMode, Length, Name
 
     - name: Windows prep
       if: runner.os == 'Windows'
@@ -40,5 +31,5 @@ runs:
         if($env:RUNNER_OS -eq 'Linux'){ $nuget_cmd_prefix = 'mono' }
         ./vcpkg fetch nuget
         $nuget_exe = ./vcpkg fetch nuget
-        & $nuget_cmd_prefix $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
-        & $nuget_cmd_prefix $nuget_exe setapikey "${{ inputs.github_token }}" -source $source
+        & "$nuget_cmd_prefix $nuget_exe" sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
+        & "$nuget_cmd_prefix $nuget_exe" setapikey "${{ inputs.github_token }}" -source $source
