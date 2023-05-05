@@ -41,8 +41,10 @@ jobs:
           fetch-depth: 0 # vcpkg submodule uses 'baseline', which requires full git history
           ref: ${{ github.event.workflow_run.head_branch }}
 
-      - name: Prepare vcpkg, cmake and ninja
-        uses: "./.github/prepare-vcpkg-cmake"
+      - uses: lukka/get-cmake@latest
+
+      - name: Prepare vcpkg
+        uses: "./.github/prepare-vcpkg"
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -61,7 +63,11 @@ jobs:
     env:
       SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
       SONAR_ARGS: --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
-
+    container:
+      image: europe-west3-docker.pkg.dev/arena-385320/recorder/linux-dev:latest
+      credentials:
+        username: _json_key_base64
+        password: ${{ secrets.GCLOUD_JSON_KEY }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -86,19 +92,14 @@ jobs:
           fetch-depth: 0 # vcpkg submodule uses ''baseline', which requires full git history
           ref: ${{ github.event.workflow_run.head_branch }}
 
-      - name: Prepare vcpkg, cmake and ninja
-        uses: "./.github/prepare-vcpkg-cmake"
+      - name: Prepare vcpkg
+        uses: "./.github/prepare-vcpkg"
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          nuget_cmd_prefix: "mono"
 
-      - name: Setup linux tools
-        uses: "./.github/setup-linux-tools"
-        with:
-          clang: ${{ contains(matrix.cmake-preset, 'clang') }}
-          gcc: ${{ contains(matrix.cmake-preset, 'gcc') }}
-          gcov: ${{ matrix.gcov }}
-          sonar: ${{ matrix.sonar }}
+      - name: Install sonar-scanner and build-wrapper
+        if: matrix.sonar
+        uses: SonarSource/sonarcloud-github-c-cpp@v1
 
       - name: Cmake build and test
         uses: "./.github/cmake-build-test"
