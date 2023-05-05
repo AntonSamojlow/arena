@@ -90,6 +90,11 @@ jobs:
           fetch-depth: 0 # vcpkg submodule uses ''baseline', which requires full git history
           ref: ${{ github.event.workflow_run.head_branch }}
 
+      - name: debug
+        shell: pwsh
+        working-directory: recorder/vcpkg
+        run: Get-ChildItem | Select-Object UnixMode, Length, Name
+
       - name: "Setup NuGet Credentials"
         shell: pwsh
         run: |
