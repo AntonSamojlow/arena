@@ -41,8 +41,10 @@ jobs:
           fetch-depth: 0 # vcpkg submodule uses 'baseline', which requires full git history
           ref: ${{ github.event.workflow_run.head_branch }}
 
-      - name: Prepare vcpkg, cmake and ninja
-        uses: "./.github/prepare-vcpkg-cmake"
+      - uses: lukka/get-cmake@latest
+
+      - name: Prepare vcpkg
+        uses: "./.github/prepare-vcpkg"
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -90,31 +92,10 @@ jobs:
           fetch-depth: 0 # vcpkg submodule uses ''baseline', which requires full git history
           ref: ${{ github.event.workflow_run.head_branch }}
 
-      - name: debug
-        shell: pwsh
-        working-directory: recorder/vcpkg
-        run: Get-ChildItem | Select-Object UnixMode, Length, Name
-
-      - name: debug
-        shell: pwsh
-        working-directory: recorder/vcpkg
-        run: ./bootstrap-vcpkg.sh
-
-      - name: debug
-        shell: pwsh
-        working-directory: recorder/vcpkg
-        run: Get-ChildItem | Select-Object UnixMode, Length, Name
-
-      - name: "Setup NuGet Credentials"
-        shell: pwsh
-        working-directory: recorder/vcpkg
-        run: |
-          $source = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-          ./bootstrap-vcpkg.sh
-          ./vcpkg fetch nuget
-          $nuget_exe = ./vcpkg fetch nuget
-          & ${{ inputs.nuget_cmd_prefix }} $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
-          & ${{ inputs.nuget_cmd_prefix }} $nuget_exe setapikey "${{ inputs.github_token }}" -source $source
+      - name: Prepare vcpkg
+        uses: "./.github/prepare-vcpkg"
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install sonar-scanner and build-wrapper
         if: matrix.sonar

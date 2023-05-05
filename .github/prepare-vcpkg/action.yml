@@ -1,0 +1,38 @@
+name: prepare-vcpkg
+description: Bootstraps vcpkg and registers nuget cache
+
+inputs:
+  github_token:
+    description: workflow auth token (https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
+    required: true
+  nuget_cmd_prefix:
+    description: To run `nuget.exe` on non-Windows platforms, we must use `mono`.
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Linux prep
+      if: runner.os == 'Linux'
+      working-directory: recorder/vcpkg
+      shell: pwsh
+      run: |
+        echo "NUGET_CMD_PREFIX=mono" >> $GITHUB_ENV
+        ./bootstrap-vcpkg.sh
+
+    - name: Windows prep
+      if: runner.os == 'Windows'
+      working-directory: recorder/vcpkg
+      shell: pwsh
+      run: ./bootstrap-vcpkg.bat
+
+    - name: "Setup NuGet Credentials"
+      shell: pwsh
+      working-directory: recorder/vcpkg
+      run: |
+        $source = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+        vcpkg fetch nuget
+        $nuget_exe = vcpkg fetch nuget
+        & ${{ env.NUGET_CMD_PREFIX }} $nuget_exe sources add -source $source -storepasswordincleartext -name "GitHub" -username "${{ github.repository_owner }}" -password "${{ inputs.github_token }}"
+        & ${{ env.NUGET_CMD_PREFIX }} $nuget_exe setapikey "${{ inputs.github_token }}" -source $source
