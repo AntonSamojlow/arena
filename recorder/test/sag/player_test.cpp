@@ -1,8 +1,7 @@
-#include "sag/match/Player.h"
-
 #include <catch2/catch_test_macros.hpp>
 
 #include "sag/ExampleGraph.h"
+#include "sag/match/RandomPlayer.h"
 
 using namespace sag::example;
 namespace {

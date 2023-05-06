@@ -4,7 +4,7 @@
 #include "../helpers.h"
 #include "sag/TicTacToe.h"
 #include "sag/match/MatchRecorder.h"
-#include "sag/match/Player.h"
+#include "sag/match/RandomPlayer.h"
 #include "sag/storage/SQLiteMatchStorage.h"
 
 using namespace sag::tic_tac_toe;
