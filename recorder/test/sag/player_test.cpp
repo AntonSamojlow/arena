@@ -10,7 +10,6 @@ namespace {
 TEST_CASE("Random player test", "[sag, match]") {
 	using namespace sag::example;
 	sag::match::RandomPlayer<Graph> player_one{};
-	sag::match::RandomPlayer<Graph> player_two{};
 
 	SECTION("check equality of default constructed") {
 		CHECK(sag::match::RandomPlayer<Graph>{} == sag::match::RandomPlayer<Graph>{});
@@ -53,9 +52,7 @@ TEST_CASE("Random player test", "[sag, match]") {
 TEST_CASE("MCTS player test", "[sag, mcts]") {
 	using namespace sag::tic_tac_toe;
 
-	sag::mcts::MCTSPlayer<Graph> mcts_one(1000);
-	sag::mcts::MCTSPlayer<Graph> mcts_two{2000};
-	sag::match::RandomPlayer<Graph> random{};
+	sag::mcts::MCTSPlayer<Graph> const mcts_one(1000);
 
 	SECTION("check equality oF default constructed") {
 		CHECK(sag::mcts::MCTSPlayer<Graph>{} == sag::mcts::MCTSPlayer<Graph>{});
