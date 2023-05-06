@@ -72,7 +72,7 @@ auto App::run(config::Recorder const& config) -> int {
 			std::vector<typename TestRec::player> players;
 			players.reserve(config.players.size());
 			for (config::Player const& player_config : config.players)
-				players.emplace_back(player_config.name);
+				players.emplace_back(player_config.name, player_config.name);
 
 			sag::match::MatchRecorder<TestRec> recorder{std::move(players), {}, {}, {}};
 			recorder_threads.emplace_back(std::move(recorder));

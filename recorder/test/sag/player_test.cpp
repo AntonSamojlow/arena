@@ -1,18 +1,20 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "sag/ExampleGraph.h"
+#include "sag/TicTacToe.h"
 #include "sag/match/RandomPlayer.h"
+#include "sag/mcts/MCTSPlayer.h"
 
-using namespace sag::example;
 namespace {
 
 TEST_CASE("Random player test", "[sag, match]") {
+	using namespace sag::example;
 	sag::match::RandomPlayer<Graph> player_one{};
 	sag::match::RandomPlayer<Graph> player_two{};
 
 	SECTION("check equality of default constructed") {
-		CHECK(player_one == player_two);
-		CHECK((player_one != player_two) == false);
+		CHECK(sag::match::RandomPlayer<Graph>{} == sag::match::RandomPlayer<Graph>{});
+		CHECK((sag::match::RandomPlayer<Graph>{} != sag::match::RandomPlayer<Graph>{}) == false);
 	}
 
 	SECTION("check equality of copied value") {
@@ -45,6 +47,25 @@ TEST_CASE("Random player test", "[sag, match]") {
 		// verify that random play chooses between both available actions
 		CHECK(std::ranges::find(plays, 0) != plays.end());
 		CHECK(std::ranges::find(plays, 1) != plays.end());
+	}
+}
+
+TEST_CASE("MCTS player test", "[sag, mcts]") {
+	using namespace sag::tic_tac_toe;
+
+	sag::mcts::MCTSPlayer<Graph> mcts_one(1000);
+	sag::mcts::MCTSPlayer<Graph> mcts_two{2000};
+	sag::match::RandomPlayer<Graph> random{};
+
+	SECTION("check equality oF default constructed") {
+		CHECK(sag::mcts::MCTSPlayer<Graph>{} == sag::mcts::MCTSPlayer<Graph>{});
+		CHECK((sag::mcts::MCTSPlayer<Graph>{} != sag::mcts::MCTSPlayer<Graph>{}) == false);
+	}
+
+	SECTION("check equality of copied value") {
+		sag::mcts::MCTSPlayer<Graph> copy = mcts_one;
+		CHECK(mcts_one == copy);
+		CHECK((mcts_one != copy) == false);
 	}
 }
 }  // namespace

@@ -192,16 +192,18 @@ auto random_rollout(typename G::state state,
 template <Graph G>
 class BaseMCTS {
  public:
-	BaseMCTS() {
-		std::random_device rand;
-		rng_ = std::mt19937(rand());
-	}
+	/// default base mcts (incl seed))
+	BaseMCTS() = default;
 
+	explicit BaseMCTS(std::random_device::result_type seed) : rng_(seed) {}
+
+	/// generate a base mcts with a randomized seed
 	BaseMCTS(bool sample_actions_uniformly, tools::NonNegative explore_constant)
-			: sample_actions_uniformly_(sample_actions_uniformly), explore_constant_(explore_constant) {
-		std::random_device rand;
-		rng_ = std::mt19937(rand());
-	}
+			: sample_actions_uniformly_(sample_actions_uniformly),
+				explore_constant_(explore_constant),
+				rng_(std::random_device()()) {}
+
+	auto operator==(const BaseMCTS& other) const -> bool = default;
 
 	auto descend(typename G::state state,
 		StatsContainer<typename G::state> auto& stats,
@@ -232,6 +234,6 @@ class BaseMCTS {
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 };
 
-static_assert(std::semiregular<BaseMCTS<sag::example::Graph>>);
+static_assert(std::regular<BaseMCTS<sag::example::Graph>>);
 
 }  // namespace sag::mcts

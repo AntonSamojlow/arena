@@ -2,7 +2,6 @@
 
 #include <fmt/format.h>
 
-#include "sag/ExampleGraph.h"
 #include "sag/GraphConcepts.h"
 
 namespace sag::match {

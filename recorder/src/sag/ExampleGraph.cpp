@@ -1,6 +1,9 @@
 #include "ExampleGraph.h"
 
+#include <fmt/format.h>
+
 #include <set>
+#include <utility>
 
 namespace sag::example {
 
