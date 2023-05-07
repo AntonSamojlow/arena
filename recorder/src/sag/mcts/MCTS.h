@@ -65,7 +65,7 @@ auto select(typename G::state state,
 	typename G::container& graph,
 	bool sample_actions_uniformly,
 	std::function<float(typename G::state, typename G::action)> upper_confidence_bound,
-	std::function<tools::UnitValue(void)>& random_source) -> Path<typename G::action> {
+	std::function<tools::UnitValue(void)>& random_source) -> Path<typename G::state> {
 	Path<typename G::state> path{false, {state}};
 	while (!graph.is_terminal_at(state)) {
 		auto const actions = graph.actions_at(state);

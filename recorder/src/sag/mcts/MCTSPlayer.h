@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <numeric>
 
@@ -30,20 +31,25 @@ class MCTSPlayer {
 		-> typename G::action {
 		for (size_t i = 0; i < simulations_; i++)
 			mcts_.descend(state, stats_, graph, rules);
-
-		auto estimates = action_estimates_at(state, graph, stats_);
 		std::vector<typename G::action> const actions = graph.actions_at(state);
-		assert(estimates.size() == actions.size());
 
-		float threshold = unit_distribution_(rng_) * std::accumulate(estimates, 0.0F);
+		// transform action estimates to probabilities (values in range [0,1])
+		std::vector<float> win_probabilities{};
+		win_probabilities.reserve(actions.size());
+		auto temp = action_estimates_at<G>(state, graph, stats_);
+		std::ranges::transform(temp, std::back_inserter(win_probabilities), [](float value) { return (1 + value) / 2; });
+		assert(win_probabilities.size() == actions.size());
+
+		// pick at random acc. to probabilities
+		float threshold =
+			unit_distribution_(rng_) * std::accumulate(win_probabilities.begin(), win_probabilities.end(), 0.0F);
 		float check_value = 0.0F;
 		for (size_t i = 0; i < actions.size(); i++) {
-			check_value += estimates[i];
+			check_value += win_probabilities[i];
 			if (check_value > threshold)
 				return actions[i];
 		}
-		assert(false);  // should never reach this point - we expect the loop to finish
-
+		assert(false);  // should never reach this point, previous loop is expected to finish
 		return actions.back();
 	}
 

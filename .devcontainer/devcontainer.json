@@ -1,5 +1,6 @@
 {
-  // image from GAR might require running `gcloud auth login` (provided gcloud SDK is installed)
+  // image from GAR might require running authenticating via gcloud SDK first:
+  // https://cloud.google.com/artifact-registry/docs/docker/authentication#gcloud-helper
   "image": "europe-west3-docker.pkg.dev/arena-385320/recorder/linux-dev:latest",
   // "build": {
   //   "dockerfile": "./linux-dev.Dockerfile"

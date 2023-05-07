@@ -9,7 +9,7 @@ namespace {
 
 TEST_CASE("Random player test", "[sag, match]") {
 	using namespace sag::example;
-	sag::match::RandomPlayer<Graph> player_one{};
+	sag::match::RandomPlayer<Graph> player{};
 
 	SECTION("check equality of default constructed") {
 		CHECK(sag::match::RandomPlayer<Graph>{} == sag::match::RandomPlayer<Graph>{});
@@ -17,9 +17,9 @@ TEST_CASE("Random player test", "[sag, match]") {
 	}
 
 	SECTION("check equality of copied value") {
-		sag::match::RandomPlayer<Graph> copy = player_one;
-		CHECK(player_one == copy);
-		CHECK((player_one != copy) == false);
+		sag::match::RandomPlayer<Graph> copy = player;
+		CHECK(player == copy);
+		CHECK((player != copy) == false);
 	}
 
 	SECTION("check random play") {
@@ -40,7 +40,7 @@ TEST_CASE("Random player test", "[sag, match]") {
 		std::vector<Graph::action> plays;
 		plays.reserve(100);
 		for (size_t i = 0; i < 100; ++i) {
-			plays.push_back(player_one.choose_play(graph.roots()[0], graph, rules));
+			plays.push_back(player.choose_play(graph.roots()[0], graph, rules));
 		}
 
 		// verify that random play chooses between both available actions
@@ -52,7 +52,7 @@ TEST_CASE("Random player test", "[sag, match]") {
 TEST_CASE("MCTS player test", "[sag, mcts]") {
 	using namespace sag::tic_tac_toe;
 
-	sag::mcts::MCTSPlayer<Graph> const mcts_one(1000);
+	sag::mcts::MCTSPlayer<Graph> mcts_player(100'000);
 
 	SECTION("check equality oF default constructed") {
 		CHECK(sag::mcts::MCTSPlayer<Graph>{} == sag::mcts::MCTSPlayer<Graph>{});
@@ -60,9 +60,19 @@ TEST_CASE("MCTS player test", "[sag, mcts]") {
 	}
 
 	SECTION("check equality of copied value") {
-		sag::mcts::MCTSPlayer<Graph> copy = mcts_one;
-		CHECK(mcts_one == copy);
-		CHECK((mcts_one != copy) == false);
+		sag::mcts::MCTSPlayer<Graph> copy = mcts_player;
+		CHECK(mcts_player == copy);
+		CHECK((mcts_player != copy) == false);
+	}
+
+	SECTION("check winning move is found") {
+		Graph::container graph{};
+		Graph::rules rules{};
+		const Board win_next_turn = {0, 2, 2, 1, 1, 0, 0, 0, 0};
+		auto state = rules.encode(win_next_turn);
+
+		auto play = mcts_player.choose_play(state, graph, rules);
+		CHECK(play == 2);
 	}
 }
 }  // namespace
