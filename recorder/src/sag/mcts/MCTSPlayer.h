@@ -1,11 +1,15 @@
 #include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <iterator>
 #include <numeric>
+#include <optional>
 
 #include "MCTS.h"
 #include "sag/match/Player.h"
 #include "sag/mcts/MCTS.h"
 #include "sag/mcts/StatsContainer.h"
+#include "tools/BoundedValue.h"
 
 namespace sag::mcts {
 
@@ -15,12 +19,21 @@ class MCTSPlayer {
 	MCTSPlayer() = default;
 	explicit MCTSPlayer(size_t simulations) : rng_(std::mt19937(std::random_device()())), simulations_(simulations) {}
 
-	MCTSPlayer(std::string_view id, size_t simulations, std::string_view name, BaseMCTS<G>&& mcts)
+	MCTSPlayer(size_t simulations, std::optional<tools::NonNegative> estimates_exponent)
+			: rng_(std::mt19937(std::random_device()())),
+				simulations_(simulations),
+				estimates_exponent_(estimates_exponent) {}
+	MCTSPlayer(std::string_view id,
+		size_t simulations,
+		std::optional<tools::NonNegative> estimates_exponent,
+		std::string_view name,
+		BaseMCTS<G>&& mcts)
 			: rng_(std::mt19937(std::random_device()())),
 				simulations_(simulations),
 				id_(id),
 				name_(name),
-				mcts_(std::move(mcts)) {}
+				mcts_(std::move(mcts)),
+				estimates_exponent_(estimates_exponent) {}
 
 	[[nodiscard]] auto id() const -> std::string { return id_; }
 	[[nodiscard]] auto display_name() const -> std::string { return name_; }
@@ -31,24 +44,39 @@ class MCTSPlayer {
 		-> typename G::action {
 		for (size_t i = 0; i < simulations_; i++)
 			mcts_.descend(state, stats_, graph, rules);
+
 		std::vector<typename G::action> const actions = graph.actions_at(state);
+		auto estimates_raw = action_estimates_at<G>(state, graph, stats_);
+		assert(estimates_raw.size() == actions.size());
 
-		// transform action estimates to probabilities (values in range [0,1])
-		std::vector<float> win_probabilities{};
-		win_probabilities.reserve(actions.size());
-		auto temp = action_estimates_at<G>(state, graph, stats_);
-		std::ranges::transform(temp, std::back_inserter(win_probabilities), [](float value) { return (1 + value) / 2; });
-		assert(win_probabilities.size() == actions.size());
+		if (!estimates_exponent_.has_value()) {
+			size_t min_index =
+				std::distance(estimates_raw.begin(), std::min_element(estimates_raw.begin(), estimates_raw.end()));
+			return actions[min_index];
+		}
 
-		// pick at random acc. to probabilities
-		float threshold =
-			unit_distribution_(rng_) * std::accumulate(win_probabilities.begin(), win_probabilities.end(), 0.0F);
+		// We now transform the raw action estimates to a probability distribution, describing the win chance of the player
+		std::vector<float> estimates_distribution{};
+		estimates_distribution.reserve(actions.size());
+		// First invert and shift values into range [0, 1] each and apply estimates_exponent
+		std::ranges::transform(estimates_raw, std::back_inserter(estimates_distribution), [this](float value) {
+			return std::pow((1 - value) / 2, estimates_exponent_->value());
+		});
+		// Finally, normalize
+		float total_weight = std::accumulate(estimates_distribution.begin(), estimates_distribution.end(), 0.0F);
+		std::ranges::transform(estimates_distribution, estimates_distribution.begin(), [&total_weight](float value) {
+			return value / total_weight;
+		});
+
+		// Pick action at random acc. to distribution
+		float threshold = unit_distribution_(rng_);
 		float check_value = 0.0F;
 		for (size_t i = 0; i < actions.size(); i++) {
-			check_value += win_probabilities[i];
+			check_value += estimates_distribution[i];
 			if (check_value > threshold)
 				return actions[i];
 		}
+
 		assert(false);  // should never reach this point, previous loop is expected to finish
 		return actions.back();
 	}
@@ -62,6 +90,10 @@ class MCTSPlayer {
 	BaseMCTS<G> mcts_;
 	Statistics<typename G::state> stats_ = {};
 	size_t simulations_ = 1;
+
+	/// The exponent applied to action estimates when choosing the play. Nullopt (the default) means taking the best (no
+	/// probabilistic coice).
+	std::optional<tools::NonNegative> estimates_exponent_ = std::nullopt;
 };
 
 static_assert(sag::match::Player<MCTSPlayer<sag::example::Graph>, sag::example::Graph>);

@@ -120,7 +120,7 @@ void expand(Path<typename G::state> const& path,
 	// if path is not terminal, then the U-bound requirement failed
 	for (auto action : graph.actions_at(end_state)) {
 		if (!graph.is_expanded_at(end_state, action))
-			sag::expand(graph, rules, end_state, action);
+			sag::expand<G>(graph, rules, end_state, action);
 
 		for (ActionEdge edge : graph.edges_at(end_state, action)) {
 			// init the stats entry only if needed - remember the state might have been initialized by another parent!
@@ -176,7 +176,7 @@ auto random_rollout(typename G::state state,
 		size_t index = static_cast<size_t>(std::floor(static_cast<float>(actions.size()) * random_source().value()));
 		typename G::action action = actions[index];
 		if (!graph.is_expanded_at(state, action)) {
-			sag::expand(graph, rules, state, action);
+			sag::expand<G>(graph, rules, state, action);
 		}
 		state = sag::follow(graph.edges_at(state, action), random_source());
 		rollout_length++;
