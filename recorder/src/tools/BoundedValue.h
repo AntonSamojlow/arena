@@ -21,7 +21,6 @@ struct Boundedvalue {
 
 #pragma GCC diagnostic push
 // reason: https://github.com/llvm/llvm-project/issues/43670
-#pragma GCC diagnostic ignored "-Wfloat-equal"
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 
 	friend auto operator<=>(const Boundedvalue&, const Boundedvalue&) = default;
