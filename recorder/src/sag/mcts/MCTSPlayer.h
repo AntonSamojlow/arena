@@ -50,8 +50,8 @@ class MCTSPlayer {
 		assert(estimates_raw.size() == actions.size());
 
 		if (!estimates_exponent_.has_value()) {
-			size_t min_index =
-				std::distance(estimates_raw.begin(), std::min_element(estimates_raw.begin(), estimates_raw.end()));
+			auto min_index = static_cast<size_t>(
+				std::distance(estimates_raw.begin(), std::min_element(estimates_raw.begin(), estimates_raw.end())));
 			return actions[min_index];
 		}
 

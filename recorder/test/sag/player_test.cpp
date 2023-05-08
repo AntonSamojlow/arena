@@ -1,5 +1,3 @@
-#include <vcruntime.h>
-
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <vector>
@@ -84,7 +82,8 @@ TEST_CASE("MCTS player test", "[sag, mcts]") {
 		auto deterministic_play = deterministic_player.choose_play(state, graph, rules);
 		CHECK(deterministic_play == optimal_play);
 
-		size_t const sample_size = 10;  // increase (or adjust estimates_exponent_ for probabilisitc_player) if test is unstable
+		size_t const sample_size =
+			10;  // increase (or adjust estimates_exponent_ for probabilisitc_player) if test is unstable
 		std::vector<Graph::action> probabilistic_plays;
 		probabilistic_plays.reserve(sample_size);
 		for (size_t i = 0; i < sample_size; ++i) {
