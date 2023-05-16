@@ -1,11 +1,9 @@
 #pragma once
 #include <algorithm>
+#include <cassert>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <random>
-#include <set>
-#include <shared_mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -62,6 +60,8 @@ class DefaultGraphContainer_v1 {
 
 	[[nodiscard]] auto edge_count_at(S state, A action) const -> size_t { return data_.at(state).at(action).size(); }
 
+	auto add(S state, std::vector<A> actions) -> bool;
+
 	auto expand_at(
 		S state, A action, std::vector<ActionEdge<S>> new_edges, std::vector<std::pair<S, std::vector<A>>> next_states)
 		-> bool;
@@ -85,6 +85,18 @@ class DefaultGraphContainer_v1 {
 };
 
 template <typename S, typename A>
+auto DefaultGraphContainer_v1<S, A>::add(S state, std::vector<A> actions) -> bool {
+	if (data_.try_emplace(state).second) {
+		for (A child_action : actions)
+			data_.at(state).emplace(child_action, std::vector<ActionEdge<S>>());
+		return true;
+	}
+	// else return false: state already known/initialised (possibly visited via a different parent, etc.)
+	assert(data_.at(state).size() == actions.size());
+	return false;
+}
+
+template <typename S, typename A>
 auto DefaultGraphContainer_v1<S, A>::expand_at(
 	S state, A action, std::vector<ActionEdge<S>> new_edges, std::vector<std::pair<S, std::vector<A>>> next_states)
 	-> bool {
@@ -93,11 +105,7 @@ auto DefaultGraphContainer_v1<S, A>::expand_at(
 
 	data_.at(state).at(action) = new_edges;
 	for (const auto& [child, actions] : next_states) {
-		if (data_.try_emplace(child).second) {
-			for (A child_action : actions)
-				data_.at(child).emplace(child_action, std::vector<ActionEdge<S>>());
-		}
-		// else do nothing: state already known/initialised (possibly visited via a different parent, etc.)
+		add(child, actions);
 	}
 	return true;
 }

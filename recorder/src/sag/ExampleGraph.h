@@ -1,12 +1,9 @@
 #pragma once
-#include <fmt/format.h>
 
 #include <map>
 #include <string>
-#include <utility>
 
 #include "DefaultGraphContainer_v1.h"
-#include "GraphConcepts.h"
 
 namespace sag::example {
 

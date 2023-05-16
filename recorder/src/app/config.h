@@ -19,8 +19,6 @@ namespace app::config {
 // reason: https://github.com/llvm/llvm-project/issues/43670
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 
-// Other ignored checks that we ignore on purpose:
-#pragma GCC diagnostic ignored "-Wfloat-equal"
 // NOLINTBEGIN (*-float-equal, *-use-nullptr)
 
 struct MCTS {

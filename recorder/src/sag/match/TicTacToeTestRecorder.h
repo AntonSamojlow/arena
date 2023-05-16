@@ -1,6 +1,7 @@
 #pragma once
 #include "Match.h"
 #include "sag/TicTacToe.h"
+#include "sag/match/RandomPlayer.h"
 #include "sag/storage/MemoryMatchStorage.h"
 
 namespace sag::match {

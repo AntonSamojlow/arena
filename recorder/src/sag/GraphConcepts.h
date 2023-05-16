@@ -12,7 +12,7 @@
 
 /// sag: A state-action graph is a rooted directed graph with two types of vertices, 'states' and 'actions'.
 /// It satisfies:
-/// 1. Each state has 0+ leaving edges whcih end at actions.
+/// 1. Each state has 0+ leaving edges which end at actions.
 /// 2. A state is called 'terminal' iff it has 0 leaving edges.
 /// 3. Each edge has 1+ leaving weighted edges that sum to 1 and end at states.
 namespace sag {
@@ -88,8 +88,10 @@ concept GraphContainer = Vertices<S, A> && std::regular<G> && requires(G graph,
 	G const const_graph,
 	S state,
 	A action,
+	std::vector<A> actions,
 	std::vector<ActionEdge<S>> new_edges,
 	std::vector<std::pair<S, std::vector<A>>> next_states) {
+
 	// const operations
 	{ const_graph.is_terminal_at(state) } -> std::same_as<bool>;
 	{ const_graph.is_expanded_at(state, action) } -> std::same_as<bool>;
@@ -98,10 +100,10 @@ concept GraphContainer = Vertices<S, A> && std::regular<G> && requires(G graph,
 	{ const_graph.edges_at(state, action) } -> std::same_as<std::vector<ActionEdge<S>>>;
 	{ const_graph.action_count_at(state) } -> std::same_as<size_t>;
 	{ const_graph.edge_count_at(state, action) } -> std::same_as<size_t>;
+
 	// non-const operations
-	{
-		graph.expand_at(state, action, new_edges, next_states)
-		} -> std::same_as<bool>;
+	{ graph.expand_at(state, action, new_edges, next_states) } -> std::same_as<bool>;
+	{ graph.add(state, actions) } -> std::same_as<bool>;
 };
 
 template <typename R, typename S, typename A>

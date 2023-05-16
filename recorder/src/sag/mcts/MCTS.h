@@ -65,7 +65,7 @@ auto select(typename G::state state,
 	typename G::container& graph,
 	bool sample_actions_uniformly,
 	std::function<float(typename G::state, typename G::action)> upper_confidence_bound,
-	std::function<tools::UnitValue(void)>& random_source) -> Path<typename G::action> {
+	std::function<tools::UnitValue(void)>& random_source) -> Path<typename G::state> {
 	Path<typename G::state> path{false, {state}};
 	while (!graph.is_terminal_at(state)) {
 		auto const actions = graph.actions_at(state);
@@ -120,7 +120,7 @@ void expand(Path<typename G::state> const& path,
 	// if path is not terminal, then the U-bound requirement failed
 	for (auto action : graph.actions_at(end_state)) {
 		if (!graph.is_expanded_at(end_state, action))
-			sag::expand(graph, rules, end_state, action);
+			sag::expand<G>(graph, rules, end_state, action);
 
 		for (ActionEdge edge : graph.edges_at(end_state, action)) {
 			// init the stats entry only if needed - remember the state might have been initialized by another parent!
@@ -176,7 +176,7 @@ auto random_rollout(typename G::state state,
 		size_t index = static_cast<size_t>(std::floor(static_cast<float>(actions.size()) * random_source().value()));
 		typename G::action action = actions[index];
 		if (!graph.is_expanded_at(state, action)) {
-			sag::expand(graph, rules, state, action);
+			sag::expand<G>(graph, rules, state, action);
 		}
 		state = sag::follow(graph.edges_at(state, action), random_source());
 		rollout_length++;
@@ -192,16 +192,18 @@ auto random_rollout(typename G::state state,
 template <Graph G>
 class BaseMCTS {
  public:
-	BaseMCTS() {
-		std::random_device rand;
-		rng_ = std::mt19937(rand());
-	}
+	/// default base mcts (incl seed))
+	BaseMCTS() = default;
 
+	explicit BaseMCTS(std::random_device::result_type seed) : rng_(seed) {}
+
+	/// generate a base mcts with a randomized seed
 	BaseMCTS(bool sample_actions_uniformly, tools::NonNegative explore_constant)
-			: sample_actions_uniformly_(sample_actions_uniformly), explore_constant_(explore_constant) {
-		std::random_device rand;
-		rng_ = std::mt19937(rand());
-	}
+			: sample_actions_uniformly_(sample_actions_uniformly),
+				explore_constant_(explore_constant),
+				rng_(std::random_device()()) {}
+
+	auto operator==(const BaseMCTS& other) const -> bool = default;
 
 	auto descend(typename G::state state,
 		StatsContainer<typename G::state> auto& stats,
@@ -232,6 +234,6 @@ class BaseMCTS {
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 };
 
-static_assert(std::semiregular<BaseMCTS<sag::example::Graph>>);
+static_assert(std::regular<BaseMCTS<sag::example::Graph>>);
 
 }  // namespace sag::mcts
