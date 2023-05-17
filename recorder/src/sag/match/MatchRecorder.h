@@ -1,12 +1,13 @@
 #pragma once
 #include <spdlog/spdlog.h>
 
-#include <numeric>
 #include <queue>
 #include <random>
+#include <ranges>
 #include <string>
 
 #include "Match.h"
+#include "sag/match/Player.h"
 #include "tools/MutexQueue.h"
 #include "tools/ThreadHandle.h"
 
@@ -14,13 +15,13 @@ namespace sag::match {
 
 enum class Signal { Record, Halt, Quit, Status };
 
-template <MatchRecorderTypes Types>
+template <Graph G, Storage<typename G::state, typename G::action> S>
 class MatchRecorder {
  public:
-	MatchRecorder(std::vector<typename Types::player>&& players,
-		typename Types::graph::container&& graph,
-		typename Types::graph::rules&& rules,
-		typename Types::storage&& storage)
+	MatchRecorder(std::vector<std::unique_ptr<Player<G>>>&& players,
+		typename G::container&& graph,
+		typename G::rules&& rules,
+		S&& storage)
 			: players_(std::move(players)),
 				graph_(std::move(graph)),
 				rules_(std::move(rules)),
@@ -56,35 +57,34 @@ class MatchRecorder {
 
  private:
 	bool is_running_ = false;
-	std::vector<typename Types::player> players_;
-	typename Types::graph::container graph_;
-	typename Types::graph::rules rules_;
-	typename Types::storage storage_;
+	std::vector<std::unique_ptr<Player<G>>> players_;
+	typename G::container graph_;
+	typename G::rules rules_;
+	S storage_;
 
 	std::shared_ptr<spdlog::logger> logger_ = spdlog::default_logger();  // todo: make logger configurable/injectable
 	std::mt19937 rng_ = std::mt19937(std::random_device()());
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 
 	auto generate_info() const -> void {
-		auto comma_join_name = [](std::string existing, auto player) {
-			return std::move(existing) + ", " + player.display_name();
-		};
-		std::string player_names =
-			std::accumulate(std::next(players_.begin()), players_.end(), players_.front().display_name(), comma_join_name);
+		std::string player_names = std::string{players_.front()->display_name()};
+		for (std::unique_ptr<Player<G>> const& player : players_ | std::views::drop(1))
+			player_names = std::move(player_names) + ", " + std::string{player->display_name()};
 
 		logger_->info("match recorder status: {} players ({}), running={}", players_.size(), player_names, is_running_);
 	}
 
 	auto record_once() -> void {
-		using State = typename Types::graph::state;
-		using Action = typename Types::graph::action;
+		using State = typename G::state;
+		using Action = typename G::action;
 
 		// todo: pick randomly?
 		State state = graph_.roots().front();
 
 		logger_->debug("match starts");
 		std::vector<std::string> player_ids;
-		std::ranges::transform(players_, std::back_inserter(player_ids), [&](auto const& player) { return player.id(); });
+		std::ranges::transform(
+			players_, std::back_inserter(player_ids), [&](auto const& player) { return std::string{player->id()}; });
 
 		Match<State, Action> match{.player_ids = player_ids,
 			.start = std::chrono::steady_clock::now(),
@@ -94,9 +94,9 @@ class MatchRecorder {
 			.end_score = tools::Score(0)};
 
 		for (size_t turn = 0; !graph_.is_terminal_at(state); ++turn) {
-			auto player = players_[turn % players_.size()];
-			Action action = player.choose_play(state, graph_, rules_);
-			logger_->debug("turn {}, player {}", turn, player.display_name());
+			Player<G>* player = players_[turn % players_.size()].get();
+			Action action = player->choose_play(state, graph_, rules_);
+			logger_->debug("turn {}, player {}", turn, player->display_name());
 
 			match.plays.emplace_back(state, action);
 			if (!graph_.is_expanded_at(state, action))
@@ -116,10 +116,10 @@ class MatchRecorder {
 };
 
 /// Handle to a recorder thread with input queue for control signals
-template <MatchRecorderTypes Types>
+template <class Rec>
 struct RecorderThreadHandle : tools::SingleQueuedThreadHandle<sag::match::Signal> {
  public:
-	explicit RecorderThreadHandle(MatchRecorder<Types>&& recorder)
+	explicit RecorderThreadHandle(Rec&& recorder)
 			: tools::SingleQueuedThreadHandle<sag::match::Signal>(std::move(recorder)) {}
 };
 

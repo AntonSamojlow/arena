@@ -3,14 +3,17 @@
 #include <spdlog/common.h>
 #include <tools/MutexQueue.h>
 
+#include <memory>
 #include <ranges>
 #include <string>
 #include <thread>
 #include <vector>
 
 #include "app/config.h"
+#include "sag/TicTacToe.h"
 #include "sag/match/MatchRecorder.h"
-#include "sag/match/TicTacToeTestRecorder.h"
+#include "sag/match/RandomPlayer.h"
+#include "sag/storage/MemoryMatchStorage.h"
 
 namespace {
 struct ReadCommandLoop {
@@ -64,17 +67,20 @@ auto App::run(config::Recorder const& config) -> int {
 
 		tools::SingleQueuedThreadHandle<std::string> cli_thread(ReadCommandLoop{input_source_});
 
-		using TestRec = sag::match::TicTacToeTestRecorder;
-		std::vector<sag::match::RecorderThreadHandle<TestRec>> recorder_threads;
+		using TGraph = sag::tic_tac_toe::Graph;
+		using TStorage = sag::storage::MemoryMatchStorage<typename TGraph::state, typename TGraph::action>;
+		using TRec = sag::match::MatchRecorder<TGraph, TStorage>;
 
+		std::vector<sag::match::RecorderThreadHandle<TRec>> recorder_threads;
 		recorder_threads.reserve(config.parallel_games);
 		for (size_t i = 0; i < config.parallel_games; ++i) {
-			std::vector<typename TestRec::player> players;
+			std::vector<std::unique_ptr<sag::match::Player<TGraph>>> players;
 			players.reserve(config.players.size());
 			for (config::Player const& player_config : config.players)
-				players.emplace_back(player_config.name, player_config.name);
+				players.emplace_back(
+					std::make_unique<sag::match::RandomPlayer<TGraph>>(player_config.name, player_config.name));
 
-			sag::match::MatchRecorder<TestRec> recorder{std::move(players), {}, {}, {}};
+			TRec recorder{std::move(players), {}, {}, {}};
 			recorder_threads.emplace_back(std::move(recorder));
 		}
 
