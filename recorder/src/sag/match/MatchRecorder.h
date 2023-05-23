@@ -3,7 +3,6 @@
 
 #include <queue>
 #include <random>
-#include <ranges>
 #include <string>
 
 #include "Match.h"
@@ -68,8 +67,8 @@ class MatchRecorder {
 
 	auto generate_info() const -> void {
 		std::string player_names = std::string{players_.front()->display_name()};
-		for (std::unique_ptr<Player<G>> const& player : players_ | std::views::drop(1))
-			player_names = std::move(player_names) + ", " + std::string{player->display_name()};
+		for(size_t i = 1; i < players_.size(); ++i)
+			player_names = std::move(player_names) + ", " + std::string{players_[i]->display_name()};
 
 		logger_->info("match recorder status: {} players ({}), running={}", players_.size(), player_names, is_running_);
 	}
