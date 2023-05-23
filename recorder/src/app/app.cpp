@@ -76,9 +76,10 @@ auto App::run(config::Recorder const& config) -> int {
 		for (size_t i = 0; i < config.parallel_games; ++i) {
 			std::vector<std::unique_ptr<sag::match::Player<TGraph>>> players;
 			players.reserve(config.players.size());
-			for (config::Player const& player_config : config.players)
+			for (config::Player const& player_config : config.players) {
 				players.emplace_back(
 					std::make_unique<sag::match::RandomPlayer<TGraph>>(player_config.name, player_config.name));
+			}
 
 			TRec recorder{std::move(players), {}, {}, {}};
 			recorder_threads.emplace_back(std::move(recorder));

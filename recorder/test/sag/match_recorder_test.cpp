@@ -5,6 +5,7 @@
 #include "sag/TicTacToe.h"
 #include "sag/match/MatchRecorder.h"
 #include "sag/match/RandomPlayer.h"
+#include "sag/mcts/MCTSPlayer.h"
 #include "sag/storage/SQLiteMatchStorage.h"
 
 using namespace sag::tic_tac_toe;
@@ -26,17 +27,37 @@ TEST_CASE("Match recorder test", "[sag, match]") {
 
 	// start several recorder threads
 	std::vector<RecorderThreadHandle<TRec>> recorder_threads;
-	recorder_threads.reserve(3);
-	for (int i = 0; i < 3; ++i) {
-		std::vector<std::unique_ptr<sag::match::Player<Graph>>> players;
-		players.emplace_back(std::make_unique<sag::match::RandomPlayer<Graph>>());
-		players.emplace_back(std::make_unique<sag::match::RandomPlayer<Graph>>());
 
-		// assemble recorder with owning storage
-		auto connection = std::make_unique<tools::SQLiteConnection>(db_file.get(), false);
-		TStorage storage(std::move(connection));
-		TRec recorder{std::move(players), {}, {}, std::move(storage)};
-		recorder_threads.emplace_back(std::move(recorder));
+	SECTION("Different players")
+	{
+		recorder_threads.reserve(1);
+		for (int i = 0; i < 1; ++i) {
+			std::vector<std::unique_ptr<sag::match::Player<Graph>>> players;
+			players.emplace_back(std::make_unique<sag::match::RandomPlayer<Graph>>());
+			players.emplace_back(std::make_unique<sag::mcts::MCTSPlayer<Graph>>(1000));
+
+			// assemble recorder with owning storage
+			auto connection = std::make_unique<tools::SQLiteConnection>(db_file.get(), false);
+			TStorage storage(std::move(connection));
+			TRec recorder{std::move(players), {}, {}, std::move(storage)};
+			recorder_threads.emplace_back(std::move(recorder));
+		}
+	}
+
+	SECTION("Parallel recorders")
+	{
+		recorder_threads.reserve(4);
+		for (int i = 0; i < 4; ++i) {
+			std::vector<std::unique_ptr<sag::match::Player<Graph>>> players;
+			players.emplace_back(std::make_unique<sag::match::RandomPlayer<Graph>>());
+			players.emplace_back(std::make_unique<sag::match::RandomPlayer<Graph>>());
+
+			// assemble recorder with owning storage
+			auto connection = std::make_unique<tools::SQLiteConnection>(db_file.get(), false);
+			TStorage storage(std::move(connection));
+			TRec recorder{std::move(players), {}, {}, std::move(storage)};
+			recorder_threads.emplace_back(std::move(recorder));
+		}
 	}
 
 	auto signal_all = [&recorder_threads](Signal signal) -> void {

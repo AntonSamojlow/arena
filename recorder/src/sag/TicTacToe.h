@@ -3,6 +3,7 @@
 
 #include "DefaultGraphContainer_v1.h"
 #include "GraphConcepts.h"
+#include "sag/GraphConcepts.h"
 
 namespace sag::tic_tac_toe {
 
@@ -16,6 +17,7 @@ struct Graph {
 	using rules = Rules;
 	using printer = Container;
 };
+
 
 const size_t BoardSize = 9;
 using Board = std::array<Graph::state, BoardSize>;  // board is of size 3x3 with entries 0=empty, 1=player, 2=opponent

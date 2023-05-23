@@ -15,7 +15,7 @@
 namespace sag::mcts {
 
 template <Graph G>
-class MCTSPlayer : match::ProbabilisticPlayer<G> {
+class MCTSPlayer : public match::ProbabilisticPlayer<G> {
  public:
 	MCTSPlayer() : match::ProbabilisticPlayer<G>("default(mcts)", "mcts-player") {}
 	explicit MCTSPlayer(size_t simulations)
