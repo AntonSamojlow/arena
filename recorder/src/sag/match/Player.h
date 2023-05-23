@@ -22,8 +22,8 @@ class Player {
 
 	Player(std::string_view id, std::string_view name) : id_(id), name_(name) {}  // NOLINT(*swappable-parameters)
 
-	[[nodiscard]] auto display_name() -> std::string_view { return id_; }
-	[[nodiscard]] auto id() -> std::string_view { return name_; }
+	[[nodiscard]] auto display_name() const -> std::string_view { return id_; }
+	[[nodiscard]] auto id() const -> std::string_view { return name_; }
 
 	[[nodiscard]] virtual auto choose_play(
 		typename G::state state, typename G::container& graph, typename G::rules const& rules) -> typename G::action = 0;
