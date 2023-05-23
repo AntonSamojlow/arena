@@ -22,13 +22,13 @@ namespace app::config {
 // NOLINTBEGIN (*-float-equal, *-use-nullptr)
 
 struct MCTS {
-	size_t simulations = 0;
-	double explore_constant = 0.0;
+	float explore_constant = 0.0F;
 	bool sample_uniformly = false;
+	size_t simulations = 0;
 	friend auto operator<=>(const MCTS&, const MCTS&) = default;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MCTS, simulations, explore_constant, sample_uniformly)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MCTS, explore_constant, sample_uniformly, simulations)
 
 struct Player {
 	std::string name;
@@ -40,13 +40,13 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Player, name, mcts)
 
 struct Recorder {
 	std::string db_file_path;
-	std::vector<Player> players;
 	size_t parallel_games = 1;
+	std::vector<Player> players;
 
 	friend auto operator<=>(const Recorder&, const Recorder&) = default;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Recorder, db_file_path, players, parallel_games)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Recorder, db_file_path, parallel_games, players)
 
 // NOLINTEND
 #pragma GCC diagnostic pop

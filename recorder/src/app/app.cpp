@@ -12,8 +12,10 @@
 #include "app/config.h"
 #include "sag/TicTacToe.h"
 #include "sag/match/MatchRecorder.h"
-#include "sag/match/RandomPlayer.h"
+#include "sag/mcts/MCTS.h"
+#include "sag/mcts/MCTSPlayer.h"
 #include "sag/storage/MemoryMatchStorage.h"
+#include "tools/BoundedValue.h"
 
 namespace {
 struct ReadCommandLoop {
@@ -76,9 +78,14 @@ auto App::run(config::Recorder const& config) -> int {
 		for (size_t i = 0; i < config.parallel_games; ++i) {
 			std::vector<std::unique_ptr<sag::match::Player<TGraph>>> players;
 			players.reserve(config.players.size());
+
 			for (config::Player const& player_config : config.players) {
-				players.emplace_back(
-					std::make_unique<sag::match::RandomPlayer<TGraph>>(player_config.name, player_config.name));
+				players.emplace_back(std::make_unique<sag::mcts::MCTSPlayer<TGraph>>(player_config.name,
+					player_config.mcts.simulations,
+					tools::NonNegative{1.0F},
+					player_config.name,
+					sag::mcts::BaseMCTS<TGraph>{
+						player_config.mcts.sample_uniformly, tools::NonNegative{player_config.mcts.explore_constant}}));
 			}
 
 			TRec recorder{std::move(players), {}, {}, {}};

@@ -28,8 +28,7 @@ TEST_CASE("Match recorder test", "[sag, match]") {
 	// start several recorder threads
 	std::vector<RecorderThreadHandle<TRec>> recorder_threads;
 
-	SECTION("Different players")
-	{
+	SECTION("Different players") {
 		recorder_threads.reserve(1);
 		for (int i = 0; i < 1; ++i) {
 			std::vector<std::unique_ptr<sag::match::Player<Graph>>> players;
@@ -44,8 +43,7 @@ TEST_CASE("Match recorder test", "[sag, match]") {
 		}
 	}
 
-	SECTION("Parallel recorders")
-	{
+	SECTION("Parallel recorders") {
 		recorder_threads.reserve(4);
 		for (int i = 0; i < 4; ++i) {
 			std::vector<std::unique_ptr<sag::match::Player<Graph>>> players;

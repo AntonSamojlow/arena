@@ -18,7 +18,6 @@ struct Graph {
 	using printer = Container;
 };
 
-
 const size_t BoardSize = 9;
 using Board = std::array<Graph::state, BoardSize>;  // board is of size 3x3 with entries 0=empty, 1=player, 2=opponent
 

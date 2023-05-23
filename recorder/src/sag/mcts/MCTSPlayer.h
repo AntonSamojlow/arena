@@ -32,8 +32,8 @@ class MCTSPlayer : public match::ProbabilisticPlayer<G> {
 		std::string_view name,
 		BaseMCTS<G>&& mcts)
 			: match::ProbabilisticPlayer<G>(id, name),
-				simulations_(simulations),
 				mcts_(std::move(mcts)),
+				simulations_(simulations),
 				estimates_exponent_(estimates_exponent) {}
 
 	auto operator==(const MCTSPlayer& other) const -> bool = default;
