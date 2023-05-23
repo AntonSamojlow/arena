@@ -3,6 +3,7 @@
 
 #include "DefaultGraphContainer_v1.h"
 #include "GraphConcepts.h"
+#include "sag/GraphConcepts.h"
 
 namespace sag::tic_tac_toe {
 

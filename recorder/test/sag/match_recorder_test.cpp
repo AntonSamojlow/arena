@@ -5,6 +5,7 @@
 #include "sag/TicTacToe.h"
 #include "sag/match/MatchRecorder.h"
 #include "sag/match/RandomPlayer.h"
+#include "sag/mcts/MCTSPlayer.h"
 #include "sag/storage/SQLiteMatchStorage.h"
 
 using namespace sag::tic_tac_toe;
@@ -14,27 +15,30 @@ using namespace std::chrono;
 namespace {
 
 TEST_CASE("Match recorder test", "[sag, match]") {
-	struct TestRecorderTypes {
-		using graph = Graph;
-		using player = RandomPlayer<Graph>;
-		using storage = sag::storage::SQLiteMatchStorage<sag::storage::IntegerConverter<typename graph::state>,
-			sag::storage::IntegerConverter<typename graph::action>>;
-	};
+	using TStorage = sag::storage::SQLiteMatchStorage<sag::storage::IntegerConverter<typename Graph::state>,
+		sag::storage::IntegerConverter<typename Graph::action>>;
+	using TRec = MatchRecorder<Graph, TStorage>;
 
-	static_assert(std::is_nothrow_move_constructible_v<RecorderThreadHandle<TestRecorderTypes>>);
-	static_assert(std::is_nothrow_move_assignable_v<RecorderThreadHandle<TestRecorderTypes>>);
+	static_assert(std::is_nothrow_move_constructible_v<RecorderThreadHandle<TRec>>);
+	static_assert(std::is_nothrow_move_assignable_v<RecorderThreadHandle<TRec>>);
 
 	test::TempFilePath const db_file = test::unique_file_path(false);
-	TestRecorderTypes::storage const test_storage(std::make_unique<tools::SQLiteConnection>(db_file.get(), false));
+	TStorage const test_storage(std::make_unique<tools::SQLiteConnection>(db_file.get(), false));
 
 	// start several recorder threads
-	std::vector<RecorderThreadHandle<TestRecorderTypes>> recorder_threads;
-	recorder_threads.reserve(3);
-	for (int i = 0; i < 3; ++i) {
+	std::vector<RecorderThreadHandle<TRec>> recorder_threads;
+
+	recorder_threads.reserve(5);
+	for (int i = 0; i < 5; ++i) {
+		std::vector<std::unique_ptr<sag::match::Player<Graph>>> players;
+		players.emplace_back(std::make_unique<sag::match::RandomPlayer<Graph>>());
+		players.emplace_back(std::make_unique<sag::match::RandomPlayer<Graph>>());
+		// players.emplace_back(std::make_unique<sag::mcts::MCTSPlayer<Graph>>(1000));
+
 		// assemble recorder with owning storage
 		auto connection = std::make_unique<tools::SQLiteConnection>(db_file.get(), false);
-		TestRecorderTypes::storage storage(std::move(connection));
-		MatchRecorder<TestRecorderTypes> recorder{{{}, {}}, {}, {}, std::move(storage)};
+		TStorage storage(std::move(connection));
+		TRec recorder{std::move(players), {}, {}, std::move(storage)};
 		recorder_threads.emplace_back(std::move(recorder));
 	}
 

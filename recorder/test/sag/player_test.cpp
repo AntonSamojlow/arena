@@ -13,9 +13,8 @@ TEST_CASE("Random player test", "[sag, match]") {
 	using namespace sag::example;
 	sag::match::RandomPlayer<Graph> player{};
 
-	SECTION("check equality of default constructed") {
-		CHECK(sag::match::RandomPlayer<Graph>{} == sag::match::RandomPlayer<Graph>{});
-		CHECK((sag::match::RandomPlayer<Graph>{} != sag::match::RandomPlayer<Graph>{}) == false);
+	SECTION("default constructed differ (due to rng seed)") {
+		CHECK(sag::match::RandomPlayer<Graph>{} != sag::match::RandomPlayer<Graph>{});
 	}
 
 	SECTION("check equality of copied value") {
@@ -57,9 +56,8 @@ TEST_CASE("MCTS player test", "[sag, mcts]") {
 	sag::mcts::MCTSPlayer<Graph> deterministic_player(1'000);
 	sag::mcts::MCTSPlayer<Graph> probabilisitc_player(1'000, tools::NonNegative{0.0001F});
 
-	SECTION("check equality oF default constructed") {
-		CHECK(sag::mcts::MCTSPlayer<Graph>{} == sag::mcts::MCTSPlayer<Graph>{});
-		CHECK((sag::mcts::MCTSPlayer<Graph>{} != sag::mcts::MCTSPlayer<Graph>{}) == false);
+	SECTION("default constructed differ (due to rng seed)") {
+		CHECK(sag::mcts::MCTSPlayer<Graph>{} != sag::mcts::MCTSPlayer<Graph>{});
 		CHECK(sag::mcts::MCTSPlayer<Graph>{} != probabilisitc_player);
 	}
 

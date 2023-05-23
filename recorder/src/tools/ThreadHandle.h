@@ -3,7 +3,6 @@
 #include <thread>
 
 #include "MutexQueue.h"
-#include "tools/MutexQueue.h"
 
 namespace tools {
 
