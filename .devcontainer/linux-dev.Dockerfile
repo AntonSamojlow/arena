@@ -46,7 +46,8 @@ RUN $v = $env:CLANG_VERSION; \
   wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -; \
   add-apt-repository "deb http://apt.llvm.org/$n/ llvm-toolchain-$n-$v main"; \
   apt-get update; \
-  apt-get --yes --fix-missing install llvm-$v clang-$v clang-tidy-$v lldb-$v lld-$v libclang-$v-dev;
+  apt-get --yes --fix-missing install llvm-$v clang-$v clang-tidy-$v clang-format-$v lldb-$v lld-$v libclang-$v-dev;
 # set symlink only for clang-tidy (clang-tidy cmake script uses 'default' version)
 RUN update-alternatives --install /usr/bin/clang-tidy clang-tidy "/usr/bin/clang-tidy-$env:CLANG_VERSION" 20
+RUN update-alternatives --install /usr/bin/clang-format clang-format "/usr/bin/clang-format-$env:CLANG_VERSION" 20
 RUN Get-Command "clang-$env:CLANG_VERSION" | Write-Host
