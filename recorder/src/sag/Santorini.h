@@ -2,9 +2,11 @@
 
 #include <array>
 #include <bitset>
-#include <concepts>
+#include <functional>
 #include <stdexcept>
-#include <vector>
+
+#include "sag/GraphConcepts.h"
+#include "tools/Hashing.h"
 
 namespace sag::santorini {
 
@@ -65,22 +67,19 @@ template <Dimensions dim>
 struct State {
 	State() = default;
 
-	explicit State(unsigned long long encoded_board,
+	State(unsigned long long encoded_board,
 		std::array<Postion, dim.player_unit_count> units_player,
 		std::array<Postion, dim.player_unit_count> units_opponent)
-			: encoded_board_(encoded_board),
-				units_player(std::move(units_player)),
-				units_opponent(std::move(units_opponent)) {}
+			: units_player(std::move(units_player)),
+				units_opponent(std::move(units_opponent)),
+				encoded_board_(encoded_board) {}
 
-	explicit State(Board<dim> board,
+	State(Board<dim> board,
 		std::array<Postion, dim.player_unit_count> units_player,
 		std::array<Postion, dim.player_unit_count> units_opponent)
-			: encoded_board_(std::move(State<dim>::encode(board))),
-				units_player(std::move(units_player)),
-				units_opponent(std::move(units_opponent)) {}
-
-	std::array<Postion, dim.player_unit_count> units_player;
-	std::array<Postion, dim.player_unit_count> units_opponent;
+			: units_player(std::move(units_player)),
+				units_opponent(std::move(units_opponent)),
+				encoded_board_(std::move(State<dim>::encode(board))) {}
 
 	[[nodiscard]] auto create_board() const -> Board<dim> {
 		std::array<BoardState, dim.array_size()> board_data;
@@ -97,6 +96,16 @@ struct State {
 
 	friend auto operator<=>(const State&, const State&) = default;
 
+	[[nodiscard]] auto hash() const -> size_t {
+		size_t hash = std::hash(encoded_board_);
+		tools::hash_combine(hash, units_player);
+		tools::hash_combine(hash, units_opponent);
+		return hash;
+	}
+
+	std::array<Postion, dim.player_unit_count> units_player;
+	std::array<Postion, dim.player_unit_count> units_opponent;
+
  private:
 	std::bitset<dim.byte_size()> encoded_board_;
 
@@ -111,6 +120,8 @@ struct State {
 	}
 };
 
+using Action = unsigned char;
+
 template <Dimensions dim>
 class Container;
 
@@ -120,7 +131,7 @@ class Rules;
 template <Dimensions dim>
 struct Graph {
 	using state = State<dim>;
-	using action = char;
+	using action = Action;
 	using container = Container<dim>;
 	using rules = Rules<dim>;
 	using printer = Container<dim>;
@@ -130,6 +141,20 @@ template <Dimensions dim>
 class Container {};
 
 template <Dimensions dim>
-class Rules {};
+class Rules {
+	[[nodiscard]] auto list_roots() const -> std::vector<State<dim>>;
+	[[nodiscard]] auto list_actions(State<dim> state) const -> std::vector<Action>;
+	[[nodiscard]] auto list_edges(State<dim> state, Action action) const -> std::vector<sag::ActionEdge<State<dim>>>;
+	[[nodiscard]] auto score(State<dim> state) const -> tools::Score;
+};
 
 }  // namespace sag::santorini
+
+namespace std {
+
+template <sag::santorini::Dimensions dim>
+// NOLINTNEXTLINE(cert-dcl58-cpp)
+struct std::hash<sag::santorini::State<dim>> {
+	auto operator()(sag::santorini::State<dim> const& state) const noexcept -> std::size_t { return state.hash(); }
+};
+}  // namespace std
