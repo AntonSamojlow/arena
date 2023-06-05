@@ -6,7 +6,9 @@
 #include <array>
 #include <bitset>
 #include <functional>
+#include <numeric>
 #include <stdexcept>
+#include <string>
 
 #include "sag/DefaultGraphContainer_v1.h"
 #include "tools/Hashing.h"
@@ -43,6 +45,8 @@ struct Position {
 	char row;
 	char col;
 	friend auto operator<=>(const Position&, const Position&) = default;
+
+	auto to_string() -> std::string { return fmt::format("{},{}", std::to_string(row), std::to_string(col)); }
 };
 
 template <Dimensions dim>
@@ -155,7 +159,12 @@ class Rules {
 		}
 		return result;
 	}
+
 	[[nodiscard]] auto list_actions(State<dim> state) const -> std::vector<Action> {
+		// skip if state is terminal
+		if (score(state).value() == -1.0F || score(state).value() == 1.0F)
+			return {};
+
 		std::vector<Action> result;
 		Board<dim> const board = get_board(state);
 
@@ -193,9 +202,8 @@ class Rules {
 
 	[[nodiscard]] auto score(State<dim> state) const -> tools::Score {
 		Board<dim> const board = get_board(state);
-
-		if (list_actions(state).empty() || std::ranges::any_of(state.units_opponent,
-																				 [&board](Position unit) { return board.at(unit) == BoardState::Goal; }))
+		if (std::ranges::any_of(
+					state.units_opponent, [&board](Position unit) { return board.at(unit) == BoardState::Goal; }))
 			return tools::Score(-1.0F);
 
 		if (std::ranges::any_of(state.units_player, [&board](Position unit) { return board.at(unit) == BoardState::Goal; }))
@@ -208,11 +216,43 @@ class Rules {
 
 	[[nodiscard]] auto to_string(State<dim> state) const -> std::string {
 		Board<dim> const board = get_board(state);
-		return fmt::format("state");
+		std::array<BoardState, dim.array_size()> const board_data = board.underlying_array();
+
+		int const turn_nr =
+			std::accumulate(board_data.begin(), board_data.end(), 0, [](int val, BoardState board_state) -> int {
+				return val += static_cast<int>(board_state);
+			});
+		bool const starting_player_turn = turn_nr % 2 == 0;
+
+		// the display symbol per player is fixed
+		auto player_symbol = [starting_player_turn, &state](Position pos) -> char {
+			if (std::ranges::find(state.units_opponent, pos) != state.units_opponent.end())
+				return starting_player_turn ? 'o' : 'x';
+			if (std::ranges::find(state.units_player, pos) != state.units_player.end())
+				return starting_player_turn ? 'x' : 'o';
+			return ' ';
+		};
+
+		std::string result = "[";
+		char last_row = 0;
+		for (Position pos : sorted_positions_) {
+			if (last_row != pos.row) {
+				result.append("][");
+				last_row = pos.row;
+			}
+			result.append(' ' + std::to_string(static_cast<unsigned char>(board.at(pos))) + player_symbol(pos));
+		}
+
+		result.append("]");
+		return result;
 	}
 
 	[[nodiscard]] auto to_string(State<dim> state, Action action) const -> std::string {
-		return fmt::format("action-{} at: {}", to_string(state), action);
+		return fmt::format("({}->{}, build {}) on {}",
+			state.units_player[action.unit_nr].to_string(),
+			action.move_location.to_string(),
+			action.build_location.to_string(),
+			to_string(state));
 	}
 
  private:

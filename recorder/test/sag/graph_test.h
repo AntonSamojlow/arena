@@ -7,6 +7,20 @@
 #include "sag/GraphConcepts.h"
 #include "sag/GraphOperations.h"
 
+template <class G>
+concept TestGraphCollection = sag::Graph<G> && requires(G const const_fac) {
+																								 { const_fac.get_rules() } -> std::same_as<typename G::rules>;
+																								 { const_fac.get_container() } -> std::same_as<typename G::container>;
+																								 { const_fac.get_printer() } -> std::same_as<typename G::printer>;
+																							 };
+
+template <sag::Graph G>
+struct DefaultConstrucibleGraph : public G {
+	[[nodiscard]] auto get_rules() const -> G::rules { return {}; }
+	[[nodiscard]] auto get_container() const -> G::container { return {}; }
+	[[nodiscard]] auto get_printer() const -> G::printer { return {}; }
+};
+
 template <typename S, typename A>
 void test_roots_nonterminal(sag::GraphContainer<S, A> auto& graph, sag::RulesEngine<S, A> auto const& rules) {
 	for (S root : graph.roots()) {
@@ -20,18 +34,18 @@ void test_roots_nonterminal(sag::GraphContainer<S, A> auto& graph, sag::RulesEng
 template <typename T, typename R>
 	requires std::is_floating_point_v<R>
 auto get_random_element(std::vector<T> vec, R random) -> T {
-	auto const size = vec.size();
+	size_t const size = vec.size();
 	REQUIRE(size > 0);
-	auto const index = static_cast<size_t>(std::ceil(random * static_cast<R>(size)) - 1);
+	auto const index = static_cast<size_t>(std::ceil(random * static_cast<R>(size - 1)));
 	return vec.at(index);
 }
 
 template <typename S, typename A>
 auto descend_once_(
 	sag::GraphContainer<S, A> auto& graph, sag::RulesEngine<S, A> auto const& rules, S state, bool randomized) -> S {
-	std::mt19937 rng({});  // NOLINT (cert-*)
+	std::mt19937 rng{std::random_device()()};  // NOLINT (cert-*)
 	std::uniform_real_distribution<float> unit_distribution(0.0F, 1.0F);
-	float const random_value = randomized ? unit_distribution(rng) : 1.0F;
+	float const random_value = randomized ? unit_distribution(rng) : 0.0F;
 
 	auto actions = graph.actions_at(state);
 	auto action = get_random_element(actions, random_value);
@@ -57,9 +71,9 @@ void test_full_descend(sag::GraphContainer<S, A> auto& graph,
 	sag::RulesEngine<S, A> auto const& rules,
 	bool randomized,
 	std::vector<S>& visited_states) {
-	std::mt19937 rng({});  // NOLINT (cert-*)
+	std::mt19937 rng{std::random_device()()};  // NOLINT (cert-*)
 	std::uniform_real_distribution<double> unit_distribution(0.0, 1.0);
-	double const random_value = randomized ? unit_distribution(rng) : 1.0;
+	double const random_value = randomized ? unit_distribution(rng) : 0.0;
 
 	auto roots = graph.roots();
 	S state = get_random_element(roots, random_value);

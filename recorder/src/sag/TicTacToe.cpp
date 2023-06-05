@@ -121,7 +121,7 @@ auto Container::to_string(Graph::state state) -> std::string {
 }
 
 auto Container::to_string(Graph::state state, Graph::action action) -> std::string {
-	return fmt::format("action-{} at: {})", action, to_string(state));
+	return fmt::format("action-{} at: {})", std::to_string(action), to_string(state));
 }
 
 auto Container::to_string_formatted(Graph::state state) -> std::string {
@@ -129,7 +129,7 @@ auto Container::to_string_formatted(Graph::state state) -> std::string {
 }
 
 auto Container::to_string_formatted(Graph::state state, Graph::action action) -> std::string {
-	return fmt::format("action-{} at::\n{})", action, to_string(state));
+	return fmt::format("action-{} at::\n{})", std::to_string(action), to_string(state));
 }
 
 }  // namespace sag::tic_tac_toe
