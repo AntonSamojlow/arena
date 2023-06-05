@@ -25,7 +25,7 @@ struct BaseExample {
  private:
 	std::vector<sag::example::ActionEdges> const TERMINAL_ = {};
 
-	typename rules rules_{sag::example::GraphStructure{
+	rules rules_{sag::example::GraphStructure{
 		{1,
 			{
 				{{1.0F / 3, 2}, {2.0F / 3, 3}},
@@ -41,8 +41,8 @@ struct BaseExample {
 		{9, TERMINAL_},
 	}};
 
-	typename container container_{rules_};
-	typename printer printer_;
+	container container_{rules_};
+	printer printer_;
 };
 
 TEMPLATE_TEST_CASE("Graph test",

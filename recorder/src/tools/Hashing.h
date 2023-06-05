@@ -1,5 +1,3 @@
-#include <vcruntime.h>
-
 #include <functional>
 
 namespace tools {
@@ -12,6 +10,8 @@ inline void hash_combine(std::size_t& seed, const T& value) {
 	seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
+}  // namespace tools
+
 template <class T, size_t N>
 struct std::hash<std::array<T, N>> {
 	auto operator()(std::array<T, N> const& array) const noexcept -> std::size_t {
@@ -22,5 +22,3 @@ struct std::hash<std::array<T, N>> {
 		return hash;
 	}
 };
-
-}  // namespace tools

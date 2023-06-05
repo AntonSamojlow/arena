@@ -16,9 +16,9 @@ concept TestGraphCollection = sag::Graph<G> && requires(G const const_fac) {
 
 template <sag::Graph G>
 struct DefaultConstrucibleGraph : public G {
-	[[nodiscard]] auto get_rules() const -> G::rules { return {}; }
-	[[nodiscard]] auto get_container() const -> G::container { return {}; }
-	[[nodiscard]] auto get_printer() const -> G::printer { return {}; }
+	[[nodiscard]] auto get_rules() const -> typename G::rules { return {}; }
+	[[nodiscard]] auto get_container() const -> typename G::container { return {}; }
+	[[nodiscard]] auto get_printer() const -> typename G::printer { return {}; }
 };
 
 template <typename S, typename A>

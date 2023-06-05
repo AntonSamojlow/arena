@@ -341,12 +341,12 @@ namespace std {
 
 template <sag::santorini::Dimensions dim>
 // NOLINTNEXTLINE(cert-dcl58-cpp)
-struct std::hash<sag::santorini::State<dim>> {
+struct hash<sag::santorini::State<dim>> {
 	auto operator()(sag::santorini::State<dim> const& state) const noexcept -> std::size_t { return state.hash(); }
 };
 
 template <>
-struct std::hash<sag::santorini::Position> {
+struct hash<sag::santorini::Position> {
 	auto operator()(sag::santorini::Position const& pos) const noexcept -> std::size_t {
 		size_t hash = 0;
 		tools::hash_combine(hash, pos.row);
@@ -356,7 +356,7 @@ struct std::hash<sag::santorini::Position> {
 };
 
 template <>
-struct std::hash<sag::santorini::Action> {
+struct hash<sag::santorini::Action> {
 	auto operator()(sag::santorini::Action const& action) const noexcept -> std::size_t {
 		size_t hash = 0;
 		tools::hash_combine(hash, action.unit_nr);
