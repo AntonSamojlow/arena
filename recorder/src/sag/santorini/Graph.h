@@ -3,80 +3,22 @@
 #include <fmt/format.h>
 
 #include <algorithm>
-#include <array>
 #include <bitset>
 #include <functional>
 #include <numeric>
 #include <stdexcept>
-#include <string>
 
+#include "Santorini.h"
 #include "sag/DefaultGraphContainer_v1.h"
 #include "tools/Hashing.h"
 
+
 namespace sag::santorini {
-
-enum class BoardState : unsigned char { Empty = 0, First = 1, Second = 2, Goal = 3, Closed = 4, VALUE_COUNT = 5 };
-
-// NOLINTBEGIN(*magic-numbers)
-struct Dimensions {
-	size_t rows;
-	size_t cols;
-	size_t player_unit_count;
-
-	[[nodiscard]] constexpr auto array_size() const -> size_t { return rows * cols; }
-
-	// compute integer upper bound of log_2(array_size()), using that log(5)/log(2) ~ 2.322
-	[[nodiscard]] constexpr auto byte_size() const -> size_t {
-		return 1 + static_cast<size_t>(static_cast<double>(array_size()) * 2.322);
-	}
-
-	// [[nodiscard]] constexpr auto byte_size() const -> size_t {
-	// 	switch (array_size()) {
-	// 		// compute ceil(log_2(array_size())) for array sizes for rows and cols from the interval
-	// [2,5] 		case 4: return 10; 		case 6: return 14; 		case 8: return 19; 		case 9: return 21;
-	// case 10: return 24; 		case 12: return 28; 		case 15: return 35; 		case 16: return 38;
-	// case 20: return 47; 		case 24: return 56; 		case 25: return 59; 		default: return 0;
-	// 	}
-	// }
-};
-// NOLINTEND(*magic-numbers)
-
-struct Position {
-	char row;
-	char col;
-	friend auto operator<=>(const Position&, const Position&) = default;
-
-	auto to_string() -> std::string { return fmt::format("{},{}", std::to_string(row), std::to_string(col)); }
-};
-
-template <Dimensions dim>
-class Board {
-	std::array<BoardState, dim.array_size()> data_{};
-
-	friend auto operator<=>(const Board&, const Board&) = default;
-
- public:
-	Board() {
-		for (size_t i = 0; i < dim.array_size(); ++i)
-			data_[i] = BoardState::Empty;
-	}
-
-	explicit Board(std::array<BoardState, dim.array_size()> data) : data_(std::move(data)) {}
-	[[nodiscard]] auto at(Position position) const -> BoardState { return data_[position.col + dim.cols * position.row]; }
-	[[nodiscard]] auto increment(Position position) -> void {
-		BoardState& current = data_[position.col + dim.cols * position.row];
-		if (current == BoardState::Closed)  // sanity check -should never happen
-			throw std::logic_error("Can not increment a closed position!");
-		current = static_cast<BoardState>(static_cast<unsigned char>(current) + 1);
-	}
-	[[nodiscard]] auto underlying_array() const -> std::array<BoardState, dim.array_size()> const& { return data_; }
-};
-
 template <Dimensions dim>
 struct State {
 	State() = default;
 
-	State(std::bitset<dim.byte_size()> encoded_board,
+	State(std::bitset<dim.encoded_board_bitcount()> encoded_board,
 		std::array<Position, dim.player_unit_count> units_player,
 		std::array<Position, dim.player_unit_count> units_opponent)
 			: units_player(std::move(units_player)),
@@ -91,9 +33,9 @@ struct State {
 				encoded_board_(std::move(State<dim>::encode(board))) {}
 
 	[[nodiscard]] auto create_board() const -> Board<dim> {
-		std::array<BoardState, dim.array_size()> board_data;
+		std::array<BoardState, dim.position_count()> board_data;
 		unsigned long long encoded_value = encoded_board_.to_ullong();
-		for (size_t k = dim.array_size(); k > 0; --k) {
+		for (size_t k = dim.position_count(); k > 0; --k) {
 			auto const factor =
 				static_cast<unsigned long long>(pow(static_cast<double>(BoardState::VALUE_COUNT), static_cast<double>(k - 1)));
 			auto const entry = static_cast<unsigned char>(encoded_value / factor);
@@ -106,7 +48,7 @@ struct State {
 	friend auto operator<=>(const State&, const State&) = default;
 
 	[[nodiscard]] auto hash() const -> size_t {
-		size_t hash = std::hash<std::bitset<dim.byte_size()>>()(encoded_board_);
+		size_t hash = std::hash<std::bitset<dim.encoded_board_bitcount()>>()(encoded_board_);
 		tools::hash_combine(hash, units_player);
 		tools::hash_combine(hash, units_opponent);
 		return hash;
@@ -116,9 +58,9 @@ struct State {
 	std::array<Position, dim.player_unit_count> units_opponent;
 
  private:
-	std::bitset<dim.byte_size()> encoded_board_;
+	std::bitset<dim.encoded_board_bitcount()> encoded_board_;
 
-	[[nodiscard]] static auto encode(Board<dim> board) -> std::bitset<dim.byte_size()> {
+	[[nodiscard]] static auto encode(Board<dim> board) -> std::bitset<dim.encoded_board_bitcount()> {
 		unsigned long long result = 0;
 		auto const& board_array = board.underlying_array();
 		for (size_t k = 0; k < board_array.size(); ++k) {
@@ -216,7 +158,7 @@ class Rules {
 
 	[[nodiscard]] auto to_string(State<dim> state) const -> std::string {
 		Board<dim> const board = get_board(state);
-		std::array<BoardState, dim.array_size()> const board_data = board.underlying_array();
+		std::array<BoardState, dim.position_count()> const board_data = board.underlying_array();
 
 		int const turn_nr =
 			std::accumulate(board_data.begin(), board_data.end(), 0, [](int val, BoardState board_state) -> int {

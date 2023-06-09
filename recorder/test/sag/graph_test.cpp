@@ -3,7 +3,7 @@
 #include <catch2/catch_template_test_macros.hpp>
 
 #include "sag/ExampleGraph.h"
-#include "sag/Santorini.h"
+#include "sag/santorini/Graph.h"
 #include "sag/TicTacToe.h"
 
 constexpr sag::santorini::Dimensions santorini_2x2_1 = {.rows = 2, .cols = 2, .player_unit_count = 1};

@@ -1,5 +1,4 @@
-#include "Santorini.h"
-
+#include "Graph.h"
 #include "sag/GraphConcepts.h"
 
 namespace sag::santorini {
