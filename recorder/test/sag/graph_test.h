@@ -7,15 +7,19 @@
 #include "sag/GraphConcepts.h"
 #include "sag/GraphOperations.h"
 
+// clang-format off
 template <class G>
-concept TestGraphCollection = sag::Graph<G> && requires(G const const_fac) {
-																								 { const_fac.get_rules() } -> std::same_as<typename G::rules>;
-																								 { const_fac.get_container() } -> std::same_as<typename G::container>;
-																								 { const_fac.get_printer() } -> std::same_as<typename G::printer>;
-																							 };
+concept TestGraphCollection = sag::Graph<G> &&
+	requires(G const const_fac) {
+		{ const_fac.get_rules() } -> std::same_as<typename G::rules>;
+		{ const_fac.get_container() } -> std::same_as<typename G::container>;
+		{ const_fac.get_printer() } -> std::same_as<typename G::printer>;
+	};
+// clang-format on
 
+/// generates a test graph collection by default initialization
 template <sag::Graph G>
-struct DefaultConstrucibleGraph : public G {
+struct Defaulted : public G {
 	[[nodiscard]] auto get_rules() const -> typename G::rules { return {}; }
 	[[nodiscard]] auto get_container() const -> typename G::container { return {}; }
 	[[nodiscard]] auto get_printer() const -> typename G::printer { return {}; }

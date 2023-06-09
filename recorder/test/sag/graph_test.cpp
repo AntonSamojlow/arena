@@ -9,14 +9,14 @@
 constexpr sag::santorini::Dimensions santorini_2x2_1 = {.rows = 2, .cols = 2, .player_unit_count = 1};
 constexpr sag::santorini::Dimensions santorini_3x5_2 = {.rows = 3, .cols = 5, .player_unit_count = 2};
 
-struct BaseExample {
+struct ExampleGraphCollection {
 	using state = int;
 	using action = int;
 	using container = sag::example::Container;
 	using rules = sag::example::Rules;
 	using printer = sag::example::Container;
 
-	BaseExample() {}
+	ExampleGraphCollection() {}
 
 	[[nodiscard]] auto get_rules() const -> rules { return rules_; }
 	[[nodiscard]] auto get_container() const -> container { return container_; }
@@ -47,11 +47,12 @@ struct BaseExample {
 
 TEMPLATE_TEST_CASE("Graph test",
 	"[sag]",
-	BaseExample,
-	DefaultConstrucibleGraph<sag::tic_tac_toe::Graph>,
-	DefaultConstrucibleGraph<sag::santorini::Graph<santorini_2x2_1>>,
-	DefaultConstrucibleGraph<sag::santorini::Graph<santorini_3x5_2>>) {
-	static_assert(sag::Graph<TestType>);
+	ExampleGraphCollection,
+	Defaulted<sag::tic_tac_toe::Graph>,
+	Defaulted<sag::santorini::Graph<santorini_2x2_1>>,
+	Defaulted<sag::santorini::Graph<santorini_3x5_2>>) {
+	static_assert(TestGraphCollection<TestType>);
+
 	TestType testType;
 	typename TestType::container graph = testType.get_container();
 	typename TestType::rules const rules = testType.get_rules();
