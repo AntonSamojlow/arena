@@ -12,7 +12,6 @@
 #include "sag/DefaultGraphContainer_v1.h"
 #include "tools/Hashing.h"
 
-
 namespace sag::santorini {
 template <Dimensions dim>
 struct State {
