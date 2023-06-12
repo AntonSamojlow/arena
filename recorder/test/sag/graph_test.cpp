@@ -16,7 +16,7 @@ struct ExampleGraphCollection {
 	using rules = sag::example::Rules;
 	using printer = sag::example::Container;
 
-	ExampleGraphCollection() {}
+	ExampleGraphCollection() = default;
 
 	[[nodiscard]] auto get_rules() const -> rules { return rules_; }
 	[[nodiscard]] auto get_container() const -> container { return container_; }

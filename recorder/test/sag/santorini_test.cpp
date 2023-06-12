@@ -21,9 +21,9 @@ TEST_CASE("Dimension test", "[sag, santorini]") {
 	for (size_t row = 2; row <= 10; ++row) {
 		for (size_t col = 2; col <= 10; ++col) {
 			for (size_t units = 0; units <= 10; ++units) {
-				Dimensions dim{.rows = row, .cols = col, .player_unit_count = units};
-				size_t bitcount = dim.encoded_board_bitcount();
-				size_t expected_bitcount =
+				Dimensions const dim{.rows = row, .cols = col, .player_unit_count = units};
+				size_t const bitcount = dim.encoded_board_bitcount();
+				auto const expected_bitcount =
 					static_cast<size_t>(ceil(log(5) / log(2) * static_cast<double>(dim.rows * dim.cols)));
 				CHECK(bitcount == expected_bitcount);
 				CHECK(dim.position_count() == dim.rows * dim.cols);
