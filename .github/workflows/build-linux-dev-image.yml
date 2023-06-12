@@ -18,7 +18,7 @@ on:
         description: "Clang version (incl. llvm and clang tooling)"
         required: true
         type: string
-        default: "15"
+        default: "16"
 
 env:
   IMAGE_FILE: "linux-dev.Dockerfile"

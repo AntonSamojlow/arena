@@ -40,7 +40,7 @@ RUN update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-$env:GCC_VERSIO
 RUN update-alternatives --install /usr/bin/g++ g++ "/usr/bin/g++-$env:GCC_VERSION" 20
 
 # --- Install *specified* version of llvm, clang, etc. from https://apt.llvm.org/ ---
-ARG CLANG_VERSION=15
+ARG CLANG_VERSION=16
 RUN $v = $env:CLANG_VERSION; \
   $n = $env:UBUNTU_CODE_NAME; \
   wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -; \

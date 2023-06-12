@@ -16,7 +16,7 @@ on:
 
 env:
   VS_VERSION: 2022
-  CLANG_VERSION: 15
+  CLANG_VERSION: 16
   GCC_VERSION: 12
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
 
