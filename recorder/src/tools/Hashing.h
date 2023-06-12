@@ -16,10 +16,10 @@ template <class T, size_t N>
 // NOLINTNEXTLINE(cert-dcl58-cpp)
 struct std::hash<std::array<T, N>> {
 	auto operator()(std::array<T, N> const& array) const noexcept -> std::size_t {
-		size_t hash = 0;
+		size_t result = 0;
 		for (size_t i = 0; i < array.size(); ++i) {
-			tools::hash_combine(hash, array[i]);
+			tools::hash_combine(result, array[i]);
 		}
-		return hash;
+		return result;
 	}
 };

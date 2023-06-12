@@ -282,21 +282,21 @@ struct hash<sag::santorini::State<dim>> {
 template <>
 struct hash<sag::santorini::Position> {
 	auto operator()(sag::santorini::Position const& pos) const noexcept -> std::size_t {
-		size_t hash = 0;
-		tools::hash_combine(hash, pos.row);
-		tools::hash_combine(hash, pos.col);
-		return hash;
+		size_t result = 0;
+		tools::hash_combine(result, pos.row);
+		tools::hash_combine(result, pos.col);
+		return result;
 	}
 };
 
 template <>
 struct hash<sag::santorini::Action> {
 	auto operator()(sag::santorini::Action const& action) const noexcept -> std::size_t {
-		size_t hash = 0;
-		tools::hash_combine(hash, action.unit_nr);
-		tools::hash_combine(hash, action.build_location);
-		tools::hash_combine(hash, action.move_location);
-		return hash;
+		size_t result = 0;
+		tools::hash_combine(result, action.unit_nr);
+		tools::hash_combine(result, action.build_location);
+		tools::hash_combine(result, action.move_location);
+		return result;
 	}
 };
 
