@@ -92,8 +92,8 @@ void test_full_descend(sag::GraphContainer<S, A> auto& graph,
 template <typename S, typename A>
 void check_terminal_state(sag::RulesEngine<S, A> auto const& rules, S const& state) {
 	float const score = rules.score(state).value();
-	REQUIRE_THAT(score, Catch::Matchers::WithinAbs(1.0, 0.0001) || Catch::Matchers::WithinAbs(-1.0, 0.0001));
-	REQUIRE(rules.list_actions(state).empty());
+	CHECK_THAT(score, Catch::Matchers::WithinAbs(1.0, 0.0001) || Catch::Matchers::WithinAbs(-1.0, 0.0001));
+	CHECK(rules.list_actions(state).empty());
 }
 
 template <typename S, typename A>
@@ -110,5 +110,5 @@ void test_base_operations(sag::GraphContainer<S, A> auto& graph, sag::RulesEngin
 			check_terminal_state<S, A>(rules, state);
 		}
 	}
-	REQUIRE(terminal_states.size() == 2);
+	CHECK(terminal_states.size() == 2);
 }

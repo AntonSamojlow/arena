@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <bitset>
+#include <cassert>
 #include <concepts>
 #include <functional>
 #include <numeric>
@@ -77,8 +78,7 @@ class Rules {
 	}
 
 	[[nodiscard]] auto list_actions(State<dim> state) const -> std::vector<Action> {
-		// skip if state is terminal
-		if (score(state).value() == -1.0F || score(state).value() == 1.0F)
+		if (opponent_has_won(state))
 			return {};
 
 		std::vector<Action> result;
@@ -120,15 +120,7 @@ class Rules {
 	}
 
 	[[nodiscard]] auto score(State<dim> state) const -> tools::Score {
-		Board<dim> const board = get_board(state);
-		if (std::ranges::any_of(
-					state.units_opponent, [&board](Position unit) { return board.at(unit) == BoardState::Goal; }))
-			return tools::Score(-1.0F);
-
-		if (std::ranges::any_of(state.units_player, [&board](Position unit) { return board.at(unit) == BoardState::Goal; }))
-			return tools::Score(1.0F);
-
-		return tools::Score{0.0F};
+		return tools::Score{list_actions(state).empty() ? -1.0F : 0.0F};
 	}
 
 	/// concept VertexPrinter:
@@ -180,6 +172,18 @@ class Rules {
 	// get the board for the given state, possibly from cache
 	auto get_board(State<dim> state) const -> Board<dim> {
 		return Board<dim>::decode_base5(state.board_base5.to_ullong());
+	}
+
+	auto opponent_has_won(State<dim> state) const -> bool {
+		Board<dim> const board = get_board(state);
+		auto unit_has_won = [&board](Position unit) {
+			return board.at(unit) == BoardState::Goal;
+		};
+
+		// can not be reached from walking down a graph (state gets inverted, to refelct the *active* players view)
+		assert(std::ranges::none_of(state.units_player, unit_has_won));
+
+		return std::ranges::any_of(state.units_opponent, unit_has_won);
 	}
 
 	auto apply_move(State<dim> state, Action action) const -> State<dim> {

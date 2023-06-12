@@ -63,7 +63,7 @@ class Board {
 	[[nodiscard]] auto underlying_array() const -> std::array<BoardState, dim.position_count()> const& { return data_; }
 
 	[[nodiscard]] auto static decode_base5(unsigned long long encoded_value) -> Board<dim> {
-		std::array<BoardState, dim.position_count()> board_data;
+		std::array<BoardState, dim.position_count()> board_data{};
 		for (size_t k = dim.position_count(); k > 0; --k) {
 			auto const factor =
 				static_cast<unsigned long long>(pow(static_cast<double>(BoardState::VALUE_COUNT), static_cast<double>(k - 1)));

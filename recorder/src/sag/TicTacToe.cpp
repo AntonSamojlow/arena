@@ -28,7 +28,7 @@ auto Rules::list_edges(Graph::state state, Graph::action action) -> std::vector<
 }
 
 auto Rules::score(Graph::state state) -> tools::Score {
-	return opponent_has_won(decode(state)) ? tools::Score(-1.0F) : tools::Score(0.0F);
+	return tools::Score(list_actions(state).empty() ? -1.0F : 0.0F);
 }
 
 auto Rules::encode(const Board& board) -> Graph::state {

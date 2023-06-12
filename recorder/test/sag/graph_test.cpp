@@ -72,5 +72,5 @@ TEMPLATE_TEST_CASE("Graph test",
 	}
 	logger->info("logging all states of a full descend:");
 	for (auto state : visited_states)
-		logger->info("\n{}", printer.to_string(state));
+		logger->info("\n{}, score: {}", printer.to_string(state), rules.score(state).value());
 }
