@@ -21,7 +21,6 @@ auto Rules::list_actions(Graph::state state) -> std::vector<Graph::action> {
 	return actions;
 }
 
-// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 auto Rules::list_edges(Graph::state state, Graph::action action) -> std::vector<ActionEdge<Graph::state>> {
 	Board board = decode(state);
 	++board[static_cast<size_t>(action)];

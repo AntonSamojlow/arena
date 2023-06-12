@@ -15,10 +15,6 @@ namespace nl = nlohmann;
 
 namespace app::config {
 
-#pragma GCC diagnostic push
-// reason: https://github.com/llvm/llvm-project/issues/43670
-#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
-
 // NOLINTBEGIN (*-float-equal, *-use-nullptr)
 
 struct MCTS {
@@ -47,9 +43,7 @@ struct Recorder {
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Recorder, db_file_path, parallel_games, players)
-
 // NOLINTEND
-#pragma GCC diagnostic pop
 
 template <class Config>
 auto read(std::filesystem::path const& input_file_path) -> tl::expected<Config, tools::Failure> {

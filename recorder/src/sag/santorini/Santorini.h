@@ -3,7 +3,10 @@
 #include <fmt/format.h>
 
 #include <array>
+#include <cassert>
+#include <map>
 #include <string>
+#include <vector>
 
 namespace sag::santorini {
 
@@ -26,8 +29,8 @@ struct Dimensions {
 // NOLINTEND(*magic-numbers)
 
 struct Position {
-	char row;
-	char col;
+	unsigned char row;
+	unsigned char col;
 	friend auto operator<=>(const Position&, const Position&) = default;
 
 	[[nodiscard]] auto to_string() const -> std::string {
@@ -53,12 +56,32 @@ class Board {
 
 	auto increment(Position position) -> void {
 		BoardState& current = data_[position.col + dim.cols * position.row];
-		if (current == BoardState::Closed)  // sanity check -should never happen
-			throw std::logic_error("Can not increment a closed position!");
+		assert(current != BoardState::Closed);  // sanity check
 		current = static_cast<BoardState>(static_cast<unsigned char>(current) + 1);
 	}
 
 	[[nodiscard]] auto underlying_array() const -> std::array<BoardState, dim.position_count()> const& { return data_; }
+
+	[[nodiscard]] auto static decode_base5(unsigned long long encoded_value) -> Board<dim> {
+		std::array<BoardState, dim.position_count()> board_data;
+		for (size_t k = dim.position_count(); k > 0; --k) {
+			auto const factor =
+				static_cast<unsigned long long>(pow(static_cast<double>(BoardState::VALUE_COUNT), static_cast<double>(k - 1)));
+			auto const entry = static_cast<unsigned char>(encoded_value / factor);
+			board_data[k - 1] = static_cast<BoardState>(entry);
+			encoded_value -= entry * factor;
+		}
+		return Board<dim>{board_data};
+	}
+
+	[[nodiscard]] auto encode_base5() const -> unsigned long long {
+		unsigned long long result = 0;
+		for (size_t k = 0; k < data_.size(); ++k) {
+			result += static_cast<unsigned long long>(data_[k]) *
+								static_cast<size_t>(pow(static_cast<double>(BoardState::VALUE_COUNT), static_cast<double>(k)));
+		}
+		return result;
+	}
 };
 
 }  // namespace sag::santorini

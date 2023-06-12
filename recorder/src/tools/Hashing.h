@@ -13,6 +13,7 @@ inline void hash_combine(std::size_t& seed, const T& value) {
 }  // namespace tools
 
 template <class T, size_t N>
+// NOLINTNEXTLINE(cert-dcl58-cpp)
 struct std::hash<std::array<T, N>> {
 	auto operator()(std::array<T, N> const& array) const noexcept -> std::size_t {
 		size_t hash = 0;

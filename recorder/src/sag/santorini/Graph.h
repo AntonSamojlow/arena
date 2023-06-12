@@ -4,50 +4,37 @@
 
 #include <algorithm>
 #include <bitset>
+#include <concepts>
 #include <functional>
 #include <numeric>
+#include <ranges>
 #include <stdexcept>
 
 #include "Santorini.h"
 #include "sag/DefaultGraphContainer_v1.h"
+#include "sag/santorini/Santorini.h"
 #include "tools/Hashing.h"
 
 namespace sag::santorini {
 template <Dimensions dim>
 struct State {
 	State() = default;
+	State(std::array<Position, dim.player_unit_count> player_units,
+		std::array<Position, dim.player_unit_count> opponent_units,
+		unsigned long long encoded_board_base5)
+			: units_player(std::move(player_units)),
+				units_opponent(std::move(opponent_units)),
+				board_base5(encoded_board_base5) {}
 
-	State(std::bitset<dim.encoded_board_bitcount()> encoded_board,
-		std::array<Position, dim.player_unit_count> units_player,
-		std::array<Position, dim.player_unit_count> units_opponent)
-			: units_player(std::move(units_player)),
-				units_opponent(std::move(units_opponent)),
-				encoded_board_(encoded_board) {}
-
-	State(Board<dim> board,
-		std::array<Position, dim.player_unit_count> units_player,
-		std::array<Position, dim.player_unit_count> units_opponent)
-			: units_player(std::move(units_player)),
-				units_opponent(std::move(units_opponent)),
-				encoded_board_(std::move(State<dim>::encode(board))) {}
-
-	[[nodiscard]] auto create_board() const -> Board<dim> {
-		std::array<BoardState, dim.position_count()> board_data;
-		unsigned long long encoded_value = encoded_board_.to_ullong();
-		for (size_t k = dim.position_count(); k > 0; --k) {
-			auto const factor =
-				static_cast<unsigned long long>(pow(static_cast<double>(BoardState::VALUE_COUNT), static_cast<double>(k - 1)));
-			auto const entry = static_cast<unsigned char>(encoded_value / factor);
-			board_data[k - 1] = static_cast<BoardState>(entry);
-			encoded_value -= entry * factor;
-		}
-		return Board<dim>{board_data};
-	}
+	State(std::array<Position, dim.player_unit_count> player_units,
+		std::array<Position, dim.player_unit_count> opponent_units,
+		Board<dim> board)
+			: State(player_units, opponent_units, board.encode_base5()) {}
 
 	friend auto operator<=>(const State&, const State&) = default;
 
 	[[nodiscard]] auto hash() const -> size_t {
-		size_t hash = std::hash<std::bitset<dim.encoded_board_bitcount()>>()(encoded_board_);
+		size_t hash = std::hash<std::bitset<dim.encoded_board_bitcount()>>()(board_base5);
 		tools::hash_combine(hash, units_player);
 		tools::hash_combine(hash, units_opponent);
 		return hash;
@@ -55,23 +42,11 @@ struct State {
 
 	std::array<Position, dim.player_unit_count> units_player;
 	std::array<Position, dim.player_unit_count> units_opponent;
-
- private:
-	std::bitset<dim.encoded_board_bitcount()> encoded_board_;
-
-	[[nodiscard]] static auto encode(Board<dim> board) -> std::bitset<dim.encoded_board_bitcount()> {
-		unsigned long long result = 0;
-		auto const& board_array = board.underlying_array();
-		for (size_t k = 0; k < board_array.size(); ++k) {
-			result += static_cast<unsigned long long>(board_array[k]) *
-								static_cast<size_t>(pow(static_cast<double>(BoardState::VALUE_COUNT), static_cast<double>(k)));
-		}
-		return result;
-	}
+	std::bitset<dim.encoded_board_bitcount()> board_base5;
 };
 
 struct Action {
-	char unit_nr;
+	unsigned char unit_nr;
 	Position move_location;
 	Position build_location;
 	friend auto operator<=>(const Action&, const Action&) = default;
@@ -88,14 +63,14 @@ class Rules {
 		std::vector<State<dim>> result;
 		Board<dim> empty_board;
 
-		std::vector<std::array<Position, dim.player_unit_count>> unit_combinations = recurse_unit_combinations(0, 0);
-		for (const std::array<Position, dim.player_unit_count>& player_units : unit_combinations) {
-			for (const std::array<Position, dim.player_unit_count>& opponent_units : unit_combinations) {
+		auto const unit_combinations = recurse_unit_combinations(0, 0);
+		for (auto const& player_units : unit_combinations) {
+			for (auto const& opponent_units : unit_combinations) {
 				if (std::ranges::any_of(player_units, [&opponent_units](const Position& player_unit) {
 							return opponent_units.end() != std::ranges::find(opponent_units, player_unit);
 						}))
 					continue;
-				result.emplace_back(empty_board, player_units, opponent_units);
+				result.emplace_back(player_units, opponent_units, empty_board);
 			}
 		}
 		return result;
@@ -109,28 +84,31 @@ class Rules {
 		std::vector<Action> result;
 		Board<dim> const board = get_board(state);
 
-		auto is_occupied = [&state](Position const pos) {
-			return std::ranges::find(state.units_player, pos) != state.units_player.end() ||
-						 std::ranges::find(state.units_opponent, pos) != state.units_opponent.end();
+		auto is_free = [&state, &board](Position pos) {
+			return std::ranges::find(state.units_player, pos) == state.units_player.end() &&
+						 std::ranges::find(state.units_opponent, pos) == state.units_opponent.end() &&
+						 board.at(pos) != BoardState::Closed;
 		};
 
 		for (size_t unit_nr = 0; unit_nr < state.units_player.size(); ++unit_nr) {
 			Position const start_from = state.units_player[unit_nr];
 
-			// loop over moves
-			for (Position const move_to : neighborhoods_.at(start_from)) {
-				if (is_occupied(move_to) || board.at(move_to) == BoardState::Closed ||
-						static_cast<unsigned char>(board.at(move_to)) > 1 + static_cast<unsigned char>(board.at(start_from)))
-					continue;
+			auto valid_moves =
+				neighborhoods_.at(start_from) | std::views::filter([&board, &is_free, &start_from](Position move_to) {
+					return is_free(move_to) &&
+								 static_cast<unsigned char>(board.at(move_to)) < 2 + static_cast<unsigned char>(board.at(start_from));
+				});
 
-				// check valid builds after move
-				for (Position const build_at : neighborhoods_.at(move_to)) {
-					if (build_at != start_from  // it is always possible to build where moved-from
-							&& (is_occupied(build_at) || board.at(build_at) == BoardState::Closed))
-						continue;
+			auto valid_builds = [&start_from, &is_free, this](Position move_to) {
+				return neighborhoods_.at(move_to) | std::views::filter([&is_free, &start_from](Position build_at) {
+					return start_from != build_at && is_free(build_at);
+				});
+			};
 
-					result.emplace_back(
-						Action{.unit_nr = static_cast<char>(unit_nr), .move_location = move_to, .build_location = build_at});
+			for (Position move_to : valid_moves) {
+				for (Position build_at : valid_builds(move_to)) {
+					result.emplace_back(Action{
+						.unit_nr = static_cast<unsigned char>(unit_nr), .move_location = move_to, .build_location = build_at});
 				}
 			}
 		}
@@ -157,16 +135,15 @@ class Rules {
 
 	[[nodiscard]] auto to_string(State<dim> state) const -> std::string {
 		Board<dim> const board = get_board(state);
-		std::array<BoardState, dim.position_count()> const board_data = board.underlying_array();
+		auto const board_data = board.underlying_array();
 
-		int const turn_nr =
-			std::accumulate(board_data.begin(), board_data.end(), 0, [](int val, BoardState board_state) -> int {
-				return val += static_cast<int>(board_state);
-			});
+		int const turn_nr = std::accumulate(board_data.begin(), board_data.end(), 0, [](int val, BoardState board_state) {
+			return val += static_cast<int>(board_state);
+		});
 		bool const starting_player_turn = turn_nr % 2 == 0;
 
 		// the display symbol per player is fixed
-		auto player_symbol = [starting_player_turn, &state](Position pos) -> char {
+		auto player_symbol = [starting_player_turn, &state](Position pos) {
 			if (std::ranges::find(state.units_opponent, pos) != state.units_opponent.end())
 				return starting_player_turn ? 'o' : 'x';
 			if (std::ranges::find(state.units_player, pos) != state.units_player.end())
@@ -175,7 +152,7 @@ class Rules {
 		};
 
 		std::string result = "[";
-		char last_row = 0;
+		unsigned char last_row = 0;
 		for (Position pos : sorted_positions_) {
 			if (last_row != pos.row) {
 				result.append("][");
@@ -201,14 +178,16 @@ class Rules {
 	std::vector<Position> const sorted_positions_ = create_sorted_positions();
 
 	// get the board for the given state, possibly from cache
-	auto get_board(State<dim> state) const -> Board<dim> { return state.create_board(); }
+	auto get_board(State<dim> state) const -> Board<dim> {
+		return Board<dim>::decode_base5(state.board_base5.to_ullong());
+	}
 
 	auto apply_move(State<dim> state, Action action) const -> State<dim> {
 		Board<dim> board = get_board(state);
 		state.units_player[action.unit_nr] = action.move_location;
 		board.increment(action.build_location);
 		std::swap(state.units_player, state.units_opponent);
-		return State<dim>{board, state.units_player, state.units_opponent};
+		return {state.units_player, state.units_opponent, board};
 	}
 
 	auto recurse_unit_combinations(size_t unit_index, size_t position_index) const
@@ -233,30 +212,40 @@ class Rules {
 
 	auto static create_sorted_positions() -> std::vector<Position> {
 		std::vector<Position> result;
-		for (char row = 0; row < dim.rows; ++row) {
-			for (char col = 0; col < dim.cols; ++col) {
+		for (unsigned char row = 0; row < dim.rows; ++row) {
+			for (unsigned char col = 0; col < dim.cols; ++col) {
 				result.emplace_back(Position{.row = row, .col = col});
 			}
 		}
 		return result;
 	}
 
+	auto static create_neighborhood_at(Position pos) -> std::vector<Position> {
+		std::vector<Position> neighbors;
+		neighbors.reserve(3);
+
+		for (char row_offset = -1; row_offset < 2; ++row_offset) {
+			char row = static_cast<char>(pos.row + row_offset);
+			if (row < 0 || row >= static_cast<char>(dim.rows))
+				continue;
+
+			for (char col_offset = -1; col_offset < 2; ++col_offset) {
+				char col = static_cast<char>(pos.col + col_offset);
+				if (col < 0 || col >= static_cast<char>(dim.cols))
+					continue;
+
+				Position const neighbor{static_cast<unsigned char>(row), static_cast<unsigned char>(col)};
+				if (neighbor != pos)
+					neighbors.emplace_back(neighbor);
+			}
+		}
+		return neighbors;
+	}
+
 	auto static create_neighborhoods() -> std::map<Position, std::vector<Position>> {
 		std::map<Position, std::vector<Position>> result;
 		for (Position const pos : create_sorted_positions()) {
-			std::vector<Position> neighbors;
-			neighbors.reserve(3);
-
-			for (char row_offset = -1; row_offset < 2; ++row_offset) {
-				for (char col_offset = -1; col_offset < 2; ++col_offset) {
-					Position const neighbor{static_cast<char>(pos.row + row_offset), static_cast<char>(pos.col + col_offset)};
-					if (neighbor != pos && neighbor.row >= 0 && neighbor.row < dim.rows && neighbor.col >= 0 &&
-							neighbor.col < dim.cols) {
-						neighbors.emplace_back(neighbor);
-					}
-				}
-			}
-			result[pos] = neighbors;
+			result[pos] = create_neighborhood_at(pos);
 		}
 		return result;
 	}
