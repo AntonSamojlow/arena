@@ -35,7 +35,7 @@ SHELL ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
 RUN cmake --version
 # --- Install *specified* version of gcc from https://packages.ubuntu.com ---
 ARG GCC_VERSION
-RUN if(-not($env:GCC_VERSION -is [int])){Write-Host "build argument GCC_VERSION=$env:GCC_VERSION must be anumber"; exit 1;}
+RUN if(-not($env:GCC_VERSION -eq $null)){Write-Error "build argument GCC_VERSION missing"; exit 1;}
 RUN apt-get --yes --fix-missing install "g++-$env:GCC_VERSION" "gcc-$env:GCC_VERSION"
 # add new symlinks for the installed versions (vcpkg default triples use g++)
 RUN update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-$env:GCC_VERSION" 20
@@ -43,7 +43,7 @@ RUN update-alternatives --install /usr/bin/g++ g++ "/usr/bin/g++-$env:GCC_VERSIO
 
 # --- Install *specified* version of llvm, clang, etc. from https://apt.llvm.org/ ---
 ARG CLANG_VERSION
-RUN if(-not($env:CLANG_VERSION -is [int])){Write-Host "build argument CLANG_VERSION=$env:CLANG_VERSION must be anumber"; exit 1;}
+RUN if(-not($env:CLANG_VERSION -eq $null)){Write-Error "build argument CLANG_VERSION missing"; exit 1;}
 RUN $v = $env:CLANG_VERSION; \
   $n = $env:UBUNTU_CODE_NAME; \
   wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -; \
