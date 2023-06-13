@@ -15,14 +15,14 @@ on:
       - main
 
 env:
-  VS_VERSION: 2022
-  CLANG_VERSION: 15
-  GCC_VERSION: 12
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
 
 jobs:
   ci-windows:
     name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
+    env:
+      CLANG_VERSION: 15
+      VS_VERSION: 2022
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -61,6 +61,8 @@ jobs:
   ci-linux:
     name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
     env:
+      CLANG_VERSION: 16
+      GCC_VERSION: 12
       SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
       SONAR_ARGS: --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
     container:
@@ -159,12 +161,14 @@ jobs:
 
   formatting-check:
     name: Formatting Check
+    env:
+      CLANG_VERSION: 16
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: clang-format src
         if: always()
-        uses: jidicula/clang-format-action@v4.9.0
+        uses: jidicula/clang-format-action@v4.11.0
         with:
           clang-format-version: ${{ env.CLANG_VERSION}}
           check-path: "recorder/src"
@@ -172,8 +176,8 @@ jobs:
           exclude-regex: ""
       - name: clang-format test
         if: always()
-        uses: jidicula/clang-format-action@v4.9.0
+        uses: jidicula/clang-format-action@v4.11.0
         with:
-          clang-format-version: ${{ env.CLANG_VERSION}}
+          clang-format-version: ${{ env.CLANG_VERSION }}
           check-path: "recorder/test"
           exclude-regex: ""

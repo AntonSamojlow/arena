@@ -5,7 +5,7 @@ param(
   [Parameter(HelpMessage = "Whether to report formatting violations without applying changes.")]
   [switch] $DryRun,
   [Parameter(HelpMessage = "The clang-format version to use. Fails if not found.")]
-  [int] $Version = 15,
+  [int] $Version = 16,
   [Parameter(HelpMessage = "Number of threads to use. Disabled for PS version < 7.")]
   [int] $ThrottleLimit = 16
 )
