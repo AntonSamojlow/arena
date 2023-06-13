@@ -23,7 +23,7 @@ struct ExampleGraphCollection {
 	[[nodiscard]] auto get_printer() const -> printer { return printer_; }
 
  private:
-	std::vector<sag::example::ActionEdges> const TERMINAL_ = {};
+	std::vector<sag::example::ActionEdges> TERMINAL_ = {};
 
 	rules rules_{sag::example::GraphStructure{
 		{1,
