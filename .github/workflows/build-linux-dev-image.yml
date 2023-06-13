@@ -67,8 +67,6 @@ jobs:
           --tag ${{ env.IMAGE_TAG }}
           --build-arg CLANG_VERSION=${{ inputs.clang-version }}
           --build-arg GCC_VERSION=${{ inputs.gcc-version }}
-          --label=clang-version-${{ inputs.clang-version }}
-          --label=gcc-version-${{ inputs.gcc-version }}
           .
 
       - name: Docker push
