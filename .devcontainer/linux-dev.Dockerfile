@@ -28,19 +28,22 @@ RUN update
 RUN ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';" ,"rm", "/usr/share/keyrings/kitware-archive-keyring.gpg"]
 RUN install kitware-archive-keyring
 RUN install cmake
-RUN ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';" ,"cmake", "--version"]
 
-# --- Install *specified* version of gcc from https://packages.ubuntu.com ---
-ARG GCC_VERSION=12
-RUN install "g++-$env:GCC_VERSION" "gcc-$env:GCC_VERSION"
 # reset shell
 SHELL ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
+
+RUN cmake --version
+# --- Install *specified* version of gcc from https://packages.ubuntu.com ---
+ARG GCC_VERSION
+RUN if($env:GCC_VERSION -eq $null){Write-Error "build argument GCC_VERSION missing"; exit 1;}
+RUN apt-get --yes --fix-missing install "g++-$env:GCC_VERSION" "gcc-$env:GCC_VERSION"
 # add new symlinks for the installed versions (vcpkg default triples use g++)
 RUN update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-$env:GCC_VERSION" 20
 RUN update-alternatives --install /usr/bin/g++ g++ "/usr/bin/g++-$env:GCC_VERSION" 20
 
 # --- Install *specified* version of llvm, clang, etc. from https://apt.llvm.org/ ---
-ARG CLANG_VERSION=15
+ARG CLANG_VERSION
+RUN if($env:CLANG_VERSION -eq $null){Write-Error "build argument CLANG_VERSION missing"; exit 1;}
 RUN $v = $env:CLANG_VERSION; \
   $n = $env:UBUNTU_CODE_NAME; \
   wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -; \
@@ -51,3 +54,5 @@ RUN $v = $env:CLANG_VERSION; \
 RUN update-alternatives --install /usr/bin/clang-tidy clang-tidy "/usr/bin/clang-tidy-$env:CLANG_VERSION" 20
 RUN update-alternatives --install /usr/bin/clang-format clang-format "/usr/bin/clang-format-$env:CLANG_VERSION" 20
 RUN Get-Command "clang-$env:CLANG_VERSION" | Write-Host
+
+LABEL clang-version=$CLANG_VERSION gcc-version=$GCC_VERSION
