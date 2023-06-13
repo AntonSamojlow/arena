@@ -161,6 +161,8 @@ jobs:
 
   formatting-check:
     name: Formatting Check
+    env:
+      CLANG_VERSION: 16
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
