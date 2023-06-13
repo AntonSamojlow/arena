@@ -4,9 +4,7 @@
 #include <map>
 #include <memory>
 #include <random>
-#include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "GraphConcepts.h"
 
@@ -23,7 +21,7 @@ class DefaultGraphContainer_v1 {
 		roots_.reserve(root_data.size());
 		for (auto const& [root, actions] : root_data) {
 			if (std::ranges::find(roots_, root) != roots_.end())
-				throw std::invalid_argument("inconsistent root data - duplicate entry: " + std::to_string(root));
+				throw std::invalid_argument("inconsistent root data - duplicate root entry");
 			roots_.push_back(root);
 			ActionDetails action_details{};
 			for (A const action : actions) {

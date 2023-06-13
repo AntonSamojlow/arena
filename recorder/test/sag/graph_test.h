@@ -7,6 +7,24 @@
 #include "sag/GraphConcepts.h"
 #include "sag/GraphOperations.h"
 
+// clang-format off
+template <class G>
+concept TestGraphCollection = sag::Graph<G> &&
+	requires(G const const_fac) {
+		{ const_fac.get_rules() } -> std::same_as<typename G::rules>;
+		{ const_fac.get_container() } -> std::same_as<typename G::container>;
+		{ const_fac.get_printer() } -> std::same_as<typename G::printer>;
+	};
+// clang-format on
+
+/// generates a test graph collection by default initialization
+template <sag::Graph G>
+struct Defaulted : public G {
+	[[nodiscard]] auto get_rules() const -> typename G::rules { return {}; }
+	[[nodiscard]] auto get_container() const -> typename G::container { return {}; }
+	[[nodiscard]] auto get_printer() const -> typename G::printer { return {}; }
+};
+
 template <typename S, typename A>
 void test_roots_nonterminal(sag::GraphContainer<S, A> auto& graph, sag::RulesEngine<S, A> auto const& rules) {
 	for (S root : graph.roots()) {
@@ -20,18 +38,18 @@ void test_roots_nonterminal(sag::GraphContainer<S, A> auto& graph, sag::RulesEng
 template <typename T, typename R>
 	requires std::is_floating_point_v<R>
 auto get_random_element(std::vector<T> vec, R random) -> T {
-	auto const size = vec.size();
+	size_t const size = vec.size();
 	REQUIRE(size > 0);
-	auto const index = static_cast<size_t>(std::ceil(random * static_cast<R>(size)) - 1);
+	auto const index = static_cast<size_t>(std::ceil(random * static_cast<R>(size - 1)));
 	return vec.at(index);
 }
 
 template <typename S, typename A>
 auto descend_once_(
 	sag::GraphContainer<S, A> auto& graph, sag::RulesEngine<S, A> auto const& rules, S state, bool randomized) -> S {
-	std::mt19937 rng({});  // NOLINT (cert-*)
+	std::mt19937 rng{std::random_device()()};  // NOLINT (cert-*)
 	std::uniform_real_distribution<float> unit_distribution(0.0F, 1.0F);
-	float const random_value = randomized ? unit_distribution(rng) : 1.0F;
+	float const random_value = randomized ? unit_distribution(rng) : 0.0F;
 
 	auto actions = graph.actions_at(state);
 	auto action = get_random_element(actions, random_value);
@@ -57,9 +75,9 @@ void test_full_descend(sag::GraphContainer<S, A> auto& graph,
 	sag::RulesEngine<S, A> auto const& rules,
 	bool randomized,
 	std::vector<S>& visited_states) {
-	std::mt19937 rng({});  // NOLINT (cert-*)
+	std::mt19937 rng{std::random_device()()};  // NOLINT (cert-*)
 	std::uniform_real_distribution<double> unit_distribution(0.0, 1.0);
-	double const random_value = randomized ? unit_distribution(rng) : 1.0;
+	double const random_value = randomized ? unit_distribution(rng) : 0.0;
 
 	auto roots = graph.roots();
 	S state = get_random_element(roots, random_value);
@@ -74,8 +92,8 @@ void test_full_descend(sag::GraphContainer<S, A> auto& graph,
 template <typename S, typename A>
 void check_terminal_state(sag::RulesEngine<S, A> auto const& rules, S const& state) {
 	float const score = rules.score(state).value();
-	REQUIRE_THAT(score, Catch::Matchers::WithinAbs(1.0, 0.0001) || Catch::Matchers::WithinAbs(-1.0, 0.0001));
-	REQUIRE(rules.list_actions(state).empty());
+	CHECK_THAT(score, Catch::Matchers::WithinAbs(1.0, 0.0001) || Catch::Matchers::WithinAbs(-1.0, 0.0001));
+	CHECK(rules.list_actions(state).empty());
 }
 
 template <typename S, typename A>
@@ -92,5 +110,5 @@ void test_base_operations(sag::GraphContainer<S, A> auto& graph, sag::RulesEngin
 			check_terminal_state<S, A>(rules, state);
 		}
 	}
-	REQUIRE(terminal_states.size() == 2);
+	CHECK(terminal_states.size() == 2);
 }

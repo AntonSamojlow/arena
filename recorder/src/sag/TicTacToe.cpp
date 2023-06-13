@@ -21,7 +21,6 @@ auto Rules::list_actions(Graph::state state) -> std::vector<Graph::action> {
 	return actions;
 }
 
-// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 auto Rules::list_edges(Graph::state state, Graph::action action) -> std::vector<ActionEdge<Graph::state>> {
 	Board board = decode(state);
 	++board[static_cast<size_t>(action)];
@@ -29,7 +28,7 @@ auto Rules::list_edges(Graph::state state, Graph::action action) -> std::vector<
 }
 
 auto Rules::score(Graph::state state) -> tools::Score {
-	return opponent_has_won(decode(state)) ? tools::Score(-1.0F) : tools::Score(0.0F);
+	return tools::Score(list_actions(state).empty() ? -1.0F : 0.0F);
 }
 
 auto Rules::encode(const Board& board) -> Graph::state {
@@ -121,7 +120,7 @@ auto Container::to_string(Graph::state state) -> std::string {
 }
 
 auto Container::to_string(Graph::state state, Graph::action action) -> std::string {
-	return fmt::format("action-{} at: {})", action, to_string(state));
+	return fmt::format("action-{} at: {})", std::to_string(action), to_string(state));
 }
 
 auto Container::to_string_formatted(Graph::state state) -> std::string {
@@ -129,7 +128,7 @@ auto Container::to_string_formatted(Graph::state state) -> std::string {
 }
 
 auto Container::to_string_formatted(Graph::state state, Graph::action action) -> std::string {
-	return fmt::format("action-{} at::\n{})", action, to_string(state));
+	return fmt::format("action-{} at::\n{})", std::to_string(action), to_string(state));
 }
 
 }  // namespace sag::tic_tac_toe

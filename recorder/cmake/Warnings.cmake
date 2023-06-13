@@ -39,6 +39,7 @@ set(MSVC_DEFAULT_WARNINGS
 set(GCC_AND_CLANG_DEFAULT_WARNINGS
   # DISABLED:
   -Wno-c++98-compat-pedantic # disabled, as we do not aim to be c++98 compatible
+  -Wno-zero-as-null-pointer-constant # disabled due to https://github.com/llvm/llvm-project/issues/43670
 
   # ENABLED:
   -Wall # standard

@@ -19,7 +19,7 @@
 
 namespace {
 struct ReadCommandLoop {
-	std::istream& command_source;  // NOLINT(*-ref-data-members)
+	std::istream& command_source;  // NOLINT(*const-or-ref-data-members)
 
 	auto operator()(std::stop_token const& token, tools::MutexQueue<std::string>* queue) -> void {
 		std::shared_ptr<spdlog::logger> const logger =
