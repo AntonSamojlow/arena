@@ -28,14 +28,15 @@ RUN update
 RUN ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';" ,"rm", "/usr/share/keyrings/kitware-archive-keyring.gpg"]
 RUN install kitware-archive-keyring
 RUN install cmake
-RUN ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';" ,"cmake", "--version"]
 
+# reset shell
+SHELL ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
+
+RUN cmake --version
 # --- Install *specified* version of gcc from https://packages.ubuntu.com ---
 ARG GCC_VERSION
 RUN if(-not($env:GCC_VERSION -is [int])){Write-Host "build argument GCC_VERSION=$env:GCC_VERSION must be anumber"; exit 1;}
-RUN install "g++-$env:GCC_VERSION" "gcc-$env:GCC_VERSION"
-# reset shell
-SHELL ["/usr/bin/pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
+RUN apt-get --yes --fix-missing install "g++-$env:GCC_VERSION" "gcc-$env:GCC_VERSION"
 # add new symlinks for the installed versions (vcpkg default triples use g++)
 RUN update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-$env:GCC_VERSION" 20
 RUN update-alternatives --install /usr/bin/g++ g++ "/usr/bin/g++-$env:GCC_VERSION" 20
