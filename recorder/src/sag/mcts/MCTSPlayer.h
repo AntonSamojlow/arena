@@ -53,18 +53,21 @@ class MCTSPlayer : public match::ProbabilisticPlayer<G> {
 			return actions[min_index];
 		}
 
-		// We now transform the raw action estimates to a probability distribution, describing the win chance of the player
+		// Transform raw action estimates into a probability distribution,
+		// describing the win chance of the active player:
 		std::vector<float> estimates_distribution{};
 		estimates_distribution.reserve(actions.size());
-		// First invert and shift values into range [0, 1] each and apply estimates_exponent
+
+		// First invert, shift values into range [0, 1] each and apply estimates_exponent
 		std::ranges::transform(estimates_raw, std::back_inserter(estimates_distribution), [this](float value) {
 			return std::pow((1 - value) / 2, estimates_exponent_->value());
 		});
-		// Finally, normalize
-		float total_weight = std::accumulate(estimates_distribution.begin(), estimates_distribution.end(), 0.0F);
-		std::ranges::transform(estimates_distribution, estimates_distribution.begin(), [&total_weight](float value) {
-			return value / total_weight;
-		});
+		// Then, normalize
+		float const total_weight = std::accumulate(estimates_distribution.begin(), estimates_distribution.end(), 0.0F);
+		float const uniform_value = 1.0F / static_cast<float>(estimates_distribution.size());
+		std::ranges::transform(estimates_distribution,
+			estimates_distribution.begin(),
+			[&total_weight, &uniform_value](float value) { return total_weight > 0 ? value / total_weight : uniform_value; });
 
 		// Pick action at random acc. to distribution
 		float threshold = match::ProbabilisticPlayer<G>::roll().value();
