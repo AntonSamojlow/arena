@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vcruntime.h>
+
+#include <bitset>
+
 #include "sag/match/Match.h"
 #include "tools/Conversions.h"
 #include "tools/SQLiteConnection.h"
@@ -22,6 +26,14 @@ struct TextConverter {
 	auto static sql_type() -> std::string { return "text"; }
 };
 static_assert(SqlTypeConverter<TextConverter>);
+
+template <size_t N>
+struct BitsetConverter {
+	using original = std::bitset<N>;
+	auto static to_insert_text(original const& value) -> std::string { return "'" + value.to_string() + "'"; }
+	auto static sql_type() -> std::string { return "blob"; }
+};
+static_assert(SqlTypeConverter<BitsetConverter<2>>);
 
 template <class T>
 	requires std::is_integral_v<T>

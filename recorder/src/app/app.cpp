@@ -10,11 +10,12 @@
 #include <vector>
 
 #include "app/config.h"
-#include "sag/TicTacToe.h"
 #include "sag/match/MatchRecorder.h"
 #include "sag/mcts/MCTS.h"
 #include "sag/mcts/MCTSPlayer.h"
-#include "sag/storage/MemoryMatchStorage.h"
+#include "sag/santorini/Graph.h"
+#include "sag/santorini/Santorini.h"
+#include "sag/storage/SQLiteMatchStorage.h"
 #include "tools/BoundedValue.h"
 
 namespace {
@@ -64,13 +65,16 @@ auto App::run(config::Recorder const& config) -> int {
 			{"info", Status},
 		};
 
-		logger->set_level(spdlog::level::info);
+		logger->set_level(spdlog::level::debug);
 		logger->info("app start");
 
 		tools::SingleQueuedThreadHandle<std::string> cli_thread(ReadCommandLoop{input_source_});
 
-		using TGraph = sag::tic_tac_toe::Graph;
-		using TStorage = sag::storage::MemoryMatchStorage<typename TGraph::state, typename TGraph::action>;
+		constexpr sag::santorini::Dimensions dim = {.rows = 3, .cols = 3, .player_unit_count = 1};
+
+		using TGraph = sag::santorini::Graph<dim>;
+		using TStorage =
+			sag::storage::SQLiteMatchStorage<sag::santorini::StateConverter<dim>, sag::santorini::ActionConverter>;
 		using TRec = sag::match::MatchRecorder<TGraph, TStorage>;
 
 		std::vector<sag::match::RecorderThreadHandle<TRec>> recorder_threads;
@@ -88,7 +92,9 @@ auto App::run(config::Recorder const& config) -> int {
 						player_config.mcts.sample_uniformly, tools::NonNegative{player_config.mcts.explore_constant}}));
 			}
 
-			TRec recorder{std::move(players), {}, {}, {}};
+			auto sql_connection = std::make_unique<tools::SQLiteConnection>(config.db_file_path, false);
+			TStorage storage{std::move(sql_connection)};
+			TRec recorder{std::move(players), {}, {}, std::move(storage)};
 			recorder_threads.emplace_back(std::move(recorder));
 		}
 

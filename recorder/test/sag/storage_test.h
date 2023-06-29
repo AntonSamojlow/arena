@@ -1,4 +1,5 @@
 #pragma once
+#include <bitset>
 
 #include "sag/match/Match.h"
 
@@ -16,6 +17,11 @@ auto create_plays() -> std::vector<sag::match::Play<S, A>> {
 			return {{"1", 0}, {"2", 3}, {"3", 1}};
 		if constexpr (std::is_same_v<std::string, A>)
 			return {{"1", "0"}, {"2", "3"}, {"3", "1"}};
+	}
+
+	if constexpr (std::is_same_v<std::bitset<64>, S>) {
+		if constexpr (std::is_arithmetic_v<A>)
+			return {{std::bitset<64>(1), 0}, {std::bitset<64>(2), 3}, {std::bitset<64>(3), 1}};
 	}
 }
 

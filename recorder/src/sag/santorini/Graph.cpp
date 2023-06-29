@@ -1,6 +1,7 @@
 #include "Graph.h"
 
 #include "sag/GraphConcepts.h"
+#include "sag/santorini/Graph.h"
 
 namespace sag::santorini {
 
@@ -15,6 +16,9 @@ static_assert(sag::RulesEngine<Rules<small>, State<small>, Action>);
 static_assert(sag::VertexPrinter<Rules<small>, State<small>, Action>);
 
 static_assert(sag::Graph<Graph<small>>);
+
+static_assert(sag::storage::SqlTypeConverter<StateConverter<small>>);
+static_assert(sag::storage::SqlTypeConverter<ActionConverter>);
 
 }  // namespace
 
