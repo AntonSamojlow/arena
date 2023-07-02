@@ -167,8 +167,8 @@ class Rules {
 	}
 
  private:
-	std::map<Position, std::vector<Position>> const neighborhoods_ = create_neighborhoods();
-	std::vector<Position> const sorted_positions_ = create_sorted_positions();
+	std::map<Position, std::vector<Position>> neighborhoods_ = create_neighborhoods();
+	std::vector<Position> sorted_positions_ = create_sorted_positions();
 
 	// get the board for the given state, possibly from cache
 	auto get_board(State<dim> state) const -> Board<dim> {
