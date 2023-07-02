@@ -61,7 +61,6 @@ class Rules {
 	Rules() = default;
 
 	/// concept RulesEngine:
-
 	[[nodiscard]] auto list_roots() const -> std::vector<State<dim>> {
 		std::vector<State<dim>> result;
 		Board<dim> empty_board;

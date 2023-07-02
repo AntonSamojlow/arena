@@ -66,7 +66,7 @@ static_assert(SqlTypeConverter<TimeConverter<std::chrono::days>>);
 static_assert(SqlTypeConverter<TimeConverter<std::chrono::steady_clock>>);
 
 template <SqlTypeConverter SqlState, SqlTypeConverter SqlAction>
-// requires sag::Vertices<typename SqlState::original, typename SqlAction::original>
+requires sag::Vertices<typename SqlState::original, typename SqlAction::original>
 class SQLiteMatchStorage {
 	using S = typename SqlState::original;
 	using A = typename SqlAction::original;
