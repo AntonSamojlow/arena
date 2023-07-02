@@ -1,5 +1,7 @@
 #pragma once
 
+#include <bitset>
+
 #include "sag/match/Match.h"
 #include "tools/Conversions.h"
 #include "tools/SQLiteConnection.h"
@@ -22,6 +24,14 @@ struct TextConverter {
 	auto static sql_type() -> std::string { return "text"; }
 };
 static_assert(SqlTypeConverter<TextConverter>);
+
+template <size_t N>
+struct BitsetConverter {
+	using original = std::bitset<N>;
+	auto static to_insert_text(original const& value) -> std::string { return "'" + value.to_string() + "'"; }
+	auto static sql_type() -> std::string { return "blob"; }
+};
+static_assert(SqlTypeConverter<BitsetConverter<2>>);
 
 template <class T>
 	requires std::is_integral_v<T>
@@ -56,7 +66,7 @@ static_assert(SqlTypeConverter<TimeConverter<std::chrono::days>>);
 static_assert(SqlTypeConverter<TimeConverter<std::chrono::steady_clock>>);
 
 template <SqlTypeConverter SqlState, SqlTypeConverter SqlAction>
-// requires sag::Vertices<typename SqlState::original, typename SqlAction::original>
+	requires sag::Vertices<typename SqlState::original, typename SqlAction::original>
 class SQLiteMatchStorage {
 	using S = typename SqlState::original;
 	using A = typename SqlAction::original;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fmt/core.h>
+
 #include <algorithm>
 #include <bitset>
 #include <cassert>
@@ -8,10 +10,12 @@
 #include <numeric>
 #include <ranges>
 #include <stdexcept>
+#include <string>
 
 #include "Santorini.h"
 #include "sag/DefaultGraphContainer_v1.h"
 #include "sag/santorini/Santorini.h"
+#include "sag/storage/SQLiteMatchStorage.h"
 #include "tools/Hashing.h"
 
 namespace sag::santorini {
@@ -57,7 +61,6 @@ class Rules {
 	Rules() = default;
 
 	/// concept RulesEngine:
-
 	[[nodiscard]] auto list_roots() const -> std::vector<State<dim>> {
 		std::vector<State<dim>> result;
 		Board<dim> empty_board;
@@ -164,8 +167,8 @@ class Rules {
 	}
 
  private:
-	std::map<Position, std::vector<Position>> const neighborhoods_ = create_neighborhoods();
-	std::vector<Position> const sorted_positions_ = create_sorted_positions();
+	std::map<Position, std::vector<Position>> neighborhoods_ = create_neighborhoods();
+	std::vector<Position> sorted_positions_ = create_sorted_positions();
 
 	// get the board for the given state, possibly from cache
 	auto get_board(State<dim> state) const -> Board<dim> {
@@ -265,6 +268,45 @@ struct Graph {
 	using container = Container<dim>;
 	using rules = Rules<dim>;
 	using printer = Rules<dim>;  // resuse rules as printer, thereby sharing caching of `get_board`
+};
+
+template <Dimensions dim>
+struct StateConverter {
+	static_assert(dim.cols < 10, "position-to-string conversion (has no padding) requires values in [0,9]");  // NOLINT
+	static_assert(dim.rows < 10, "position-to-string conversion (has no padding) requires values in [0,9]");  // NOLINT
+
+	using original = State<dim>;
+	auto static to_insert_text(original state) -> std::string {
+		std::string units_player;
+		for (Position position : state.units_player) {
+			units_player.append(std::to_string(position.row));
+			units_player.append(std::to_string(position.col));
+		}
+
+		std::string units_opponent;
+		for (Position position : state.units_opponent) {
+			units_opponent.append(std::to_string(position.row));
+			units_opponent.append(std::to_string(position.col));
+		}
+
+		return fmt::format("'{}|{}|{}'", state.board_base5.to_string(), units_player, units_opponent);
+	}
+
+	auto static sql_type() -> std::string { return "blob"; }
+};
+
+struct ActionConverter {
+	using original = Action;
+	auto static to_insert_text(original action) -> std::string {
+		return fmt::format("'{}|{}{}|{}{}'",
+			action.unit_nr,
+			action.move_location.row,
+			action.move_location.col,
+			action.build_location.row,
+			action.build_location.col);
+	}
+
+	auto static sql_type() -> std::string { return "blob"; }
 };
 
 }  // namespace sag::santorini
