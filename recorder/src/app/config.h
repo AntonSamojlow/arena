@@ -14,27 +14,9 @@
 #include "tools/Failure.h"
 namespace nl = nlohmann;
 
-// NOLINTBEGIN: nlohmann macros violate plenty checks
-
-namespace spdlog::level {
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wexit-time-destructors"
-NLOHMANN_JSON_SERIALIZE_ENUM(level_enum,
-	{
-		{off, "off"},
-		{critical, "critical"},
-		{trace, "trace"},
-		{info, "info"},
-		{err, "err"},
-		{warn, "warn"},
-		{debug, "debug"},
-	})
-}  // namespace spdlog::level
-#pragma clang diagnostic pop
-
 namespace app::config {
 
+// NOLINTBEGIN: nlohmann macros violate plenty checks
 struct MCTS {
 	float explore_constant = 0.0F;
 	bool sample_uniformly = false;

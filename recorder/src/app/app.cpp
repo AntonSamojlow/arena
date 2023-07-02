@@ -66,8 +66,6 @@ auto App::run(config::Recorder const& config) -> int {
 			{"s", Status},
 			{"info", Status},
 		};
-
-		logger->set_level(spdlog::level::debug);
 		logger->info("app start");
 
 		tools::SingleQueuedThreadHandle<std::string> cli_thread(ReadCommandLoop{input_source_});

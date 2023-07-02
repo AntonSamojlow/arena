@@ -21,6 +21,9 @@ set_target_properties(${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 get_property(include_dirs TARGET ${TARGET_NAME} PROPERTY INCLUDE_DIRECTORIES)
 message(STATUS "[${TARGET_NAME}] include directories:'${include_dirs}'")
 
+# due to macros from nlohmann:
+set_source_files_properties(config.h PROPERTIES COMPILE_FLAGS "-Wno-exit-time-destructors")
+
 # run desired cmake helper scripts
 set_default_warnings(${TARGET_NAME})
 enable_configured_sanitizers(${TARGET_NAME})
