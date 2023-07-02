@@ -10,7 +10,6 @@
 #include <thread>
 #include <vector>
 
-#include "app/config.h"
 #include "sag/match/MatchRecorder.h"
 #include "sag/mcts/MCTS.h"
 #include "sag/mcts/MCTSPlayer.h"

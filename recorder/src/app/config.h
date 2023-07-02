@@ -14,6 +14,27 @@
 #include "tools/Failure.h"
 namespace nl = nlohmann;
 
+namespace spdlog::level {
+
+// NOLINTBEGIN: nlohmann macros violate plenty checks
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpragmas"  // silence gcc not knowing clang-specific pragmas
+#pragma GCC diagnostic ignored "-Wexit-time-destructors"
+NLOHMANN_JSON_SERIALIZE_ENUM(level_enum,
+	{
+		{off, "off"},
+		{critical, "critical"},
+		{trace, "trace"},
+		{info, "info"},
+		{err, "err"},
+		{warn, "warn"},
+		{debug, "debug"},
+	})
+#pragma GCC diagnostic pop
+// NOLINTEND
+
+}  // namespace spdlog::level
+
 namespace app::config {
 
 // NOLINTBEGIN: nlohmann macros violate plenty checks
