@@ -2,6 +2,9 @@
 #include <bitset>
 
 #include "sag/match/Match.h"
+#include "sag/santorini/Graph.h"
+
+constexpr sag::santorini::Dimensions SantoriniTestDim;
 
 template <class S, class A>
 auto create_plays() -> std::vector<sag::match::Play<S, A>> {
@@ -22,6 +25,29 @@ auto create_plays() -> std::vector<sag::match::Play<S, A>> {
 	if constexpr (std::is_same_v<std::bitset<64>, S>) {
 		if constexpr (std::is_arithmetic_v<A>)
 			return {{std::bitset<64>(1), 0}, {std::bitset<64>(2), 3}, {std::bitset<64>(3), 1}};
+	}
+
+	using SanState = sag::santorini::State<SantoriniTestDim>;
+	using SanAction = sag::santorini::Action;
+	if constexpr (std::is_same_v<SanState, S>) {
+		return {{SanState{},
+							SanAction{
+								.unit_nr = 1,
+								.move_location = {.row = 1, .col = 1},
+								.build_location = {.row = 2, .col = 2},
+							}},
+			{SanState{},
+				SanAction{
+					.unit_nr = 2,
+					.move_location = {.row = 1, .col = 2},
+					.build_location = {.row = 2, .col = 2},
+				}},
+			{SanState{},
+				SanAction{
+					.unit_nr = 1,
+					.move_location = {.row = 1, .col = 0},
+					.build_location = {.row = 2, .col = 1},
+				}}};
 	}
 }
 

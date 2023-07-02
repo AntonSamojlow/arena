@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "../helpers.h"
+#include "sag/santorini/Graph.h"
 #include "sag/storage/MemoryMatchStorage.h"
 #include "sag/storage/SQLiteMatchStorage.h"
 
@@ -28,6 +29,7 @@ TEMPLATE_PRODUCT_TEST_CASE("SQLiteMatchStorage test",
 	((IntegerConverter<short>, IntegerConverter<int>),
 		(IntegerConverter<int>, IntegerConverter<int>),
 		(IntegerConverter<int>, FloatingPointConverter<double>),
+		(sag::santorini::StateConverter<SantoriniTestDim>, sag::santorini::ActionConverter),
 		(IntegerConverter<int>, TextConverter))) {
 	auto match = create_match<typename TestType::first_type::original, typename TestType::second_type::original>();
 	test::TempFilePath const db_file = test::unique_file_path(false);
