@@ -1,6 +1,8 @@
 #pragma once
 
 #include <fmt/format.h>
+#include <spdlog/common.h>
+#include <spdlog/spdlog.h>
 
 #include <exception>
 #include <fstream>
@@ -10,12 +12,28 @@
 #include <vector>
 
 #include "tools/Failure.h"
-
 namespace nl = nlohmann;
 
-namespace app::config {
+// NOLINTBEGIN: nlohmann macros violate plenty checks
 
-// NOLINTBEGIN (*-float-equal, *-use-nullptr)
+namespace spdlog::level {
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+NLOHMANN_JSON_SERIALIZE_ENUM(level_enum,
+	{
+		{off, "off"},
+		{critical, "critical"},
+		{trace, "trace"},
+		{info, "info"},
+		{err, "err"},
+		{warn, "warn"},
+		{debug, "debug"},
+	})
+}  // namespace spdlog::level
+#pragma clang diagnostic pop
+
+namespace app::config {
 
 struct MCTS {
 	float explore_constant = 0.0F;
@@ -23,7 +41,6 @@ struct MCTS {
 	size_t simulations = 0;
 	friend auto operator<=>(const MCTS&, const MCTS&) = default;
 };
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MCTS, explore_constant, sample_uniformly, simulations)
 
 struct Player {
@@ -31,18 +48,17 @@ struct Player {
 	MCTS mcts;
 	friend auto operator<=>(const Player&, const Player&) = default;
 };
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Player, name, mcts)
 
 struct Recorder {
 	std::string db_file_path;
 	size_t parallel_games = 1;
 	std::vector<Player> players;
+	spdlog::level::level_enum log_level = spdlog::level::info;
 
 	friend auto operator<=>(const Recorder&, const Recorder&) = default;
 };
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Recorder, db_file_path, parallel_games, players)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Recorder, db_file_path, parallel_games, players, log_level)
 // NOLINTEND
 
 template <class Config>

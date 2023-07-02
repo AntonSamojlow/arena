@@ -19,11 +19,7 @@ class Play {
 	[[nodiscard]] auto state() const -> S { return data_.first; }
 	[[nodiscard]] auto action() const -> A { return data_.second; }
 
-#pragma GCC diagnostic push
-// reason: https://github.com/llvm/llvm-project/issues/43670
-#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 	friend auto operator<=>(const Play&, const Play&) = default;
-#pragma GCC diagnostic pop
 
  private:
 	std::pair<S, A> data_;

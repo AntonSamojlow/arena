@@ -14,9 +14,9 @@ enum class BoardState : unsigned char { Empty = 0, First = 1, Second = 2, Goal =
 
 // NOLINTBEGIN(*magic-numbers)
 struct Dimensions {
-	size_t rows;
-	size_t cols;
-	size_t player_unit_count;
+	size_t rows = 5;
+	size_t cols = 5;
+	size_t player_unit_count = 2;
 
 	[[nodiscard]] constexpr auto position_count() const -> size_t { return rows * cols; }
 

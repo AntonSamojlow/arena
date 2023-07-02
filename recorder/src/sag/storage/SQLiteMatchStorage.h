@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vcruntime.h>
-
 #include <bitset>
 
 #include "sag/match/Match.h"

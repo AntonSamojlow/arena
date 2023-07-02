@@ -14,6 +14,7 @@ class App {
 	explicit App(std::istream& input_source) : input_source_(input_source) {}
 
 	auto run(config::Recorder const& config) -> int;
+	auto static create_example_config() -> config::Recorder;
 };
 
 }  // namespace app
