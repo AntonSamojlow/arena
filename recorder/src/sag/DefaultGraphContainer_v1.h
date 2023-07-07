@@ -64,11 +64,18 @@ class DefaultGraphContainer_v1 {
 		S state, A action, std::vector<ActionEdge<S>> new_edges, std::vector<std::pair<S, std::vector<A>>> next_states)
 		-> bool;
 
+	[[nodiscard]] auto action_count() const -> size_t { return actions_; }
+	[[nodiscard]] auto state_count() const -> size_t { return data_.size(); }
+	[[nodiscard]] auto edge_count() const -> size_t { return edges_; }
+
  private:
 	std::vector<S> roots_;
 	// listing the actions of a state requires an ordered container
 	using ActionDetails = std::map<A, std::vector<ActionEdge<S>>>;
 	std::unordered_map<S, ActionDetails> data_;
+
+	size_t actions_{0};
+	size_t edges_{0};
 
 	template <RulesEngine<S, A> R>
 	static auto get_root_data(R const& rules) -> RootData {
@@ -87,6 +94,7 @@ auto DefaultGraphContainer_v1<S, A>::add(S state, std::vector<A> actions) -> boo
 	if (data_.try_emplace(state).second) {
 		for (A child_action : actions)
 			data_.at(state).emplace(child_action, std::vector<ActionEdge<S>>());
+		actions_ += actions.size();
 		return true;
 	}
 	// else return false: state already known/initialised (possibly visited via a different parent, etc.)
@@ -102,6 +110,8 @@ auto DefaultGraphContainer_v1<S, A>::expand_at(
 		return false;
 
 	data_.at(state).at(action) = new_edges;
+	edges_ += new_edges.size();
+
 	for (const auto& [child, actions] : next_states) {
 		add(child, actions);
 	}

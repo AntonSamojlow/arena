@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Match.h"
+#include "sag/GraphConcepts.h"
 #include "sag/match/Player.h"
 #include "tools/MutexQueue.h"
 #include "tools/ThreadHandle.h"
@@ -94,8 +95,8 @@ class MatchRecorder {
 
 		for (size_t turn = 0; !graph_.is_terminal_at(state); ++turn) {
 			Player<G>* player = players_[turn % players_.size()].get();
+			logger_->debug("turn {}, player {}...", turn, player->display_name());
 			Action action = player->choose_play(state, graph_, rules_);
-			logger_->debug("turn {}, player {}", turn, player->display_name());
 
 			match.plays.emplace_back(state, action);
 			if (!graph_.is_expanded_at(state, action))
@@ -109,8 +110,16 @@ class MatchRecorder {
 		logger_->debug("match ends");
 
 		storage_.add(match, "");
-
 		logger_->debug("match stored");
+
+		if constexpr (sag::CountingGraphContainer<typename G::container, typename G::state, typename G::action>) {
+			logger_->debug("clearing graph with {:L} states, {:L} actions and {:L} edges ...",
+				graph_.state_count(),
+				graph_.action_count(),
+				graph_.edge_count());
+		}
+		graph_ = {};  // reset graph
+		logger_->debug("graph cleared");
 	}
 };
 

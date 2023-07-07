@@ -70,7 +70,7 @@ auto App::run(config::Recorder const& config) -> int {
 		tools::SingleQueuedThreadHandle<std::string> cli_thread(ReadCommandLoop{input_source_});
 
 		// prepare and inject the game-sepcific types
-		constexpr sag::santorini::Dimensions dim = {.rows = 3, .cols = 3, .player_unit_count = 1};
+		constexpr sag::santorini::Dimensions dim = {.rows = 5, .cols = 5, .player_unit_count = 2};
 		using TGraph = sag::santorini::Graph<dim>;
 		using TStorage =
 			sag::storage::SQLiteMatchStorage<sag::santorini::StateConverter<dim>, sag::santorini::ActionConverter>;
