@@ -18,7 +18,7 @@ class DefaultGraphContainer_v1 {
 
 	template <RulesEngine<S, A> R>
 	explicit DefaultGraphContainer_v1(R const& rules_engine) {
-		set_roots(rules_engine);
+		reset_roots_to(rules_engine);
 	}
 
 	friend auto operator==(const DefaultGraphContainer_v1&, const DefaultGraphContainer_v1&) -> bool = default;
@@ -46,12 +46,21 @@ class DefaultGraphContainer_v1 {
 
 	auto add(S state, std::vector<A> actions) -> bool;
 
-	auto clear_non_roots() -> void {
-		std::unordered_map<S, ActionDetails> only_roots;
-		for (S const root : roots_) {
-			initialize_root_in(only_roots, root, data_[root]);
+	auto clear_and_reroot(std::vector<S> new_roots) -> void {
+		std::vector<std::pair<S, std::vector<A>>> root_data;
+		for (S root : new_roots) {
+			std::vector<A> actions;
+			for (auto const [action, _] : data_[root]) {
+				actions.emplace_back(action);
+			}
+			root_data.emplace_back(root, actions);
 		}
-		data_.swap(only_roots);
+
+		data_.clear();
+		actions_ = 0;
+		edges_ = 0;
+
+		reset_roots_to(root_data);
 	}
 
 	auto expand_at(
@@ -71,23 +80,26 @@ class DefaultGraphContainer_v1 {
 	size_t actions_{0};
 	size_t edges_{0};
 
-	auto initialize_root_in(std::unordered_map<S, ActionDetails>& target, S root, std::vector<A> const& actions) -> void {
-		ActionDetails action_details{};
-		for (A const action : actions) {
-			// initialize roots as unexpanded
-			action_details[action] = {};
+	template <RulesEngine<S, A> R>
+	auto reset_roots_to(R const& rules) -> void {
+		std::vector<std::pair<S, std::vector<A>>> root_data;
+		for (S const root : rules.list_roots()) {
+			root_data.emplace_back(root, rules.list_actions(root));
 		}
-		target[root] = action_details;
+		reset_roots_to(root_data);
 	}
 
-	template <RulesEngine<S, A> R>
-	auto set_roots(R const& rules) -> void {
+	auto reset_roots_to(std::vector<std::pair<S, std::vector<A>>> const& root_data) -> void {
 		roots_.clear();
-		auto root_list = rules.list_roots();
-		roots_.reserve(root_list.size());
-		for (S const root : root_list) {
+		roots_.reserve(root_data.size());
+		for (auto [root, actions] : root_data) {
 			roots_.push_back(root);
-			initialize_root_in(data_, root, rules.list_actions(root));
+			ActionDetails action_details{};
+			for (A const action : actions) {
+				// initialize roots as unexpanded
+				action_details[action] = {};
+			}
+			data_[root] = action_details;
 		}
 	}
 };

@@ -108,6 +108,17 @@ class MatchRecorder {
 				sag::expand(graph_, rules_, state, action);
 
 			state = sag::follow(graph_.edges_at(state, action), tools::UnitValue{unit_distribution_(rng_)});
+
+			if constexpr (sag::CountingGraphContainer<typename G::container, typename G::state, typename G::action>) {
+				logger_->debug("clearing and rerooting graph with {:L} states, {:L} actions and {:L} edges ...",
+					graph_.state_count(),
+					graph_.action_count(),
+					graph_.edge_count());
+			} else {
+				logger_->debug("clearing and rerooting graph ...");
+			}
+			graph_.clear_and_reroot({state});
+			logger_->debug("graph cleared");
 		}
 		match.end = std::chrono::steady_clock::now();
 		match.end_state = state;
@@ -116,15 +127,6 @@ class MatchRecorder {
 
 		storage_.add(match, "");
 		logger_->debug("match stored");
-
-		if constexpr (sag::CountingGraphContainer<typename G::container, typename G::state, typename G::action>) {
-			logger_->debug("clearing graph with {:L} states, {:L} actions and {:L} edges ...",
-				graph_.state_count(),
-				graph_.action_count(),
-				graph_.edge_count());
-		}
-		graph_ = {};  // reset graph
-		logger_->debug("graph cleared");
 	}
 };
 

@@ -47,6 +47,9 @@ class MCTSPlayer : public match::ProbabilisticPlayer<G> {
 		auto estimates_raw = action_estimates_at<G>(state, graph, stats_);
 		assert(estimates_raw.size() == actions.size());
 
+		// free memory of mcts stats
+		stats_.clear();
+
 		if (!estimates_exponent_.has_value()) {
 			auto min_index = static_cast<size_t>(
 				std::distance(estimates_raw.begin(), std::min_element(estimates_raw.begin(), estimates_raw.end())));

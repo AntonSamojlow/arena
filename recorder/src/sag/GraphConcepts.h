@@ -89,6 +89,7 @@ concept GraphContainer = Vertices<S, A> && std::regular<G> && requires(G graph,
 	G const const_graph,
 	S state,
 	A action,
+	std::vector<S> new_roots,
 	std::vector<A> actions,
 	std::vector<ActionEdge<S>> new_edges,
 	std::vector<std::pair<S, std::vector<A>>> next_states) {
@@ -105,7 +106,7 @@ concept GraphContainer = Vertices<S, A> && std::regular<G> && requires(G graph,
 	// non-const operations
 	{ graph.expand_at(state, action, new_edges, next_states) } -> std::same_as<bool>;
 	{ graph.add(state, actions) } -> std::same_as<bool>;
-	{ graph.clear_non_roots() } -> std::same_as<void>;
+	{ graph.clear_and_reroot(new_roots) } -> std::same_as<void>;
 };
 
 template <typename R, typename S, typename A>
