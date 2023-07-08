@@ -126,7 +126,7 @@ class MatchRecorder {
 		logger_->debug("match ends");
 
 		storage_.add(match, "");
-		logger_->debug("match stored");
+		logger_->info("match stored");
 	}
 };
 

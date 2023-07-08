@@ -173,7 +173,8 @@ auto random_rollout(typename G::state state,
 	while (!graph.is_terminal_at(state)) {
 		// pick a random action, expand and follow
 		auto actions = graph.actions_at(state);
-		size_t index = static_cast<size_t>(std::floor(static_cast<float>(actions.size()) * random_source().value()));
+		size_t index = std::min(actions.size() - 1,
+			static_cast<size_t>(std::floor(static_cast<float>(actions.size()) * random_source().value())));
 		typename G::action action = actions[index];
 		if (!graph.is_expanded_at(state, action)) {
 			sag::expand<G>(graph, rules, state, action);
