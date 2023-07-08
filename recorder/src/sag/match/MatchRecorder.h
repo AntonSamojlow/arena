@@ -1,6 +1,7 @@
 #pragma once
 #include <spdlog/spdlog.h>
 
+#include <exception>
 #include <queue>
 #include <random>
 #include <string>
@@ -29,30 +30,34 @@ class MatchRecorder {
 
 	// recorder is callable: it may run in a thread, with a queue for control signals
 	auto operator()(std::stop_token const& token, tools::MutexQueue<Signal>* queue) -> void {
-		logger_->info("recorder thread start");
-		while (!token.stop_requested()) {
-			if (is_running_)
-				record_once();
+		try {
+			logger_->info("recorder thread start");
+			while (!token.stop_requested()) {
+				if (is_running_)
+					record_once();
 
-			while (auto signal = queue->try_dequeue()) {
-				switch (signal.value()) {
-					case Signal::Record:
-						logger_->info("record signal");
-						is_running_ = true;
-						break;
-					case Signal::Halt:
-						logger_->info("halt signal");
-						is_running_ = false;
-						break;
-					case Signal::Quit: logger_->info("quit signal"); return;
-					case Signal::Status:
-						logger_->info("status signal");
-						generate_info();
-						break;
+				while (auto signal = queue->try_dequeue()) {
+					switch (signal.value()) {
+						case Signal::Record:
+							logger_->info("record signal");
+							is_running_ = true;
+							break;
+						case Signal::Halt:
+							logger_->info("halt signal");
+							is_running_ = false;
+							break;
+						case Signal::Quit: logger_->info("quit signal"); return;
+						case Signal::Status:
+							logger_->info("status signal");
+							generate_info();
+							break;
+					}
 				}
 			}
+			logger_->info("recorder thread end");
+		} catch (std::exception const& exc) {
+			logger_->error("match recorder exception: {}", exc.what());
 		}
-		logger_->info("recorder thread end");
 	}
 
  private:

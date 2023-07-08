@@ -16,24 +16,10 @@ class DefaultGraphContainer_v1 {
  public:
 	using RootData = std::vector<std::pair<S, std::vector<A>>>;
 
-	/// Constructs a defult graph container from the provided root_data
-	explicit DefaultGraphContainer_v1(RootData const& root_data) {
-		roots_.reserve(root_data.size());
-		for (auto const& [root, actions] : root_data) {
-			if (std::ranges::find(roots_, root) != roots_.end())
-				throw std::invalid_argument("inconsistent root data - duplicate root entry");
-			roots_.push_back(root);
-			ActionDetails action_details{};
-			for (A const action : actions) {
-				// initialize all root actions as unexpanded
-				action_details[action] = {};
-			}
-			data_[root] = action_details;
-		}
-	}
-
 	template <RulesEngine<S, A> R>
-	explicit DefaultGraphContainer_v1(R const& rules_engine) : DefaultGraphContainer_v1(get_root_data(rules_engine)) {}
+	explicit DefaultGraphContainer_v1(R const& rules_engine) {
+		set_roots(rules_engine);
+	}
 
 	friend auto operator==(const DefaultGraphContainer_v1&, const DefaultGraphContainer_v1&) -> bool = default;
 
@@ -60,6 +46,14 @@ class DefaultGraphContainer_v1 {
 
 	auto add(S state, std::vector<A> actions) -> bool;
 
+	auto clear_non_roots() -> void {
+		std::unordered_map<S, ActionDetails> only_roots;
+		for (S const root : roots_) {
+			initialize_root_in(only_roots, root, data_[root]);
+		}
+		data_.swap(only_roots);
+	}
+
 	auto expand_at(
 		S state, A action, std::vector<ActionEdge<S>> new_edges, std::vector<std::pair<S, std::vector<A>>> next_states)
 		-> bool;
@@ -77,15 +71,24 @@ class DefaultGraphContainer_v1 {
 	size_t actions_{0};
 	size_t edges_{0};
 
-	template <RulesEngine<S, A> R>
-	static auto get_root_data(R const& rules) -> RootData {
-		RootData rootData{};
-		auto roots = rules.list_roots();
-		rootData.reserve(roots.size());
-		for (S const root : roots) {
-			rootData.push_back({root, rules.list_actions(root)});
+	auto initialize_root_in(std::unordered_map<S, ActionDetails>& target, S root, std::vector<A> const& actions) -> void {
+		ActionDetails action_details{};
+		for (A const action : actions) {
+			// initialize roots as unexpanded
+			action_details[action] = {};
 		}
-		return rootData;
+		target[root] = action_details;
+	}
+
+	template <RulesEngine<S, A> R>
+	auto set_roots(R const& rules) -> void {
+		roots_.clear();
+		auto root_list = rules.list_roots();
+		roots_.reserve(root_list.size());
+		for (S const root : root_list) {
+			roots_.push_back(root);
+			initialize_root_in(data_, root, rules.list_actions(root));
+		}
 	}
 };
 
