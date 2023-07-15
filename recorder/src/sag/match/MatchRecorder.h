@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 
 #include <exception>
+#include <memory>
 #include <queue>
 #include <random>
 #include <string>
@@ -22,11 +23,13 @@ class MatchRecorder {
 	MatchRecorder(std::vector<std::unique_ptr<Player<G>>>&& players,
 		typename G::container&& graph,
 		typename G::rules&& rules,
-		S&& storage)
+		S&& storage,
+		std::shared_ptr<spdlog::logger> logger)
 			: players_(std::move(players)),
 				graph_(std::move(graph)),
 				rules_(std::move(rules)),
-				storage_(std::move(storage)) {}
+				storage_(std::move(storage)),
+				logger_(std::move(logger)) {}
 
 	// recorder is callable: it may run in a thread, with a queue for control signals
 	auto operator()(std::stop_token const& token, tools::MutexQueue<Signal>* queue) -> void {
@@ -67,7 +70,7 @@ class MatchRecorder {
 	typename G::rules rules_;
 	S storage_;
 
-	std::shared_ptr<spdlog::logger> logger_ = spdlog::default_logger();  // todo: make logger configurable/injectable
+	std::shared_ptr<spdlog::logger> logger_;
 	std::mt19937 rng_ = std::mt19937(std::random_device()());
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 

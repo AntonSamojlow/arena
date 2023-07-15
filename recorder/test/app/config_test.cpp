@@ -17,9 +17,13 @@ TEST_CASE("ConfigReadWriteTest", "[app]") {
 	};
 	MCTS const mcts_2 = {.explore_constant = 1.5, .sample_uniformly = false, .simulations = 12};
 
+	FileLog file_log;
+	file_log.level = spdlog::level::trace;
+
 	Recorder const recorder_config = {.db_file_path = "some_db_file",
 		.parallel_games = 5,
-		.players = {{.name = "player-1", .mcts = mcts_1}, {.name = "player-2", .mcts = mcts_2}}};
+		.players = {{.name = "player-1", .mcts = mcts_1}, {.name = "player-2", .mcts = mcts_2}},
+		.log = {.console = SimpleLog{}, .file = file_log}};
 
 	test::TempFilePath const file_path = test::unique_file_path(false);
 	CHECK(write(recorder_config, file_path.get()).has_value());
