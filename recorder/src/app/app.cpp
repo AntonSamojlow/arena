@@ -168,7 +168,7 @@ auto App::run(config::Recorder const& config) -> int {
 
 // NOLINTBEGIN(*magic-numbers)
 auto App::create_example_config() -> config::Recorder {
-	std::filesystem::path log_folder = "./logs/";
+	std::filesystem::path const log_folder = "./logs/";
 	std::filesystem::create_directories(log_folder);
 
 	auto file_log = config::FileLog{};

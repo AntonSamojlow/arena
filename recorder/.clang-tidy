@@ -12,6 +12,7 @@ Checks: "*,
         -misc-non-private-member-variables-in-classes,
         -hicpp-braces-around-statements,
         -hicpp-special-member-functions
+        -*uppercase-literal-suffix
 "
 CheckOptions:
   - key:    readability-braces-around-statements.ShortStatementLines

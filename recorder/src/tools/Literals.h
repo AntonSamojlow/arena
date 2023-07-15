@@ -1,7 +1,6 @@
 // NOLINTBEGIN (*magic-numbers)
 
 namespace tools::literals::memory {
-// NOLINTBEGIN: nlohmann macros violate plenty checks
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wc++20-compat"
 
