@@ -50,7 +50,7 @@ class DefaultGraphContainer_v1 {
 		std::vector<std::pair<S, std::vector<A>>> root_data;
 		for (S root : new_roots) {
 			std::vector<A> actions;
-			for (auto const [action, _] : data_[root]) {
+			for (auto const& [action, _] : data_[root]) {
 				actions.emplace_back(action);
 			}
 			root_data.emplace_back(root, actions);
