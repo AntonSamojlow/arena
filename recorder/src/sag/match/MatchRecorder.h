@@ -1,11 +1,13 @@
 #pragma once
 #include <spdlog/spdlog.h>
 
+#include <exception>
 #include <queue>
 #include <random>
 #include <string>
 
 #include "Match.h"
+#include "sag/GraphConcepts.h"
 #include "sag/match/Player.h"
 #include "tools/MutexQueue.h"
 #include "tools/ThreadHandle.h"
@@ -28,30 +30,34 @@ class MatchRecorder {
 
 	// recorder is callable: it may run in a thread, with a queue for control signals
 	auto operator()(std::stop_token const& token, tools::MutexQueue<Signal>* queue) -> void {
-		logger_->info("recorder thread start");
-		while (!token.stop_requested()) {
-			if (is_running_)
-				record_once();
+		try {
+			logger_->info("recorder thread start");
+			while (!token.stop_requested()) {
+				if (is_running_)
+					record_once();
 
-			while (auto signal = queue->try_dequeue()) {
-				switch (signal.value()) {
-					case Signal::Record:
-						logger_->info("record signal");
-						is_running_ = true;
-						break;
-					case Signal::Halt:
-						logger_->info("halt signal");
-						is_running_ = false;
-						break;
-					case Signal::Quit: logger_->info("quit signal"); return;
-					case Signal::Status:
-						logger_->info("status signal");
-						generate_info();
-						break;
+				while (auto signal = queue->try_dequeue()) {
+					switch (signal.value()) {
+						case Signal::Record:
+							logger_->info("record signal");
+							is_running_ = true;
+							break;
+						case Signal::Halt:
+							logger_->info("halt signal");
+							is_running_ = false;
+							break;
+						case Signal::Quit: logger_->info("quit signal"); return;
+						case Signal::Status:
+							logger_->info("status signal");
+							generate_info();
+							break;
+					}
 				}
 			}
+			logger_->info("recorder thread end");
+		} catch (std::exception const& exc) {
+			logger_->error("match recorder exception: {}", exc.what());
 		}
-		logger_->info("recorder thread end");
 	}
 
  private:
@@ -94,14 +100,25 @@ class MatchRecorder {
 
 		for (size_t turn = 0; !graph_.is_terminal_at(state); ++turn) {
 			Player<G>* player = players_[turn % players_.size()].get();
+			logger_->debug("turn {}, player {}...", turn, player->display_name());
 			Action action = player->choose_play(state, graph_, rules_);
-			logger_->debug("turn {}, player {}", turn, player->display_name());
 
 			match.plays.emplace_back(state, action);
 			if (!graph_.is_expanded_at(state, action))
 				sag::expand(graph_, rules_, state, action);
 
 			state = sag::follow(graph_.edges_at(state, action), tools::UnitValue{unit_distribution_(rng_)});
+
+			if constexpr (sag::CountingGraphContainer<typename G::container, typename G::state, typename G::action>) {
+				logger_->debug("clearing and rerooting graph with {:L} states, {:L} actions and {:L} edges ...",
+					graph_.state_count(),
+					graph_.action_count(),
+					graph_.edge_count());
+			} else {
+				logger_->debug("clearing and rerooting graph ...");
+			}
+			graph_.clear_and_reroot({state});
+			logger_->debug("graph cleared");
 		}
 		match.end = std::chrono::steady_clock::now();
 		match.end_state = state;
@@ -109,8 +126,7 @@ class MatchRecorder {
 		logger_->debug("match ends");
 
 		storage_.add(match, "");
-
-		logger_->debug("match stored");
+		logger_->info("match stored");
 	}
 };
 

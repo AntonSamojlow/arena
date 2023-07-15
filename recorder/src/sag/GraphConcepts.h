@@ -1,6 +1,8 @@
 #pragma once
 
+#include <concepts>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -87,6 +89,7 @@ concept GraphContainer = Vertices<S, A> && std::regular<G> && requires(G graph,
 	G const const_graph,
 	S state,
 	A action,
+	std::vector<S> new_roots,
 	std::vector<A> actions,
 	std::vector<ActionEdge<S>> new_edges,
 	std::vector<std::pair<S, std::vector<A>>> next_states) {
@@ -103,6 +106,7 @@ concept GraphContainer = Vertices<S, A> && std::regular<G> && requires(G graph,
 	// non-const operations
 	{ graph.expand_at(state, action, new_edges, next_states) } -> std::same_as<bool>;
 	{ graph.add(state, actions) } -> std::same_as<bool>;
+	{ graph.clear_and_reroot(new_roots) } -> std::same_as<void>;
 };
 
 template <typename R, typename S, typename A>
@@ -129,8 +133,10 @@ concept CountingGraphContainer = GraphContainer<G, S, A> && requires(G const con
 	{ const_graph.edge_count() } -> std::same_as<size_t>;
 };
 
-template <typename N, typename S, typename A>
-concept VertexPrinter = Vertices<S, A> && requires(N const const_stringifier, S state, A action) {
+template <typename VP, typename S, typename A>
+concept VertexPrinter = Vertices<S, A>
+	&& std::is_default_constructible_v<VP>
+	&& requires(VP const const_stringifier, S state, A action) {
 	{ const_stringifier.to_string(state) } -> std::same_as<std::string>;
 	{ const_stringifier.to_string(state, action) } -> std::same_as<std::string>;
 };
@@ -141,5 +147,4 @@ concept Graph =
 	sag::GraphContainer<typename G::container, typename G::state, typename G::action> &&
 	sag::RulesEngine<typename G::rules, typename G::state, typename G::action> &&
 	sag::VertexPrinter<typename G::printer, typename G::state, typename G::action>;
-
 }  // namespace sag
