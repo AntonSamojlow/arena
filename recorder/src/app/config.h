@@ -57,7 +57,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Player, name, mcts)
 
 struct SimpleLog {
 	spdlog::level::level_enum level = spdlog::level::info;
-	std::string pattern;
+	std::string pattern = "[%H:%M:%S.%e] %v";
 
 	friend auto operator<=>(const SimpleLog&, const SimpleLog&) = default;
 };

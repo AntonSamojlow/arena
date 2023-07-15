@@ -83,7 +83,6 @@ auto create_logger(std::string const& name, config::Log const& log_config) -> sp
 
 auto App::run(config::Recorder const& config) -> int {
 	auto logger = std::make_shared<spdlog::logger>(create_logger("app", config.log));
-	// spdlog::set_default_logger(logger);
 
 	try {
 		using enum sag::match::Signal;
@@ -169,6 +168,12 @@ auto App::run(config::Recorder const& config) -> int {
 
 // NOLINTBEGIN(*magic-numbers)
 auto App::create_example_config() -> config::Recorder {
+	std::filesystem::path log_folder = "./logs/";
+	std::filesystem::create_directories(log_folder);
+
+	auto file_log = config::FileLog{};
+	file_log.folder = log_folder.string();
+
 	return config::Recorder{
 		.db_file_path = "recorder-db.sqlite",
 		.parallel_games = 4,
@@ -176,7 +181,7 @@ auto App::create_example_config() -> config::Recorder {
 			std::vector<config::Player>{
 				{.name = "player-1", .mcts = {.explore_constant = 0.5, .sample_uniformly = true, .simulations = 1000}},
 				{.name = "player-2", .mcts = {.explore_constant = 1.5, .sample_uniformly = false, .simulations = 1500}}},
-		.log = {.console = config::SimpleLog{}, .file = std::nullopt},
+		.log = {.console = config::SimpleLog{}, .file = file_log},
 	};
 }
 // NOLINTEND(*magic-numbers)

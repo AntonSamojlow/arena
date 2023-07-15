@@ -24,7 +24,7 @@ class MatchRecorder {
 		typename G::container&& graph,
 		typename G::rules&& rules,
 		S&& storage,
-		std::shared_ptr<spdlog::logger>&& logger)
+		std::shared_ptr<spdlog::logger> logger)
 			: players_(std::move(players)),
 				graph_(std::move(graph)),
 				rules_(std::move(rules)),
