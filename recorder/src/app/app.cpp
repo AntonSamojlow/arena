@@ -69,7 +69,7 @@ auto create_logger(std::string const& name, config::Log const& log_config) -> sp
 		if (!std::filesystem::is_directory(cfg->folder))
 			throw std::runtime_error(fmt::format("failed to create logger: '{}' is not a directory", cfg->folder));
 
-		std::filesystem::path log_file = fmt::format("{}/{}.log", cfg->folder, name);
+		std::filesystem::path const log_file = fmt::format("{}/{}.log", cfg->folder, name);
 		auto sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
 			log_file.string(), cfg->max_size_mb * 1_MiB, cfg->max_files);
 		sink->set_level(cfg->level);

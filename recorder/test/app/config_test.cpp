@@ -19,7 +19,8 @@ TEST_CASE("ConfigReadWriteTest", "[app]") {
 
 	Recorder const recorder_config = {.db_file_path = "some_db_file",
 		.parallel_games = 5,
-		.players = {{.name = "player-1", .mcts = mcts_1}, {.name = "player-2", .mcts = mcts_2}}};
+		.players = {{.name = "player-1", .mcts = mcts_1}, {.name = "player-2", .mcts = mcts_2}},
+		.log = {}};
 
 	test::TempFilePath const file_path = test::unique_file_path(false);
 	CHECK(write(recorder_config, file_path.get()).has_value());
