@@ -73,8 +73,8 @@ struct FileLog : SimpleLog {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FileLog, level, pattern, folder, max_size_mb, max_files, rotate_on_open)
 
 struct Log {
-	std::optional<SimpleLog> console = SimpleLog{};
-	std::optional<FileLog> file = FileLog{};
+	std::optional<SimpleLog> console;
+	std::optional<FileLog> file;
 	friend auto operator<=>(const Log&, const Log&) = default;
 };
 

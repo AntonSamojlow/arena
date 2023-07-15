@@ -104,7 +104,8 @@ auto App::run(config::Recorder const& config) -> int {
 		tools::SingleQueuedThreadHandle<std::string> cli_thread(ReadCommandLoop{input_source_, logger});
 
 		// prepare and inject the game-sepcific types
-		constexpr sag::santorini::Dimensions dim = {.rows = 5, .cols = 5, .player_unit_count = 2};
+		constexpr sag::santorini::Dimensions dim =  // avoid using 5x5x2, to keep app tests short
+			{.rows = 3, .cols = 3, .player_unit_count = 1};
 		using TGraph = sag::santorini::Graph<dim>;
 		using TStorage =
 			sag::storage::SQLiteMatchStorage<sag::santorini::StateConverter<dim>, sag::santorini::ActionConverter>;
@@ -134,9 +135,9 @@ auto App::run(config::Recorder const& config) -> int {
 						player_config.mcts.sample_uniformly, tools::NonNegative{player_config.mcts.explore_constant}}));
 			}
 
-			auto sql_connection = std::make_unique<tools::SQLiteConnection>(db_file_path, false);
+			auto recorder_logger = std::make_shared<spdlog::logger>(create_logger(fmt::format("rec-{}", i), config.log));
+			auto sql_connection = std::make_unique<tools::SQLiteConnection>(db_file_path, false, recorder_logger);
 			TStorage storage{std::move(sql_connection)};
-			auto recorder_logger = create_logger(fmt::format("recorder-{}", i), config.log);
 			TRec recorder{std::move(players), {}, {}, std::move(storage), std::move(recorder_logger)};
 
 			recorder_threads.emplace_back(std::move(recorder));
@@ -168,11 +169,15 @@ auto App::run(config::Recorder const& config) -> int {
 
 // NOLINTBEGIN(*magic-numbers)
 auto App::create_example_config() -> config::Recorder {
-	return config::Recorder{.db_file_path = "recorder-db.sqlite",
+	return config::Recorder{
+		.db_file_path = "recorder-db.sqlite",
 		.parallel_games = 4,
-		.players = std::vector<config::Player>{
-			{.name = "player-1", .mcts = {.explore_constant = 0.5, .sample_uniformly = true, .simulations = 1000}},
-			{.name = "player-2", .mcts = {.explore_constant = 1.5, .sample_uniformly = false, .simulations = 1500}}}};
+		.players =
+			std::vector<config::Player>{
+				{.name = "player-1", .mcts = {.explore_constant = 0.5, .sample_uniformly = true, .simulations = 1000}},
+				{.name = "player-2", .mcts = {.explore_constant = 1.5, .sample_uniformly = false, .simulations = 1500}}},
+		.log = {.console = config::SimpleLog{}, .file = std::nullopt},
+	};
 }
 // NOLINTEND(*magic-numbers)
 

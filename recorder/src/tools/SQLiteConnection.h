@@ -25,7 +25,7 @@ class SQLiteConnection {
 	};
 
  public:
-	explicit SQLiteConnection(std::string_view file_path, bool open_read_only);
+	SQLiteConnection(std::string_view file_path, bool open_read_only);
 	SQLiteConnection(std::string_view file_path, bool open_read_only, std::shared_ptr<spdlog::logger> logger);
 
 	// NOLINTNEXTLINE(modernize-use-nodiscard)

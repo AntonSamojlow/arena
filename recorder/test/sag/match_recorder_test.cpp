@@ -39,7 +39,7 @@ TEST_CASE("Match recorder test", "[sag, match]") {
 		auto connection = std::make_unique<tools::SQLiteConnection>(db_file.get(), false);
 		TStorage storage(std::move(connection));
 
-		TRec recorder{std::move(players), {}, {}, std::move(storage), spdlog::logger{"test-recorder"}};
+		TRec recorder{std::move(players), {}, {}, std::move(storage), std::make_shared<spdlog::logger>("test-recorder")};
 		recorder_threads.emplace_back(std::move(recorder));
 	}
 

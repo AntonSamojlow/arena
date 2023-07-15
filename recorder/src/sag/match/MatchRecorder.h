@@ -24,7 +24,7 @@ class MatchRecorder {
 		typename G::container&& graph,
 		typename G::rules&& rules,
 		S&& storage,
-		spdlog::logger&& logger)
+		std::shared_ptr<spdlog::logger>&& logger)
 			: players_(std::move(players)),
 				graph_(std::move(graph)),
 				rules_(std::move(rules)),
@@ -34,7 +34,7 @@ class MatchRecorder {
 	// recorder is callable: it may run in a thread, with a queue for control signals
 	auto operator()(std::stop_token const& token, tools::MutexQueue<Signal>* queue) -> void {
 		try {
-			logger_.info("recorder thread start");
+			logger_->info("recorder thread start");
 			while (!token.stop_requested()) {
 				if (is_running_)
 					record_once();
@@ -42,24 +42,24 @@ class MatchRecorder {
 				while (auto signal = queue->try_dequeue()) {
 					switch (signal.value()) {
 						case Signal::Record:
-							logger_.info("record signal");
+							logger_->info("record signal");
 							is_running_ = true;
 							break;
 						case Signal::Halt:
-							logger_.info("halt signal");
+							logger_->info("halt signal");
 							is_running_ = false;
 							break;
-						case Signal::Quit: logger_.info("quit signal"); return;
+						case Signal::Quit: logger_->info("quit signal"); return;
 						case Signal::Status:
-							logger_.info("status signal");
+							logger_->info("status signal");
 							generate_info();
 							break;
 					}
 				}
 			}
-			logger_.info("recorder thread end");
+			logger_->info("recorder thread end");
 		} catch (std::exception const& exc) {
-			logger_.error("match recorder exception: {}", exc.what());
+			logger_->error("match recorder exception: {}", exc.what());
 		}
 	}
 
@@ -70,7 +70,7 @@ class MatchRecorder {
 	typename G::rules rules_;
 	S storage_;
 
-	mutable spdlog::logger logger_;
+	std::shared_ptr<spdlog::logger> logger_;
 	std::mt19937 rng_ = std::mt19937(std::random_device()());
 	std::uniform_real_distribution<float> unit_distribution_ = std::uniform_real_distribution<float>(0.0, 1.0);
 
@@ -79,7 +79,7 @@ class MatchRecorder {
 		for (size_t i = 1; i < players_.size(); ++i)
 			player_names = std::move(player_names) + ", " + std::string{players_[i]->display_name()};
 
-		logger_.info("match recorder status: {} players ({}), running={}", players_.size(), player_names, is_running_);
+		logger_->info("match recorder status: {} players ({}), running={}", players_.size(), player_names, is_running_);
 	}
 
 	auto record_once() -> void {
@@ -89,7 +89,7 @@ class MatchRecorder {
 		// todo: pick randomly?
 		State state = graph_.roots().front();
 
-		logger_.debug("match starts");
+		logger_->debug("match starts");
 		std::vector<std::string> player_ids;
 		std::ranges::transform(
 			players_, std::back_inserter(player_ids), [&](auto const& player) { return std::string{player->id()}; });
@@ -103,7 +103,7 @@ class MatchRecorder {
 
 		for (size_t turn = 0; !graph_.is_terminal_at(state); ++turn) {
 			Player<G>* player = players_[turn % players_.size()].get();
-			logger_.debug("turn {}, player {}...", turn, player->display_name());
+			logger_->debug("turn {}, player {}...", turn, player->display_name());
 			Action action = player->choose_play(state, graph_, rules_);
 
 			match.plays.emplace_back(state, action);
@@ -113,23 +113,23 @@ class MatchRecorder {
 			state = sag::follow(graph_.edges_at(state, action), tools::UnitValue{unit_distribution_(rng_)});
 
 			if constexpr (sag::CountingGraphContainer<typename G::container, typename G::state, typename G::action>) {
-				logger_.debug("clearing and rerooting graph with {:L} states, {:L} actions and {:L} edges ...",
+				logger_->debug("clearing and rerooting graph with {:L} states, {:L} actions and {:L} edges ...",
 					graph_.state_count(),
 					graph_.action_count(),
 					graph_.edge_count());
 			} else {
-				logger_.debug("clearing and rerooting graph ...");
+				logger_->debug("clearing and rerooting graph ...");
 			}
 			graph_.clear_and_reroot({state});
-			logger_.debug("graph cleared");
+			logger_->debug("graph cleared");
 		}
 		match.end = std::chrono::steady_clock::now();
 		match.end_state = state;
 		match.end_score = rules_.score(state);
-		logger_.debug("match ends");
+		logger_->debug("match ends");
 
 		storage_.add(match, "");
-		logger_.info("match stored");
+		logger_->info("match stored");
 	}
 };
 
