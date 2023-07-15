@@ -1,6 +1,9 @@
 #include "app.h"
 
 #include <spdlog/common.h>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <tools/MutexQueue.h>
 
 #include <filesystem>
@@ -10,6 +13,7 @@
 #include <thread>
 #include <vector>
 
+#include "app/config.h"
 #include "sag/match/MatchRecorder.h"
 #include "sag/mcts/MCTS.h"
 #include "sag/mcts/MCTSPlayer.h"
@@ -17,14 +21,16 @@
 #include "sag/santorini/Santorini.h"
 #include "sag/storage/SQLiteMatchStorage.h"
 #include "tools/BoundedValue.h"
+#include "tools/Literals.h"
+
+using namespace tools::literals::memory;
 
 namespace {
 struct ReadCommandLoop {
 	std::istream& command_source;  // NOLINT(*const-or-ref-data-members)
+	std::shared_ptr<spdlog::logger> logger;
 
 	auto operator()(std::stop_token const& token, tools::MutexQueue<std::string>* queue) -> void {
-		std::shared_ptr<spdlog::logger> const logger =
-			spdlog::default_logger();  // todo: make logger configurable/injectable
 		logger->info("thread loop starts");
 		while (!token.stop_requested()) {
 			std::string input;
@@ -48,9 +54,37 @@ struct ReadCommandLoop {
 
 namespace app {
 
+namespace {
+auto create_logger(std::string const& name, config::Log const& log_config) -> spdlog::logger {
+	std::vector<spdlog::sink_ptr> sinks;
+
+	if (auto cfg = log_config.console; cfg.has_value()) {
+		auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+		sink->set_level(cfg->level);
+		sink->set_pattern(cfg->pattern);
+		sinks.emplace_back(sink);
+	}
+
+	if (auto cfg = log_config.file; cfg.has_value()) {
+		if (!std::filesystem::is_directory(cfg->folder))
+			throw std::runtime_error(fmt::format("failed to create logger: '{}' is not a directory", cfg->folder));
+
+		std::filesystem::path log_file = fmt::format("{}/{}.log", cfg->folder, name);
+		auto sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+			log_file.string(), cfg->max_size_mb * 1_MiB, cfg->max_files);
+		sink->set_level(cfg->level);
+		sink->set_pattern(cfg->pattern);
+		sinks.emplace_back(sink);
+	}
+
+	return spdlog::logger{name, sinks.begin(), sinks.end()};
+}
+}  // namespace
+
 auto App::run(config::Recorder const& config) -> int {
-	auto logger = spdlog::default_logger();
-	logger->set_level(config.log_level);
+	auto logger = std::make_shared<spdlog::logger>(create_logger("app", config.log));
+	// spdlog::set_default_logger(logger);
+
 	try {
 		using enum sag::match::Signal;
 		const std::map<std::string, sag::match::Signal, std::less<>> cliRecorderSignals = {
@@ -67,7 +101,7 @@ auto App::run(config::Recorder const& config) -> int {
 		};
 		logger->info("app start");
 
-		tools::SingleQueuedThreadHandle<std::string> cli_thread(ReadCommandLoop{input_source_});
+		tools::SingleQueuedThreadHandle<std::string> cli_thread(ReadCommandLoop{input_source_, logger});
 
 		// prepare and inject the game-sepcific types
 		constexpr sag::santorini::Dimensions dim = {.rows = 5, .cols = 5, .player_unit_count = 2};
@@ -80,7 +114,7 @@ auto App::run(config::Recorder const& config) -> int {
 		std::string_view const db_file_path = config.db_file_path;
 		if (std::filesystem::exists(db_file_path) && !std::filesystem::is_regular_file(db_file_path) &&
 				!std::filesystem::is_symlink(db_file_path)) {
-			logger->error("Existing object at db file path '{}' is neither a file nor a symlink", config.db_file_path);
+			logger->error("Existing object at path '{}' is neither a file nor a symlink", config.db_file_path);
 			return 1;
 		}
 
@@ -102,7 +136,9 @@ auto App::run(config::Recorder const& config) -> int {
 
 			auto sql_connection = std::make_unique<tools::SQLiteConnection>(db_file_path, false);
 			TStorage storage{std::move(sql_connection)};
-			TRec recorder{std::move(players), {}, {}, std::move(storage)};
+			auto recorder_logger = create_logger(fmt::format("recorder-{}", i), config.log);
+			TRec recorder{std::move(players), {}, {}, std::move(storage), std::move(recorder_logger)};
+
 			recorder_threads.emplace_back(std::move(recorder));
 		}
 

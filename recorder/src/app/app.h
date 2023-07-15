@@ -3,6 +3,7 @@
 #include <iostream>
 #include <istream>
 
+#include "app/config.h"
 #include "config.h"
 
 namespace app {
