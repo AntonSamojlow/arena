@@ -64,10 +64,10 @@ jobs:
       SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
       SONAR_ARGS: --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
     container:
-      image: europe-west3-docker.pkg.dev/devcontainers-396515/cpp/linux-dev:latest
+      image: docker.io/asamojlow/devcontainers:cpp-linux
       credentials:
-        username: _json_key_base64
-        password: ${{ secrets.GCLOUD_JSON_KEY }}
+        username:  ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_PAT }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
