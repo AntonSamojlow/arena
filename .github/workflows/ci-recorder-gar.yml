@@ -15,7 +15,7 @@ jobs:
       SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
       SONAR_ARGS: --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
     container:
-      image: europe-west3-docker.pkg.dev/devcontainers-396515/cpp/linux-dev:latest
+      image: europe-west3-docker.pkg.dev/devcontainers-396515/cpp/linux:latest
       credentials:
         username: _json_key_base64
         password: ${{ secrets.GCLOUD_JSON_KEY }}
