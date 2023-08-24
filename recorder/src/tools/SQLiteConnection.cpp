@@ -75,7 +75,7 @@ auto SQLiteConnection::execute(std::string_view statement) const -> tl::expected
 		logger_->debug("... read {} rows of {} columns", result.rows.size(), result.header.size());
 		return result;
 	}
-	return tl::unexpected<Failure>({.code = result_code,
+	return tl::unexpected<Failure>(Failure{.code = result_code,
 		.reason = fmt::format("{}: {}", sqlite3_errstr(result_code), sqlite3_errmsg(connection_.get()))});
 }
 

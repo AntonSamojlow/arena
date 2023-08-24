@@ -121,7 +121,7 @@ auto read(std::filesystem::path const& input_file_path) -> tl::expected<Config, 
 		nl::json data = nl::json::parse(file);
 		return data;
 	} catch (std::exception const& exc) {
-		return tl::unexpected<tools::Failure>({-1, fmt::format("Failed to parse from file: {}", exc.what())});
+		return tl::unexpected<tools::Failure>(tools::Failure{-1, fmt::format("Failed to parse from file: {}", exc.what())});
 	}
 }
 
@@ -133,7 +133,7 @@ auto write(Config const& config, std::filesystem::path const& output_file_path) 
 		file << output;
 		return {};
 	} catch (std::exception const& exc) {
-		return tl::unexpected<tools::Failure>({-1, fmt::format("Failed to write to file: {}", exc.what())});
+		return tl::unexpected<tools::Failure>(tools::Failure{-1, fmt::format("Failed to write to file: {}", exc.what())});
 	}
 }
 
