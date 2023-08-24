@@ -1,62 +1,13 @@
-# CI workflow that builds and tests the code on different os and compilers
-# relies on the CMakePresets.json entries
-
-# inspired by / adapted from:
-# https://github.com/lukka/CppCMakeVcpkgTemplate/blob/main/.github/workflows/hosted-pure-workflow.yml
-
-name: ci (recorder)
+# Run CI from GAR (google artifact registry) image weekly (to reduce egress costs)
+name: ci (recorder) from GAR
 on:
   schedule:
-    - cron: "25 16 * * *"
-  pull_request:
-    types: [opened, synchronize, reopened]
-  push:
-    branches:
-      - main
+    - cron: "25 15 * * 6"
 
 env:
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
 
 jobs:
-  ci-windows:
-    name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
-    env:
-      VS_VERSION: 2022
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - windows-latest
-        cmake-preset:
-          - x64-msvc-release
-          - x64-msvc-debug
-          - x64-clang-cl-release-tidy
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0 # vcpkg submodule uses 'baseline', which requires full git history
-          ref: ${{ github.event.workflow_run.head_branch }}
-
-      - uses: lukka/get-cmake@latest
-
-      - name: Prepare vcpkg
-        uses: "./.github/prepare-vcpkg"
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: ilammy/msvc-dev-cmd@v1
-        with:
-          vsversion: ${{ env.VS_VERSION }}
-          arch: x64
-
-      - name: Cmake build and test
-        uses: "./.github/cmake-build-test"
-        with:
-          preset: ${{ matrix.cmake-preset }}
-
   ci-linux:
     name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
     env:
@@ -64,10 +15,10 @@ jobs:
       SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
       SONAR_ARGS: --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
     container:
-      image: docker.io/asamojlow/devcontainers:cpp-linux
+      image: europe-west3-docker.pkg.dev/devcontainers-396515/cpp/linux:latest
       credentials:
-        username:  ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_PAT }}
+        username: _json_key_base64
+        password: ${{ secrets.GCLOUD_JSON_KEY }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -76,8 +27,6 @@ jobs:
           - ubuntu-latest
         cmake-preset:
           - gcc-gcov
-          - gcc-release
-          - clang-debug
           - clang-release-tidy
         include:
           - os: ubuntu-latest
@@ -156,26 +105,3 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
         run: sonar-scanner ${{ env.SONAR_ARGS }} --define sonar.cfamily.llvm-cov.reportPath=coverage_llvm.txt
-
-  formatting-check:
-    name: Formatting Check
-    env:
-      CLANG_VERSION: 16
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: clang-format src
-        if: always()
-        uses: jidicula/clang-format-action@v4.11.0
-        with:
-          clang-format-version: ${{ env.CLANG_VERSION}}
-          check-path: "recorder/src"
-          # exclude: '(hello|world)' # Exclude file paths containing "hello" or "world"
-          exclude-regex: ""
-      - name: clang-format test
-        if: always()
-        uses: jidicula/clang-format-action@v4.11.0
-        with:
-          clang-format-version: ${{ env.CLANG_VERSION }}
-          check-path: "recorder/test"
-          exclude-regex: ""

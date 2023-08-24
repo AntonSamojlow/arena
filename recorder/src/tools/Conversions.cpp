@@ -11,10 +11,10 @@ auto to_int64(std::string_view text) -> tl::expected<int64_t, Failure> {
 	const int64_t result = strtoll(text.data(), &end, 10);
 	if (text.data() == end) {
 		return tl::unexpected<Failure>{
-			{.code = static_cast<int>(ConversionError::Impossible), .reason = "strtol conversion not possible"}};
+			Failure{.code = static_cast<int>(ConversionError::Impossible), .reason = "strtol conversion not possible"}};
 	}
 	if (errno == ERANGE) {
-		return tl::unexpected<Failure>{{.code = static_cast<int>(ConversionError::OutOfRange),
+		return tl::unexpected<Failure>{Failure{.code = static_cast<int>(ConversionError::OutOfRange),
 			.reason = "strtol out of range, value: " + std::to_string(result)}};
 	}
 	return result;

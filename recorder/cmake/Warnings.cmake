@@ -67,6 +67,7 @@ set(CLANG_DEFAULT_WARNINGS
   ${GCC_AND_CLANG_DEFAULT_WARNINGS}
   -Wextra-semi-stmt # warn about extra semicolon making empty statement
   -Wno-float-equal # generated from using <=>, where we on purposed accept unstable float default comparison
+  -Wno-unsafe-buffer-usage
 )
 
 if(MSVC)
