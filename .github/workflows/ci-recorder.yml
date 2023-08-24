@@ -21,7 +21,6 @@ jobs:
   ci-windows:
     name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
     env:
-      CLANG_VERSION: 15
       VS_VERSION: 2022
     runs-on: ${{ matrix.os }}
     strategy:
@@ -61,8 +60,7 @@ jobs:
   ci-linux:
     name: ${{ matrix.os }} (${{ matrix.cmake-preset }})
     env:
-      CLANG_VERSION: 16
-      GCC_VERSION: 12
+      GCC_VERSION: 13
       SONAR_WRAPPER: build-wrapper-linux-x86-64 --out-dir ./build-wrapper-output
       SONAR_ARGS: --define sonar.cfamily.build-wrapper-output=recorder/build-wrapper-output
     container:
