@@ -117,7 +117,7 @@ jobs:
           else {
             $exec = 'gcov-${{ env.GCC_VERSION }}'
           }
-          gcovr --sonarqube --exclude-unreachable-branches --gcov-executable $exec --output coverage_gcov.xml
+          gcovr --sonarqube --exclude-unreachable-branches --gcov-executable $exec --output coverage_gcov.xml --gcov-ignore-parse-errors=negative_hits.warn
 
       - name: Run llvm-cov (collect llvm profile based coverage)
         if: matrix.llvmprofile
